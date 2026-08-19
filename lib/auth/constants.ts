@@ -1,0 +1,6 @@
+export const AUTH_COOKIE = "roofclaim_role"
+export const AUTH_SESSION_PATH = "/api/auth/session"
+export const ACCESS_TOKEN_KEY = "roofclaim_access_token"
+export const REFRESH_TOKEN_KEY = "roofclaim_refresh_token"
+export const AUTH_USER_KEY = "roofclaim_user"
+export const ACTIVE_COMPANY_KEY = "roofclaim_active_company"

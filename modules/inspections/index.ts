@@ -1,0 +1,5 @@
+export { default as InspectionListPage } from "./components/inspection-list"
+export { default as InspectionDetailPage } from "./components/inspection-detail"
+export { inspectionService } from "./services/inspection.service"
+export { useInspections, useInspection } from "./hooks/use-inspections"
+export type { Inspection } from "./types/inspection.types"
