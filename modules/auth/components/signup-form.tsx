@@ -14,11 +14,20 @@ import { PasswordField } from "@/modules/auth/components/password-field"
 import { useSignup } from "@/modules/auth/hooks/use-signup"
 import type { Role } from "@/types/role"
 
+function splitFullName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return { firstName: "", lastName: "" }
+  if (parts.length === 1) return { firstName: parts[0], lastName: parts[0] }
+  return {
+    firstName: parts.slice(0, -1).join(" "),
+    lastName: parts[parts.length - 1],
+  }
+}
+
 export function SignupForm() {
   const { error, loading, submit, setError } = useSignup()
   const [role, setRole] = React.useState<Role>("company")
-  const [firstName, setFirstName] = React.useState("")
-  const [lastName, setLastName] = React.useState("")
+  const [fullName, setFullName] = React.useState("")
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
 
@@ -29,9 +38,14 @@ export function SignupForm() {
       setError("Password must be at least 6 characters.")
       return
     }
+    const { firstName, lastName } = splitFullName(fullName)
+    if (!firstName) {
+      setError("Full name is required.")
+      return
+    }
     await submit({
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
+      firstName,
+      lastName,
       email: email.trim(),
       password,
     })
@@ -71,27 +85,16 @@ export function SignupForm() {
           </Button>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="firstName">First name</Label>
-                <Input
-                  id="firstName"
-                  value={firstName}
-                  onChange={(event) => setFirstName(event.target.value)}
-                  autoComplete="given-name"
-                  required
-                />
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="lastName">Last name</Label>
-                <Input
-                  id="lastName"
-                  value={lastName}
-                  onChange={(event) => setLastName(event.target.value)}
-                  autoComplete="family-name"
-                  required
-                />
-              </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="fullName">Full name</Label>
+              <Input
+                id="fullName"
+                value={fullName}
+                onChange={(event) => setFullName(event.target.value)}
+                autoComplete="name"
+                placeholder="Jordan Blake"
+                required
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="email">Email</Label>

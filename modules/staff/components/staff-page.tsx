@@ -30,31 +30,62 @@ import {
 import { PasswordField } from "@/modules/auth/components/password-field"
 import { staffService } from "@/modules/staff/services/staff.service"
 import { useStaff } from "@/modules/staff/hooks/use-staff"
-import type { StaffMember } from "@/modules/staff/types/staff.types"
+import type { InspectorHistoryItem, StaffMember } from "@/modules/staff/types/staff.types"
 import { ErrorState, LoadingState } from "@/components/shared/resource-state"
 import { getErrorMessage } from "@/lib/api/errors"
+import { getStoredUser } from "@/lib/auth/user-storage"
 
 function stopRowClick(event: React.MouseEvent) {
   event.stopPropagation()
 }
 
+function statusVariant(status: string) {
+  if (status === "active") return "active" as const
+  if (status === "suspended") return "suspended" as const
+  return "canceled" as const
+}
+
 export default function StaffPage() {
-  const { data, isLoading, error, reload } = useStaff()
-  const rows = data ?? []
+  const user = getStoredUser()
+  const isAdmin = user?.role === "company_admin"
+  const { data: inspectors = [], isLoading, error, reload } = useStaff()
+
   const [open, setOpen] = React.useState(false)
+  const [editOpen, setEditOpen] = React.useState(false)
+  const [historyOpen, setHistoryOpen] = React.useState(false)
+  const [reassignOpen, setReassignOpen] = React.useState(false)
   const [saving, setSaving] = React.useState(false)
+  const [editing, setEditing] = React.useState<StaffMember | null>(null)
+  const [history, setHistory] = React.useState<InspectorHistoryItem[]>([])
+  const [reassignTargetId, setReassignTargetId] = React.useState("")
   const [name, setName] = React.useState("")
   const [email, setEmail] = React.useState("")
+  const [phone, setPhone] = React.useState("")
   const [password, setPassword] = React.useState("")
 
-  function openAdd() {
+  function resetForm() {
     setName("")
     setEmail("")
+    setPhone("")
     setPassword("")
+    setEditing(null)
+  }
+
+  function openAdd() {
+    resetForm()
     setOpen(true)
   }
 
-  async function saveMember() {
+  function openEdit(member: StaffMember) {
+    setEditing(member)
+    setName(member.name)
+    setEmail(member.email)
+    setPhone(member.profile?.phone || "")
+    setPassword("")
+    setEditOpen(true)
+  }
+
+  async function saveCreate() {
     if (!name.trim() || !email.trim() || !password.trim()) {
       toast.error("Name, email, and password are required")
       return
@@ -70,12 +101,13 @@ export default function StaffPage() {
         name: name.trim(),
         email: email.trim(),
         password,
+        phone: phone.trim() || undefined,
       })
-      if (result.emailSent) {
-        toast.success(`Inspector added. Login details sent to ${email.trim()}`)
-      } else {
-        toast.success("Inspector added. Share the password you set — they sign in on the mobile app.")
-      }
+      toast.success(
+        result.emailSent
+          ? `Inspector added. Login details sent to ${email.trim()}`
+          : "Inspector added. Share the password you set.",
+      )
       await reload()
       setOpen(false)
     } catch (err) {
@@ -85,173 +117,312 @@ export default function StaffPage() {
     }
   }
 
-  if (isLoading) return <LoadingState label="Loading staff…" />
-  if (error) return <ErrorState message={error} />
+  async function saveEdit() {
+    if (!editing) return
+    setSaving(true)
+    try {
+      await staffService.update(editing.id, {
+        name: name.trim(),
+        phone: phone.trim() || undefined,
+        password: password.trim() || undefined,
+      })
+      toast.success("Inspector updated")
+      await reload()
+      setEditOpen(false)
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function setStatus(member: StaffMember, status: "active" | "suspended" | "deactivated") {
+    try {
+      await staffService.setStatus(member.id, status)
+      toast.success(`Inspector ${status}`)
+      await reload()
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
+  }
+
+  async function resetPassword(member: StaffMember) {
+    try {
+      const result = await staffService.resetPassword(member.id)
+      toast.success(
+        result.emailSent
+          ? "Password reset emailed to inspector"
+          : `Temporary password: ${result.temporaryPassword}`,
+      )
+      await reload()
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
+  }
+
+  async function openHistory(member: StaffMember) {
+    try {
+      const result = await staffService.history(member.id)
+      setEditing(member)
+      setHistory(result.history)
+      setHistoryOpen(true)
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
+  }
+
+  function openReassign(member: StaffMember) {
+    setEditing(member)
+    setReassignTargetId(inspectors.find((item) => item.id !== member.id && item.status === "active")?.id || "")
+    setReassignOpen(true)
+  }
+
+  async function saveReassign() {
+    if (!editing || !reassignTargetId) {
+      toast.error("Select a target inspector")
+      return
+    }
+    setSaving(true)
+    try {
+      const result = await staffService.reassignJobs(editing.id, reassignTargetId)
+      toast.success(`${result.count} job(s) reassigned`)
+      await reload()
+      setReassignOpen(false)
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const columns: Column<StaffMember>[] = [
+    { key: "name", header: "Name", cell: (row) => row.name },
+    { key: "email", header: "Email", cell: (row) => row.email },
     {
-      key: "name",
-      header: "Name",
-      sortable: true,
-      accessor: (s) => s.name,
-      cell: (s) => (
-        <div className="flex flex-col gap-0.5">
-          <span className="font-medium">{s.name}</span>
-        </div>
-      ),
-    },
-    {
-      key: "email",
-      header: "Email",
-      sortable: true,
-      accessor: (s) => s.email,
+      key: "phone",
+      header: "Phone",
+      cell: (row) => row.profile?.phone || "—",
     },
     {
       key: "role",
       header: "Role",
-      sortable: true,
-      accessor: (s) => s.role,
       cell: () => "Inspector",
     },
     {
       key: "status",
       header: "Status",
-      sortable: true,
-      accessor: (s) => s.status,
-      cell: (s) => (
-        <StatusBadge
-          status={s.status === "active" ? "active" : "suspended"}
-          label={s.status === "active" ? "Active" : "Inactive"}
-        />
-      ),
+      cell: (row) => <StatusBadge status={statusVariant(row.status)} label={row.status} />,
+    },
+    {
+      key: "assigned",
+      header: "Jobs assigned",
+      cell: (row) => String(row.jobsAssigned ?? 0),
+      className: "text-right",
+    },
+    {
+      key: "completed",
+      header: "Jobs completed",
+      cell: (row) => String(row.jobsCompleted ?? 0),
+      className: "text-right",
+    },
+    {
+      key: "reports",
+      header: "Reports submitted",
+      cell: (row) => String(row.reportsSubmitted ?? 0),
+      className: "text-right",
+    },
+    {
+      key: "productivity",
+      header: "Productivity",
+      cell: (row) => `${row.productivity?.completionRate ?? 0}%`,
+      className: "text-right",
     },
     {
       key: "actions",
-      header: "Action",
-      align: "right",
-      className: "w-24",
-      cell: (s) => (
-        <div className="flex justify-end" onClick={stopRowClick}>
-          <DropdownMenu>
-            <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
-              <MoreHorizontalIcon />
-              <span className="sr-only">Manage inspector</span>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuGroup>
-                <DropdownMenuLabel>User management</DropdownMenuLabel>
-                <DropdownMenuItem disabled>
-                  Total jobs
-                  <span className="ml-auto tabular-nums text-muted-foreground">{s.jobsTotal ?? 0}</span>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={async () => {
-                  try {
-                    const next = s.status === "active" ? "suspended" : "active"
-                    await staffService.setStatus(s.id, next)
-                    await reload()
-                    toast.success(next === "active" ? `${s.name} is active` : `${s.name} is inactive`)
-                  } catch (err) {
-                    toast.error(getErrorMessage(err))
-                  }
-                }}
-              >
-                {s.status === "active" ? "Set inactive" : "Set active"}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={async () => {
-                  if (!window.confirm(`Delete ${s.name}? They will lose mobile-app access.`)) return
-                  try {
-                    await staffService.remove(s.id)
-                    await reload()
-                    toast.success(`${s.name} deleted`)
-                  } catch (err) {
-                    toast.error(getErrorMessage(err))
-                  }
-                }}
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
+      header: "",
+      cell: (row) =>
+        isAdmin ? (
+          <div onClick={stopRowClick}>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button variant="ghost" size="icon-sm">
+                    <MoreHorizontalIcon />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => openEdit(row)}>Edit</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openHistory(row)}>Job history</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => openReassign(row)}>Reassign jobs</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => resetPassword(row)}>Reset password</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {row.status === "active" ? (
+                    <DropdownMenuItem onClick={() => setStatus(row, "suspended")}>
+                      Suspend
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem onClick={() => setStatus(row, "active")}>
+                      Activate
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem variant="destructive" onClick={() => setStatus(row, "deactivated")}>
+                    Deactivate
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ) : null,
     },
   ]
+
+  if (isLoading) return <LoadingState label="Loading staff…" />
+  if (error) return <ErrorState message={error} />
 
   return (
     <>
       <PageHeader
         eyebrow="Company admin"
         title="Staff"
-        description="Add inspectors with an email and password. They use those credentials on the RoofClaim mobile app."
+        description="Create and manage inspectors for your company only."
         actions={
-          <Button onClick={openAdd}>
-            <UserPlusIcon data-icon="inline-start" />
-            Add inspector
-          </Button>
+          isAdmin ? (
+            <Button onClick={openAdd} className="bg-terracotta text-terracotta-foreground hover:bg-terracotta/90">
+              <UserPlusIcon data-icon="inline-start" />
+              Add inspector
+            </Button>
+          ) : null
         }
       />
 
-      <DataTable
-        data={rows}
-        columns={columns}
-        rowKey={(s) => s.id}
-        searchPlaceholder="Search inspectors…"
-        searchKeys={["name", "email"]}
-        emptyTitle="No inspectors yet"
-        emptyDescription="Add your first inspector. They’ll sign in on the mobile app with the email and password you set."
-      />
+      <DataTable columns={columns} data={inspectors} emptyMessage="No inspectors yet." />
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add inspector</DialogTitle>
-            <DialogDescription>
-              Create a mobile-app account. We’ll email the login details to this person.
-            </DialogDescription>
+            <DialogTitle>Create inspector</DialogTitle>
+            <DialogDescription>Name, email, phone, and a temporary password.</DialogDescription>
           </DialogHeader>
-          <div className="flex flex-col gap-3">
+          <div className="grid gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="staff-name">Name</Label>
-              <Input
-                id="staff-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoComplete="name"
-              />
+              <Label>Name</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="staff-email">Email</Label>
-              <Input
-                id="staff-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="off"
-              />
+              <Label>Email</Label>
+              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="staff-password">Password</Label>
-              <PasswordField
-                id="staff-password"
-                value={password}
-                onChange={setPassword}
-                autoComplete="new-password"
-              />
+              <Label>Phone</Label>
+              <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>Password</Label>
+              <PasswordField value={password} onChange={setPassword} autoComplete="new-password" />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
+            <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={saveMember} disabled={saving}>
-              {saving ? "Adding…" : "Add inspector"}
+            <Button disabled={saving} onClick={saveCreate}>
+              {saving ? "Saving…" : "Create"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit inspector</DialogTitle>
+            <DialogDescription>{editing?.email}</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label>Name</Label>
+              <Input value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>Phone</Label>
+              <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>New password (optional)</Label>
+              <PasswordField value={password} onChange={setPassword} autoComplete="new-password" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditOpen(false)}>
+              Cancel
+            </Button>
+            <Button disabled={saving} onClick={saveEdit}>
+              {saving ? "Saving…" : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={reassignOpen} onOpenChange={setReassignOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reassign jobs</DialogTitle>
+            <DialogDescription>
+              Move open jobs from {editing?.name} to another inspector.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-1.5">
+            <Label>Target inspector</Label>
+            <select
+              className="h-10 rounded-md border bg-background px-3 text-sm"
+              value={reassignTargetId}
+              onChange={(e) => setReassignTargetId(e.target.value)}
+            >
+              <option value="">Select inspector</option>
+              {inspectors
+                .filter((item) => item.id !== editing?.id && item.status === "active")
+                .map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.name}
+                  </option>
+                ))}
+            </select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReassignOpen(false)}>
+              Cancel
+            </Button>
+            <Button disabled={saving} onClick={saveReassign}>
+              {saving ? "Reassigning…" : "Reassign jobs"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editing?.name} · job history</DialogTitle>
+          </DialogHeader>
+          <ul className="max-h-80 space-y-2 overflow-y-auto text-sm">
+            {history.length === 0 ? (
+              <li className="text-muted-foreground">No jobs yet.</li>
+            ) : (
+              history.map((item) => (
+                <li key={item.id} className="rounded-md border px-3 py-2">
+                  <p className="font-medium">
+                    {item.jobNumber} {item.title ? `· ${item.title}` : ""}
+                  </p>
+                  <p className="text-muted-foreground">
+                    {item.customerName} · {item.status.replaceAll("_", " ")}
+                  </p>
+                </li>
+              ))
+            )}
+          </ul>
         </DialogContent>
       </Dialog>
     </>

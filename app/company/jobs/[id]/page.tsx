@@ -1,1 +1,1 @@
-export { default } from "@/modules/inspections/components/inspection-detail"
+export { default } from "@/modules/inspections/components/job-detail"

@@ -5,33 +5,92 @@ import { ImageIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { PageHeader } from "@/components/shared/page-header"
-import { StormBadge } from "@/components/shared/storm-badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { useBranding } from "@/modules/branding/hooks/use-branding"
 import { brandingService } from "@/modules/branding/services/branding.service"
 import { ErrorState, LoadingState } from "@/components/shared/resource-state"
+import { getErrorMessage } from "@/lib/api/errors"
+
+function readFileAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result || ""))
+    reader.onerror = () => reject(new Error("Could not read logo file"))
+    reader.readAsDataURL(file)
+  })
+}
 
 export default function BrandingPage() {
-  const { data, isLoading, error } = useBranding()
-  const [company, setCompany] = React.useState(data?.company ?? "")
-  const [address, setAddress] = React.useState(data?.address ?? "")
-  const [license, setLicense] = React.useState(data?.license ?? "")
-  const [primary, setPrimary] = React.useState(data?.primary ?? "#0F4C81")
-  const [accent, setAccent] = React.useState(data?.accent ?? "#F59E0B")
-  const [logoName, setLogoName] = React.useState<string | null>(data?.logoName ?? null)
+  const { data, isLoading, error, reload } = useBranding()
+  const [companyDisplayName, setCompanyDisplayName] = React.useState("")
+  const [footerText, setFooterText] = React.useState("")
+  const [tagline, setTagline] = React.useState("")
+  const [primary, setPrimary] = React.useState("#1B4F72")
+  const [accent, setAccent] = React.useState("#E07A3D")
+  const [logoUrl, setLogoUrl] = React.useState("")
+  const [email, setEmail] = React.useState("")
+  const [phone, setPhone] = React.useState("")
+  const [website, setWebsite] = React.useState("")
+  const [addressLine, setAddressLine] = React.useState("")
+  const [saving, setSaving] = React.useState(false)
 
   React.useEffect(() => {
     if (!data) return
-    setCompany(data.company)
-    setAddress(data.address)
-    setLicense(data.license)
-    setPrimary(data.primary)
-    setAccent(data.accent)
-    setLogoName(data.logoName)
+    setCompanyDisplayName(data.companyDisplayName)
+    setFooterText(data.footerText)
+    setTagline(data.tagline)
+    setPrimary(data.primaryColor)
+    setAccent(data.accentColor)
+    setLogoUrl(data.logoUrl)
+    setEmail(data.contact.email)
+    setPhone(data.contact.phone)
+    setWebsite(data.contact.website)
+    setAddressLine(data.contact.addressLine)
   }, [data])
+
+  async function onLogoChange(file?: File | null) {
+    if (!file) return
+    if (file.size > 1_500_000) {
+      toast.error("Logo must be under 1.5MB")
+      return
+    }
+    try {
+      const dataUrl = await readFileAsDataUrl(file)
+      setLogoUrl(dataUrl)
+      toast.success("Logo ready — save branding to apply")
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    }
+  }
+
+  async function save() {
+    setSaving(true)
+    try {
+      await brandingService.save({
+        companyDisplayName: companyDisplayName.trim(),
+        footerText: footerText.trim(),
+        primaryColor: primary,
+        accentColor: accent,
+        tagline: tagline.trim(),
+        logoUrl,
+        contact: {
+          email: email.trim(),
+          phone: phone.trim(),
+          website: website.trim(),
+        },
+      })
+      toast.success("Branding saved — applied to PDF reports and customer emails")
+      await reload?.()
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    } finally {
+      setSaving(false)
+    }
+  }
 
   if (isLoading) return <LoadingState label="Loading branding…" />
   if (error) return <ErrorState message={error} />
@@ -41,16 +100,14 @@ export default function BrandingPage() {
       <PageHeader
         eyebrow="Company admin"
         title="Branding"
-        description="Logo, colors, and company details as they appear on exported reports."
+        description="Logo, company name, footer text, and contact details applied automatically to PDF reports, customer report emails, and email templates."
         actions={
           <Button
             className="bg-terracotta text-terracotta-foreground hover:bg-terracotta/90"
-            onClick={async () => {
-              await brandingService.save({ company, address, license, primary, accent, logoName })
-              toast.success("Branding saved")
-            }}
+            disabled={saving}
+            onClick={save}
           >
-            Save branding
+            {saving ? "Saving…" : "Save branding"}
           </Button>
         }
       />
@@ -59,44 +116,76 @@ export default function BrandingPage() {
         <div className="flex flex-col gap-4">
           <Card>
             <CardHeader>
-              <CardTitle>Logo</CardTitle>
-              <CardDescription>Used in the report header. PNG or SVG, 400×120 recommended.</CardDescription>
+              <CardTitle>Upload logo</CardTitle>
+              <CardDescription>Used in report headers and branded emails. PNG/JPG/SVG, under 1.5MB.</CardDescription>
             </CardHeader>
             <CardContent>
               <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-10 text-center hover:bg-muted/40">
-                <ImageIcon className="size-8 text-muted-foreground" />
-                <span className="text-sm font-medium">{logoName ?? "Upload company logo"}</span>
-                <span className="text-xs text-muted-foreground">Click to choose a file</span>
+                {logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={logoUrl} alt="Company logo" className="max-h-16 max-w-full object-contain" />
+                ) : (
+                  <ImageIcon className="size-8 text-muted-foreground" />
+                )}
+                <span className="text-sm font-medium">{logoUrl ? "Replace logo" : "Upload company logo"}</span>
                 <input
                   type="file"
                   accept="image/*"
                   className="sr-only"
-                  onChange={(e) => setLogoName(e.target.files?.[0]?.name ?? null)}
+                  onChange={(e) => onLogoChange(e.target.files?.[0])}
                 />
               </label>
+              {logoUrl ? (
+                <Button variant="ghost" className="mt-2" onClick={() => setLogoUrl("")}>
+                  Remove logo
+                </Button>
+              ) : null}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Brand colors</CardTitle>
-              <CardDescription>Primary for headers and links. Accent for damage highlights.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <ColorField label="Primary" value={primary} onChange={setPrimary} />
-              <ColorField label="Accent" value={accent} onChange={setAccent} />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Company details</CardTitle>
-              <CardDescription>Printed on every evidence report cover.</CardDescription>
+              <CardTitle>Company name</CardTitle>
+              <CardDescription>Display name on PDFs and customer-facing emails.</CardDescription>
             </CardHeader>
             <CardContent className="flex max-w-xl flex-col gap-4">
-              <Field label="Company name" value={company} onChange={setCompany} />
-              <Field label="Address" value={address} onChange={setAddress} />
-              <Field label="License number" value={license} onChange={setLicense} />
+              <Field label="Company display name" value={companyDisplayName} onChange={setCompanyDisplayName} />
+              <Field label="Tagline" value={tagline} onChange={setTagline} />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <ColorField label="Primary" value={primary} onChange={setPrimary} />
+                <ColorField label="Accent" value={accent} onChange={setAccent} />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Footer text</CardTitle>
+              <CardDescription>Printed at the bottom of PDF reports and customer emails.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Textarea
+                value={footerText}
+                onChange={(e) => setFooterText(e.target.value)}
+                rows={3}
+                placeholder="Licensed roofing contractor · Confidential claim documentation"
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Contact information</CardTitle>
+              <CardDescription>Shown on reports and share emails. Address is managed under Organization.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid max-w-xl gap-4 sm:grid-cols-2">
+              <Field label="Email" value={email} onChange={setEmail} />
+              <Field label="Phone" value={phone} onChange={setPhone} />
+              <Field label="Website" value={website} onChange={setWebsite} />
+              <div className="flex flex-col gap-1.5 sm:col-span-2">
+                <Label>Address (from Organization)</Label>
+                <Input value={addressLine} disabled />
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -104,32 +193,43 @@ export default function BrandingPage() {
         <Card className="h-fit lg:sticky lg:top-20">
           <CardHeader>
             <CardTitle>Live preview</CardTitle>
-            <CardDescription>Report header as the carrier will see it</CardDescription>
+            <CardDescription>How branding appears on customer reports</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-hidden rounded-lg border bg-background">
-              <div className="flex items-center justify-between gap-3 px-4 py-3" style={{ backgroundColor: primary }}>
-                <div className="flex items-center gap-2.5">
+              <div
+                className="flex items-center gap-3 px-4 py-3"
+                style={{ backgroundColor: primary }}
+              >
+                {logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={logoUrl} alt="" className="h-8 max-w-[120px] object-contain" />
+                ) : (
                   <span
                     className="flex size-8 items-center justify-center rounded-md text-xs font-semibold text-white"
                     style={{ backgroundColor: accent }}
                   >
-                    {company.slice(0, 2).toUpperCase()}
+                    {(companyDisplayName || "CO").slice(0, 2).toUpperCase()}
                   </span>
-                  <div className="flex min-w-0 flex-col text-white">
-                    <span className="truncate text-sm font-semibold">{company}</span>
-                    <span className="truncate text-[11px] opacity-80">Insurance evidence report</span>
-                  </div>
+                )}
+                <div className="flex min-w-0 flex-col text-white">
+                  <span className="truncate text-sm font-semibold">{companyDisplayName || "Company"}</span>
+                  <span className="truncate text-[11px] opacity-80">
+                    {tagline || "Insurance evidence report"}
+                  </span>
                 </div>
-                <StormBadge state="verified" size="sm" />
               </div>
               <div className="flex flex-col gap-1 px-4 py-4 text-sm">
-                <p className="font-medium">482 Maple Crest Dr, Denver, CO</p>
-                <p className="text-xs text-muted-foreground">{address}</p>
-                <p className="text-xs text-muted-foreground">License {license}</p>
-                {logoName && (
-                  <p className="mt-2 text-xs text-muted-foreground">Logo file: {logoName}</p>
-                )}
+                <p className="font-medium">Sample customer report</p>
+                <p className="text-xs text-muted-foreground">
+                  {[phone, email, website].filter(Boolean).join(" · ") || "Add contact details"}
+                </p>
+                {addressLine ? (
+                  <p className="text-xs text-muted-foreground">{addressLine}</p>
+                ) : null}
+                <p className="mt-3 border-t pt-3 text-xs text-muted-foreground">
+                  {footerText || "Footer text appears here on PDF & email"}
+                </p>
               </div>
             </div>
           </CardContent>

@@ -4,7 +4,7 @@ import type { AuthUser } from "@/types/user"
 
 export function toPortalRole(role: UserRole): Role | null {
   if (role === "platform_admin") return "platform"
-  if (role === "company_admin") return "company"
+  if (role === "company_admin" || role === "office_staff") return "company"
   return null
 }
 

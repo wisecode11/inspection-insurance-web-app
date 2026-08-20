@@ -17,6 +17,11 @@ export const ROUTES = {
     jobs: "/company/jobs",
     job: (id: string) => `/company/jobs/${id}`,
     staff: "/company/staff",
+    organization: "/company/organization",
+    billing: "/company/billing",
+    codes: "/company/codes",
+    reports: "/company/reports",
+    report: (id: string) => `/company/reports/${id}`,
     branding: "/company/branding",
     templates: "/company/templates",
     analytics: "/company/analytics",
@@ -24,6 +29,5 @@ export const ROUTES = {
   onboarding: {
     organization: "/onboarding/organization",
     subscription: "/onboarding/subscription",
-    select: "/onboarding/select",
   },
 } as const

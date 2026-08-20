@@ -1,8 +1,14 @@
 export type CompanyBranding = {
-  company: string
-  address: string
-  license: string
-  primary: string
-  accent: string
-  logoName: string | null
+  logoUrl: string
+  companyDisplayName: string
+  footerText: string
+  primaryColor: string
+  accentColor: string
+  tagline: string
+  contact: {
+    email: string
+    phone: string
+    website: string
+    addressLine: string
+  }
 }

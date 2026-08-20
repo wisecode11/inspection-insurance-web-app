@@ -166,40 +166,89 @@ export function InspectionVolumeChart({ data, height = 260 }: { data: MonthVolum
   )
 }
 
+export function MonthlyJobsChart({
+  data,
+  height = 260,
+}: {
+  data: Array<{ month: string; total: number; completed: number }>
+  height?: number
+}) {
+  const config = {
+    total: { label: "Created", color: "var(--chart-1)" },
+    completed: { label: "Completed", color: "var(--chart-2)" },
+  } satisfies ChartConfig
+  return (
+    <ChartContainer config={config} className="aspect-auto w-full" style={{ height }}>
+      <BarChart data={data} margin={{ left: 4, right: 12, top: 8 }}>
+        <CartesianGrid vertical={false} />
+        <XAxis dataKey="month" {...axis} />
+        <YAxis {...axis} width={28} />
+        <ChartTooltip content={<ChartTooltipContent />} />
+        <Bar dataKey="total" fill="var(--color-total)" radius={[4, 4, 0, 0]} />
+        <Bar dataKey="completed" fill="var(--color-completed)" radius={[4, 4, 0, 0]} />
+      </BarChart>
+    </ChartContainer>
+  )
+}
+
 const claimColors: Record<string, string> = {
   approved: "var(--chart-3)",
   pending: "var(--chart-4)",
   submitted: "var(--chart-1)",
   draft: "var(--chart-5)",
   failed: "var(--destructive)",
+  rejected: "var(--destructive)",
+  assigned: "var(--chart-1)",
+  in_progress: "var(--chart-4)",
+  reviewed: "var(--chart-2)",
+  completed: "var(--chart-3)",
+  reopened: "var(--chart-5)",
+  on_hold: "var(--chart-4)",
+  cancelled: "var(--muted-foreground)",
+}
+
+const FALLBACK_CHART_COLORS = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+]
+
+function colorForKey(key: string, index: number) {
+  return claimColors[key] || FALLBACK_CHART_COLORS[index % FALLBACK_CHART_COLORS.length]
 }
 
 export function ClaimDonutChart({ data }: { data: ClaimSlice[] }) {
   const config = {
-    value: { label: "Claims" },
-    approved: { label: "Approved", color: "var(--chart-3)" },
-    pending: { label: "Pending", color: "var(--chart-4)" },
-    submitted: { label: "Submitted", color: "var(--chart-1)" },
-    draft: { label: "Draft", color: "var(--chart-5)" },
-    failed: { label: "Failed", color: "var(--destructive)" },
+    value: { label: "Count" },
+    ...Object.fromEntries(
+      data.map((entry, index) => [
+        entry.key,
+        { label: entry.name, color: colorForKey(entry.key, index) },
+      ])
+    ),
   } satisfies ChartConfig
-  const total = data.reduce((a, b) => a + b.value, 0)
+  const total = data.reduce((a, b) => a + b.value, 0) || 1
   return (
     <div className="flex flex-col items-center gap-4 sm:flex-row">
       <ChartContainer config={config} className="aspect-square h-[220px]">
         <PieChart>
           <ChartTooltip content={<ChartTooltipContent nameKey="key" hideLabel />} />
           <Pie data={data} dataKey="value" nameKey="key" innerRadius={62} outerRadius={92} strokeWidth={2}>
-            {data.map((entry) => (
-              <Cell key={entry.key} fill={claimColors[entry.key]} />
+            {data.map((entry, index) => (
+              <Cell key={entry.key} fill={colorForKey(entry.key, index)} />
             ))}
           </Pie>
         </PieChart>
       </ChartContainer>
       <div className="flex w-full flex-col gap-2">
-        {data.map((entry) => (
+        {data.map((entry, index) => (
           <div key={entry.key} className="flex items-center gap-2 text-sm">
-            <span className="size-2.5 rounded-full" style={{ backgroundColor: claimColors[entry.key] }} />
+            <span
+              className="size-2.5 rounded-full"
+              style={{ backgroundColor: colorForKey(entry.key, index) }}
+            />
             <span className="text-muted-foreground">{entry.name}</span>
             <span className="ml-auto font-medium tabular-nums">{entry.value}</span>
             <span className="w-10 text-right text-xs text-muted-foreground tabular-nums">

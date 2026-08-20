@@ -1,7 +1,11 @@
+import { apiClient } from "@/lib/api/client"
 import { endpoints } from "@/lib/api/endpoints"
-import { apiGet } from "@/lib/api/request"
-import { listCompanyActivityMock } from "@/modules/company-dashboard/mocks/activity.mock"
+import { unwrap } from "@/lib/api/unwrap"
+import type { CompanyDashboardData } from "@/modules/company-dashboard/types/dashboard.types"
 
 export const companyDashboardService = {
-  activity: () => apiGet(endpoints.dashboard.company, listCompanyActivityMock),
+  async overview() {
+    const response = await apiClient.get(endpoints.dashboard.company)
+    return unwrap<CompanyDashboardData>(response.data)
+  },
 }

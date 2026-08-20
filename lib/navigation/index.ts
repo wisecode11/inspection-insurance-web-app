@@ -1,5 +1,5 @@
 export type { NavItem } from "./types"
 export { platformNav } from "./platform"
-export { companyNav } from "./company"
+export { companyNav, companyNavForUserRole } from "./company"
 export { roleMeta } from "./meta"
 export { navForRole } from "./nav-for-role"

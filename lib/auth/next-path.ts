@@ -13,7 +13,18 @@ export function pathAfterSignup() {
   return ROUTES.onboarding.organization
 }
 
-export function pathAfterLogin(user: AuthUser, expectedRole: Role) {
+/** Single-company routing: no org → create; needs plan → subscription; else dashboard. */
+export function pathForCompany(company: CompanySummary | null) {
+  if (!company) return ROUTES.onboarding.organization
+  if (companyNeedsSubscription(company)) return ROUTES.onboarding.subscription
+  return ROUTES.company.dashboard
+}
+
+export function pathAfterLogin(
+  user: AuthUser,
+  expectedRole: Role,
+  company: CompanySummary | null = null,
+) {
   if (user.role === "platform_admin") {
     if (expectedRole !== "platform") {
       throw new Error("This account is a platform owner. Choose Platform owner to continue.")
@@ -25,15 +36,9 @@ export function pathAfterLogin(user: AuthUser, expectedRole: Role) {
     throw new Error("This account belongs to a company. Choose Company to continue.")
   }
 
-  return ROUTES.onboarding.select
+  return pathForCompany(company)
 }
 
 export function pathAfterOrganization() {
   return ROUTES.onboarding.subscription
-}
-
-export function pathAfterSelect(company: CompanySummary | null) {
-  if (!company) return ROUTES.onboarding.organization
-  if (companyNeedsSubscription(company)) return ROUTES.onboarding.subscription
-  return ROUTES.company.dashboard
 }

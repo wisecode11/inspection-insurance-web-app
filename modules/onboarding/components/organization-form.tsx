@@ -10,8 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { getErrorMessage } from "@/lib/api/errors"
 import { persistSession } from "@/lib/auth/session"
-import { pathAfterOrganization, companyNeedsSubscription } from "@/lib/auth/next-path"
-import { ROUTES } from "@/lib/constants/routes"
+import { pathAfterOrganization, pathForCompany } from "@/lib/auth/next-path"
+import { authService } from "@/modules/auth/services/auth.service"
 import { OnboardingSteps } from "@/modules/onboarding/components/onboarding-steps"
 import { organizationService } from "@/modules/onboarding/services/organization.service"
 
@@ -21,16 +21,11 @@ export function OrganizationForm() {
   const [loading, setLoading] = React.useState(false)
 
   React.useEffect(() => {
-    organizationService
-      .list()
-      .then(({ companies }) => {
-        const existing = companies[0]
-        if (!existing) return
-        if (companyNeedsSubscription(existing)) {
-          window.location.replace(ROUTES.onboarding.subscription)
-          return
-        }
-        window.location.replace(ROUTES.company.dashboard)
+    authService
+      .me()
+      .then(({ company }) => {
+        if (!company) return
+        window.location.replace(pathForCompany(company))
       })
       .catch(() => undefined)
   }, [])
@@ -52,7 +47,7 @@ export function OrganizationForm() {
   return (
     <AuthFrame
       title="Create your organization"
-      description="This is the company workspace your staff and jobs will live in."
+      description="Enter your company name. You can add address and contact details later under Organization."
       role="company"
     >
       <OnboardingSteps current="organization" />

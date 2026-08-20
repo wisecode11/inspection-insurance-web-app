@@ -1,9 +1,93 @@
+import { apiClient } from "@/lib/api/client"
 import { endpoints } from "@/lib/api/endpoints"
-import { apiGet, apiPost } from "@/lib/api/request"
-import { getBrandingMock, saveBrandingMock } from "@/modules/branding/mocks/branding.mock"
+import { unwrap } from "@/lib/api/unwrap"
 import type { CompanyBranding } from "@/modules/branding/types/branding.types"
 
+type CompanyMe = {
+  company: {
+    name: string
+    branding?: {
+      logoUrl?: string
+      companyDisplayName?: string
+      footerText?: string
+      primaryColor?: string
+      accentColor?: string
+      tagline?: string
+    }
+    contact?: {
+      email?: string
+      phone?: string
+      website?: string
+      address?: {
+        line1?: string
+        city?: string
+        state?: string
+        postalCode?: string
+      }
+    }
+  }
+}
+
+function mapCompany(company: CompanyMe["company"]): CompanyBranding {
+  const address = company.contact?.address
+  const addressLine = [address?.line1, address?.city, address?.state, address?.postalCode]
+    .filter(Boolean)
+    .join(", ")
+
+  return {
+    logoUrl: company.branding?.logoUrl || "",
+    companyDisplayName: company.branding?.companyDisplayName || company.name || "",
+    footerText: company.branding?.footerText || "",
+    primaryColor: company.branding?.primaryColor || "#1B4F72",
+    accentColor: company.branding?.accentColor || "#E07A3D",
+    tagline: company.branding?.tagline || "",
+    contact: {
+      email: company.contact?.email || "",
+      phone: company.contact?.phone || "",
+      website: company.contact?.website || "",
+      addressLine,
+    },
+  }
+}
+
 export const brandingService = {
-  get: () => apiGet(endpoints.branding.get, getBrandingMock),
-  save: (payload: CompanyBranding) => apiPost(endpoints.branding.save, payload, saveBrandingMock),
+  async get(): Promise<CompanyBranding> {
+    const response = await apiClient.get(endpoints.companies.me)
+    const data = unwrap<CompanyMe>(response.data)
+    return mapCompany(data.company)
+  },
+
+  async save(payload: {
+    companyDisplayName: string
+    footerText: string
+    primaryColor: string
+    accentColor: string
+    tagline?: string
+    logoUrl?: string
+    contact?: {
+      email?: string
+      phone?: string
+      website?: string
+    }
+  }): Promise<CompanyBranding> {
+    const response = await apiClient.patch(endpoints.companies.update, {
+      branding: {
+        companyDisplayName: payload.companyDisplayName,
+        footerText: payload.footerText,
+        primaryColor: payload.primaryColor,
+        accentColor: payload.accentColor,
+        tagline: payload.tagline || "",
+        logoUrl: payload.logoUrl,
+      },
+      contact: payload.contact
+        ? {
+            email: payload.contact.email,
+            phone: payload.contact.phone,
+            website: payload.contact.website,
+          }
+        : undefined,
+    })
+    const data = unwrap<CompanyMe>(response.data)
+    return mapCompany(data.company)
+  },
 }

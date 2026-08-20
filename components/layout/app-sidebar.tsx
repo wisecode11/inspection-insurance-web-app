@@ -17,11 +17,13 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { navForRole, roleMeta } from "@/lib/navigation"
+import { getStoredUser } from "@/lib/auth/user-storage"
 import type { Role } from "@/types/role"
 
 export function AppSidebar({ role }: { role: Role }) {
   const pathname = usePathname()
-  const nav = navForRole(role)
+  const user = typeof window !== "undefined" ? getStoredUser() : null
+  const nav = navForRole(role, user?.role)
   const meta = roleMeta[role]
 
   return (

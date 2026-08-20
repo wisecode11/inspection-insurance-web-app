@@ -15,9 +15,18 @@ import { billingPlanService } from "@/modules/onboarding/services/billing-plan.s
 import type { CatalogPlan } from "@/modules/onboarding/types/onboarding.types"
 import { planBullets } from "@/modules/onboarding/utils/plan-bullets"
 
+type BillingMode = "trial" | "monthly" | "yearly"
+
+const MODES: Array<{ id: BillingMode; label: string; hint: string }> = [
+  { id: "trial", label: "Free trial", hint: "14 days, then convert" },
+  { id: "monthly", label: "Monthly", hint: "Billed each month" },
+  { id: "yearly", label: "Annual", hint: "Billed once a year" },
+]
+
 export function PlanPicker() {
   const [plans, setPlans] = React.useState<CatalogPlan[]>([])
   const [selectedId, setSelectedId] = React.useState("")
+  const [mode, setMode] = React.useState<BillingMode>("trial")
   const [error, setError] = React.useState("")
   const [loading, setLoading] = React.useState(true)
   const [buying, setBuying] = React.useState(false)
@@ -38,7 +47,7 @@ export function PlanPicker() {
     setError("")
     setBuying(true)
     try {
-      const payload = await billingPlanService.start(selectedId)
+      const payload = await billingPlanService.start(selectedId, mode)
       await persistSession(payload)
       window.location.assign(ROUTES.company.dashboard)
     } catch (caught) {
@@ -47,10 +56,18 @@ export function PlanPicker() {
     }
   }
 
+  const selected = plans.find((plan) => plan.id === selectedId)
+  const cta =
+    mode === "trial"
+      ? "Start free trial"
+      : mode === "yearly"
+        ? "Buy annual plan"
+        : "Buy monthly plan"
+
   return (
     <AuthFrame
-      title="Choose a plan"
-      description="Start a 14-day trial. You can change this later."
+      title="Choose a subscription"
+      description="Pick a plan and billing option. Stripe billing is recorded locally until live keys are connected."
       role="company"
       wide
     >
@@ -62,9 +79,31 @@ export function PlanPicker() {
         </div>
       ) : (
         <div className="flex flex-col gap-5">
+          <div className="grid gap-2 sm:grid-cols-3">
+            {MODES.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setMode(item.id)}
+                className={cn(
+                  "rounded-xl border px-4 py-3 text-left transition-colors",
+                  mode === item.id
+                    ? "border-terracotta bg-terracotta/10 ring-1 ring-terracotta/30"
+                    : "border-border hover:border-terracotta/40",
+                )}
+              >
+                <p className="text-sm font-semibold">{item.label}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{item.hint}</p>
+              </button>
+            ))}
+          </div>
+
           <div className="grid gap-3 md:grid-cols-3">
             {plans.map((plan) => {
-              const selected = plan.id === selectedId
+              const isSelected = plan.id === selectedId
+              const price =
+                mode === "yearly" ? plan.yearlyPrice : plan.price
+              const suffix = mode === "yearly" ? " / yr" : " / mo"
               return (
                 <button
                   key={plan.id}
@@ -72,7 +111,7 @@ export function PlanPicker() {
                   onClick={() => setSelectedId(plan.id)}
                   className={cn(
                     "flex flex-col rounded-2xl border bg-card p-5 text-left transition-colors",
-                    selected
+                    isSelected
                       ? "border-terracotta ring-2 ring-terracotta/25"
                       : "border-border hover:border-terracotta/40",
                     plan.highlight && "md:scale-[1.02]",
@@ -85,8 +124,10 @@ export function PlanPicker() {
                   )}
                   <h3 className="text-lg font-semibold">{plan.name}</h3>
                   <p className="mt-2 text-3xl font-bold tracking-tight">
-                    ${plan.price}
-                    <span className="text-base font-normal text-muted-foreground"> / mo</span>
+                    {mode === "trial" ? "$0" : `$${price}`}
+                    <span className="text-base font-normal text-muted-foreground">
+                      {mode === "trial" ? ` then $${plan.price}/mo` : suffix}
+                    </span>
                   </p>
                   <p className="mt-2 text-sm text-muted-foreground">{plan.description}</p>
                   <ul className="mt-4 flex flex-1 flex-col gap-2">
@@ -101,6 +142,11 @@ export function PlanPicker() {
               )
             })}
           </div>
+          {selected && mode === "trial" && selected.trialDays <= 0 && (
+            <Alert>
+              <AlertDescription>This plan has no free trial. Choose Monthly or Annual.</AlertDescription>
+            </Alert>
+          )}
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
@@ -108,11 +154,11 @@ export function PlanPicker() {
           )}
           <Button
             className="h-10 w-full bg-terracotta text-terracotta-foreground hover:bg-terracotta/90 md:w-auto md:self-end"
-            disabled={!selectedId || buying}
+            disabled={!selectedId || buying || (mode === "trial" && (selected?.trialDays ?? 0) <= 0)}
             onClick={handleBuy}
           >
             {buying && <Loader2Icon data-icon="inline-start" className="animate-spin" />}
-            Start trial
+            {cta}
           </Button>
         </div>
       )}

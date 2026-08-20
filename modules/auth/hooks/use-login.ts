@@ -19,7 +19,7 @@ export function useLogin() {
     try {
       const payload = await authService.login(input)
       await persistSession(payload)
-      window.location.assign(pathAfterLogin(payload.user, role))
+      window.location.assign(pathAfterLogin(payload.user, role, payload.company))
     } catch (caught) {
       setError(getErrorMessage(caught))
       setLoading(false)
