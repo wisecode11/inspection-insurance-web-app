@@ -119,7 +119,17 @@ export function SignupForm() {
             </div>
             {error && (
               <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>
+                  {error}
+                  {/already registered|already exists|409/i.test(error) ? (
+                    <>
+                      {" "}
+                      <Link href="/login" className="font-medium underline">
+                        Sign in
+                      </Link>
+                    </>
+                  ) : null}
+                </AlertDescription>
               </Alert>
             )}
             <Button
