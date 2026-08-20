@@ -20,6 +20,10 @@ export type StatusVariant =
   | "canceled"
   | "open"
   | "resolved"
+  | "scheduled"
+  | "in_progress"
+  | "completed"
+  | "cancelled"
 
 const toneMap: Record<StatusVariant, { tone: Tone; label: string }> = {
   active: { tone: "success", label: "Active" },
@@ -34,6 +38,10 @@ const toneMap: Record<StatusVariant, { tone: Tone; label: string }> = {
   past_due: { tone: "danger", label: "Past due" },
   mismatch: { tone: "warning", label: "Mismatch" },
   pending: { tone: "warning", label: "Pending" },
+  scheduled: { tone: "warning", label: "Scheduled" },
+  in_progress: { tone: "info", label: "In progress" },
+  completed: { tone: "success", label: "Completed" },
+  cancelled: { tone: "neutral", label: "Cancelled" },
   trial: { tone: "info", label: "Trial" },
   submitted: { tone: "info", label: "Submitted" },
   open: { tone: "info", label: "Open" },

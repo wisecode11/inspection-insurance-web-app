@@ -28,7 +28,7 @@ const quickActions = [
   { label: "New inspection", icon: PlusIcon, href: ROUTES.company.jobs },
   { label: "Upload photos", icon: CameraIcon, href: ROUTES.company.jobs },
   { label: "Export report", icon: FileTextIcon, href: ROUTES.company.jobs },
-  { label: "Invite inspector", icon: UsersIcon, href: ROUTES.company.staff },
+  { label: "Add inspector", icon: UsersIcon, href: ROUTES.company.staff },
 ]
 
 export default function CompanyDashboardPage() {

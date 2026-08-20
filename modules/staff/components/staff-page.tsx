@@ -21,20 +21,18 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { PasswordField } from "@/modules/auth/components/password-field"
 import { staffService } from "@/modules/staff/services/staff.service"
 import { useStaff } from "@/modules/staff/hooks/use-staff"
 import type { StaffMember } from "@/modules/staff/types/staff.types"
 import { ErrorState, LoadingState } from "@/components/shared/resource-state"
+import { getErrorMessage } from "@/lib/api/errors"
 
 function stopRowClick(event: React.MouseEvent) {
   event.stopPropagation()
@@ -44,41 +42,47 @@ export default function StaffPage() {
   const { data, isLoading, error, reload } = useStaff()
   const rows = data ?? []
   const [open, setOpen] = React.useState(false)
-  const [editing, setEditing] = React.useState<StaffMember | null>(null)
+  const [saving, setSaving] = React.useState(false)
   const [name, setName] = React.useState("")
   const [email, setEmail] = React.useState("")
-  const [role, setRole] = React.useState<StaffMember["role"]>("Inspector")
+  const [password, setPassword] = React.useState("")
 
-  function openInvite() {
-    setEditing(null)
+  function openAdd() {
     setName("")
     setEmail("")
-    setRole("Inspector")
-    setOpen(true)
-  }
-
-  function openEdit(member: StaffMember) {
-    setEditing(member)
-    setName(member.name)
-    setEmail(member.email)
-    setRole(member.role)
+    setPassword("")
     setOpen(true)
   }
 
   async function saveMember() {
-    if (!name.trim() || !email.trim()) {
-      toast.error("Name and email are required")
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      toast.error("Name, email, and password are required")
       return
     }
-    if (editing) {
-      await staffService.update(editing.id, { name, email, role })
-      toast.success("Inspector updated")
-    } else {
-      await staffService.create({ name, email, role })
-      toast.success(`Invite sent to ${email}`)
+    if (password.trim().length < 6) {
+      toast.error("Password must be at least 6 characters")
+      return
     }
-    await reload()
-    setOpen(false)
+
+    setSaving(true)
+    try {
+      const result = await staffService.create({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      })
+      if (result.emailSent) {
+        toast.success(`Inspector added. Login details sent to ${email.trim()}`)
+      } else {
+        toast.success("Inspector added. Share the password you set — they sign in on the mobile app.")
+      }
+      await reload()
+      setOpen(false)
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (isLoading) return <LoadingState label="Loading staff…" />
@@ -91,9 +95,8 @@ export default function StaffPage() {
       sortable: true,
       accessor: (s) => s.name,
       cell: (s) => (
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-0.5">
           <span className="font-medium">{s.name}</span>
-          <span className="text-xs text-muted-foreground">{s.email}</span>
         </div>
       ),
     },
@@ -102,46 +105,75 @@ export default function StaffPage() {
       header: "Email",
       sortable: true,
       accessor: (s) => s.email,
-      className: "hidden md:table-cell",
     },
-    { key: "role", header: "Role", sortable: true, accessor: (s) => s.role },
+    {
+      key: "role",
+      header: "Role",
+      sortable: true,
+      accessor: (s) => s.role,
+      cell: () => "Inspector",
+    },
     {
       key: "status",
       header: "Status",
       sortable: true,
       accessor: (s) => s.status,
-      cell: (s) => <StatusBadge status={s.status} />,
-    },
-    {
-      key: "jobsCompleted",
-      header: "Jobs completed",
-      sortable: true,
-      accessor: (s) => s.jobsCompleted,
-      align: "right",
-      cell: (s) => <span className="tabular-nums">{s.jobsCompleted}</span>,
+      cell: (s) => (
+        <StatusBadge
+          status={s.status === "active" ? "active" : "suspended"}
+          label={s.status === "active" ? "Active" : "Inactive"}
+        />
+      ),
     },
     {
       key: "actions",
-      header: "",
-      className: "w-12",
+      header: "Action",
+      align: "right",
+      className: "w-24",
       cell: (s) => (
-        <div onClick={stopRowClick}>
+        <div className="flex justify-end" onClick={stopRowClick}>
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
               <MoreHorizontalIcon />
-              <span className="sr-only">Row actions</span>
+              <span className="sr-only">Manage inspector</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => openEdit(s)}>Edit</DropdownMenuItem>
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>User management</DropdownMenuLabel>
+                <DropdownMenuItem disabled>
+                  Total jobs
+                  <span className="ml-auto tabular-nums text-muted-foreground">{s.jobsTotal ?? 0}</span>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={async () => {
+                  try {
+                    const next = s.status === "active" ? "suspended" : "active"
+                    await staffService.setStatus(s.id, next)
+                    await reload()
+                    toast.success(next === "active" ? `${s.name} is active` : `${s.name} is inactive`)
+                  } catch (err) {
+                    toast.error(getErrorMessage(err))
+                  }
+                }}
+              >
+                {s.status === "active" ? "Set inactive" : "Set active"}
+              </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
                 onClick={async () => {
-                  await staffService.disable(s.id)
-                  await reload()
-                  toast.message(`${s.name} disabled`)
+                  if (!window.confirm(`Delete ${s.name}? They will lose mobile-app access.`)) return
+                  try {
+                    await staffService.remove(s.id)
+                    await reload()
+                    toast.success(`${s.name} deleted`)
+                  } catch (err) {
+                    toast.error(getErrorMessage(err))
+                  }
                 }}
               >
-                Disable
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -155,11 +187,11 @@ export default function StaffPage() {
       <PageHeader
         eyebrow="Company admin"
         title="Staff"
-        description="Inspector accounts for Summit Ridge Roofing. Invite, edit, or disable access."
+        description="Add inspectors with an email and password. They use those credentials on the RoofClaim mobile app."
         actions={
-          <Button onClick={openInvite}>
+          <Button onClick={openAdd}>
             <UserPlusIcon data-icon="inline-start" />
-            Invite inspector
+            Add inspector
           </Button>
         }
       />
@@ -168,26 +200,29 @@ export default function StaffPage() {
         data={rows}
         columns={columns}
         rowKey={(s) => s.id}
-        searchPlaceholder="Search staff…"
-        searchKeys={["name", "email", "role"]}
+        searchPlaceholder="Search inspectors…"
+        searchKeys={["name", "email"]}
         emptyTitle="No inspectors yet"
-        emptyDescription="Invite your first inspector to start assigning jobs."
+        emptyDescription="Add your first inspector. They’ll sign in on the mobile app with the email and password you set."
       />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit inspector" : "Invite inspector"}</DialogTitle>
+            <DialogTitle>Add inspector</DialogTitle>
             <DialogDescription>
-              {editing
-                ? "Update this account’s name, email, and role."
-                : "They’ll receive an email to join the Summit Ridge workspace."}
+              Create a mobile-app account. We’ll email the login details to this person.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="staff-name">Name</Label>
-              <Input id="staff-name" value={name} onChange={(e) => setName(e.target.value)} />
+              <Input
+                id="staff-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoComplete="name"
+              />
             </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="staff-email">Email</Label>
@@ -196,27 +231,26 @@ export default function StaffPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="off"
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label>Role</Label>
-              <Select value={role} onValueChange={(value) => setRole(value as StaffMember["role"])}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Lead inspector">Lead inspector</SelectItem>
-                  <SelectItem value="Inspector">Inspector</SelectItem>
-                  <SelectItem value="Reviewer">Reviewer</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="staff-password">Password</Label>
+              <PasswordField
+                id="staff-password"
+                value={password}
+                onChange={setPassword}
+                autoComplete="new-password"
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
               Cancel
             </Button>
-            <Button onClick={saveMember}>{editing ? "Save" : "Send invite"}</Button>
+            <Button onClick={saveMember} disabled={saving}>
+              {saving ? "Adding…" : "Add inspector"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

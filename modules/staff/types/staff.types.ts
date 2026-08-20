@@ -1,15 +1,16 @@
+import type { UserStatus } from "@/types/role"
+
 export type StaffMember = {
   id: string
   name: string
   email: string
-  role: "Lead inspector" | "Inspector" | "Reviewer"
-  status: "active" | "pending" | "suspended"
-  jobsCompleted: number
-  avgCycleDays: number
+  role: "inspector"
+  status: UserStatus
+  jobsTotal: number
 }
 
 export type StaffInput = {
   name: string
   email: string
-  role: StaffMember["role"]
+  password: string
 }

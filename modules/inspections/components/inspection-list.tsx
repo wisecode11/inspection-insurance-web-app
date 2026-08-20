@@ -1,12 +1,25 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { PlusIcon } from "lucide-react"
+import { toast } from "sonner"
 
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable, type Column } from "@/components/shared/data-table"
 import { StatusBadge } from "@/components/shared/status-badge"
-import { StormBadge } from "@/components/shared/storm-badge"
+import { ErrorState, LoadingState } from "@/components/shared/resource-state"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   Select,
   SelectContent,
@@ -14,132 +27,260 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { ErrorState, LoadingState } from "@/components/shared/resource-state"
-import { ROUTES } from "@/lib/constants/routes"
-import { useInspections } from "@/modules/inspections/hooks/use-inspections"
-import type { Inspection } from "@/modules/inspections/types/inspection.types"
+import { useJobs } from "@/modules/inspections/hooks/use-jobs"
+import { jobService } from "@/modules/inspections/services/job.service"
+import { jobStatusVariant, type JobRow, type JobStatus } from "@/modules/inspections/types/job.types"
+import { useStaff } from "@/modules/staff/hooks/use-staff"
+import { getErrorMessage } from "@/lib/api/errors"
 
-type StatusFilter = "all" | Inspection["status"]
-type RangeFilter = "all" | "7d" | "30d"
+type StatusFilter = "all" | JobStatus
 
-function inRange(date: string, range: RangeFilter) {
-  if (range === "all") return true
-  const days = range === "7d" ? 7 : 30
-  const start = new Date("2026-08-18")
-  start.setDate(start.getDate() - days)
-  return new Date(date) >= start
+function formatJobDate(value: string) {
+  if (!value) return "—"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleDateString()
 }
 
-const columns: Column<Inspection>[] = [
-  {
-    key: "id",
-    header: "Report",
-    sortable: true,
-    accessor: (r) => r.id,
-    cell: (r) => <span className="font-medium tabular-nums">{r.id}</span>,
-  },
-  {
-    key: "address",
-    header: "Property address",
-    sortable: true,
-    accessor: (r) => r.address,
-    cell: (r) => (
-      <div className="flex flex-col">
-        <span className="font-medium">{r.address}</span>
-        <span className="text-xs text-muted-foreground">{r.city}</span>
-      </div>
-    ),
-  },
-  {
-    key: "inspector",
-    header: "Inspector",
-    sortable: true,
-    accessor: (r) => r.inspector,
-  },
-  {
-    key: "date",
-    header: "Date",
-    sortable: true,
-    accessor: (r) => r.date,
-    cell: (r) => <span className="tabular-nums text-muted-foreground">{r.date}</span>,
-  },
-  {
-    key: "status",
-    header: "Status",
-    sortable: true,
-    accessor: (r) => r.status,
-    cell: (r) => <StatusBadge status={r.status} />,
-  },
-  {
-    key: "claimStatus",
-    header: "Claim",
-    cell: (r) => <StatusBadge status={r.claimStatus} />,
-  },
-  {
-    key: "weather",
-    header: "Weather",
-    cell: (r) => <StormBadge state={r.weather} size="sm" />,
-  },
-]
-
 export default function JobsPage() {
-  const router = useRouter()
-  const { data: inspections = [], isLoading, error } = useInspections()
+  const { data: jobs = [], isLoading, error, reload } = useJobs()
+  const { data: staff = [] } = useStaff()
+  const inspectors = staff.filter((member) => member.status === "active")
+
   const [status, setStatus] = React.useState<StatusFilter>("all")
-  const [range, setRange] = React.useState<RangeFilter>("all")
+  const [open, setOpen] = React.useState(false)
+  const [saving, setSaving] = React.useState(false)
+  const [customerName, setCustomerName] = React.useState("")
+  const [phone, setPhone] = React.useState("")
+  const [email, setEmail] = React.useState("")
+  const [line1, setLine1] = React.useState("")
+  const [city, setCity] = React.useState("")
+  const [state, setState] = React.useState("")
+  const [postalCode, setPostalCode] = React.useState("")
+  const [notes, setNotes] = React.useState("")
+  const [inspectorId, setInspectorId] = React.useState("unassigned")
 
   const rows = React.useMemo(
-    () =>
-      inspections.filter((row) => (status === "all" || row.status === status) && inRange(row.date, range)),
-    [inspections, status, range],
+    () => jobs.filter((row) => status === "all" || row.status === status),
+    [jobs, status],
   )
 
-  if (isLoading) return <LoadingState label="Loading inspections…" />
+  function openCreate() {
+    setCustomerName("")
+    setPhone("")
+    setEmail("")
+    setLine1("")
+    setCity("")
+    setState("")
+    setPostalCode("")
+    setNotes("")
+    setInspectorId("unassigned")
+    setOpen(true)
+  }
+
+  async function saveJob() {
+    if (!customerName.trim() || !line1.trim() || !city.trim()) {
+      toast.error("Customer name, street, and city are required")
+      return
+    }
+
+    setSaving(true)
+    try {
+      await jobService.create({
+        customer: {
+          name: customerName.trim(),
+          phone: phone.trim() || undefined,
+          email: email.trim() || undefined,
+        },
+        address: {
+          line1: line1.trim(),
+          city: city.trim(),
+          state: state.trim() || undefined,
+          postalCode: postalCode.trim() || undefined,
+        },
+        notes: notes.trim() || undefined,
+        inspectorId: inspectorId === "unassigned" ? undefined : inspectorId,
+      })
+      toast.success("Job created")
+      await reload()
+      setOpen(false)
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (isLoading) return <LoadingState label="Loading jobs…" />
   if (error) return <ErrorState message={error} />
+
+  const columns: Column<JobRow>[] = [
+    {
+      key: "jobNumber",
+      header: "Job",
+      sortable: true,
+      accessor: (row) => row.jobNumber,
+      cell: (row) => <span className="font-medium tabular-nums">{row.jobNumber}</span>,
+    },
+    {
+      key: "addressLine",
+      header: "Property address",
+      sortable: true,
+      accessor: (row) => row.addressLine,
+      cell: (row) => (
+        <div className="flex flex-col">
+          <span className="font-medium">{row.addressLine || "—"}</span>
+          <span className="text-xs text-muted-foreground">{row.city || row.customerName}</span>
+        </div>
+      ),
+    },
+    {
+      key: "inspector",
+      header: "Inspector",
+      sortable: true,
+      accessor: (row) => row.inspector,
+    },
+    {
+      key: "createdAt",
+      header: "Date",
+      sortable: true,
+      accessor: (row) => row.createdAt,
+      cell: (row) => <span className="tabular-nums text-muted-foreground">{formatJobDate(row.createdAt)}</span>,
+    },
+    {
+      key: "status",
+      header: "Status",
+      sortable: true,
+      accessor: (row) => row.status,
+      cell: (row) => <StatusBadge status={jobStatusVariant(row.status)} />,
+    },
+  ]
 
   return (
     <>
       <PageHeader
         eyebrow="Company admin"
         title="Jobs & reports"
-        description="Search inspections, filter by date and status, then open a report for review."
+        description="Create a job with the property address and assign it to an inspector."
+        actions={
+          <Button onClick={openCreate}>
+            <PlusIcon data-icon="inline-start" />
+            New job
+          </Button>
+        }
       />
 
       <DataTable
         data={rows}
         columns={columns}
-        rowKey={(r) => r.id}
-        searchPlaceholder="Search address, inspector, or report id…"
-        searchKeys={["id", "address", "city", "inspector"]}
-        onRowClick={(row) => router.push(ROUTES.company.job(row.id))}
-        emptyTitle="No inspections found"
-        emptyDescription="Adjust the date range or status filter to see more jobs."
+        rowKey={(row) => row.id}
+        searchPlaceholder="Search job, address, or inspector…"
+        searchKeys={["jobNumber", "addressLine", "city", "inspector", "customerName"]}
+        emptyTitle="No jobs yet"
+        emptyDescription="Create a job and assign an inspector to start an inspection."
         toolbar={
-          <>
-            <Select value={range} onValueChange={(value) => setRange(value as RangeFilter)}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All dates</SelectItem>
-                <SelectItem value="7d">Last 7 days</SelectItem>
-                <SelectItem value="30d">Last 30 days</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={status} onValueChange={(value) => setStatus(value as StatusFilter)}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="submitted">Submitted</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-              </SelectContent>
-            </Select>
-          </>
+          <Select value={status} onValueChange={(value) => setStatus(value as StatusFilter)}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="scheduled">Scheduled</SelectItem>
+              <SelectItem value="in_progress">In progress</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="submitted">Submitted</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
         }
       />
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>New job</DialogTitle>
+            <DialogDescription>
+              Add the property details, then assign an inspector from your staff.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex flex-col gap-1.5 sm:col-span-2">
+              <Label htmlFor="job-customer">Customer name</Label>
+              <Input
+                id="job-customer"
+                value={customerName}
+                onChange={(event) => setCustomerName(event.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="job-phone">Phone</Label>
+              <Input id="job-phone" value={phone} onChange={(event) => setPhone(event.target.value)} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="job-email">Email</Label>
+              <Input
+                id="job-email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5 sm:col-span-2">
+              <Label htmlFor="job-street">Street address</Label>
+              <Input id="job-street" value={line1} onChange={(event) => setLine1(event.target.value)} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="job-city">City</Label>
+              <Input id="job-city" value={city} onChange={(event) => setCity(event.target.value)} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="job-state">State</Label>
+              <Input id="job-state" value={state} onChange={(event) => setState(event.target.value)} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="job-postal">Postal code</Label>
+              <Input
+                id="job-postal"
+                value={postalCode}
+                onChange={(event) => setPostalCode(event.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label>Assign inspector</Label>
+              <Select value={inspectorId} onValueChange={setInspectorId}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  {inspectors.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-col gap-1.5 sm:col-span-2">
+              <Label htmlFor="job-notes">Notes</Label>
+              <Textarea
+                id="job-notes"
+                value={notes}
+                onChange={(event) => setNotes(event.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
+              Cancel
+            </Button>
+            <Button onClick={saveJob} disabled={saving}>
+              {saving ? "Creating…" : "Create job"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

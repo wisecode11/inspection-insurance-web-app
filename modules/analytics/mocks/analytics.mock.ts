@@ -27,8 +27,8 @@ export function getCompanyAnalyticsMock(): CompanyAnalytics {
       { month: "Aug", days: 2.3 },
     ],
     staffProductivity: listStaffMock()
-      .filter((s) => s.jobsCompleted > 0)
-      .map((s) => ({ name: s.name, jobs: s.jobsCompleted, cycle: s.avgCycleDays }))
+      .filter((s) => s.jobsTotal > 0)
+      .map((s) => ({ name: s.name, jobs: s.jobsTotal, cycle: s.avgCycleDays }))
       .sort((a, b) => b.jobs - a.jobs),
   }
 }

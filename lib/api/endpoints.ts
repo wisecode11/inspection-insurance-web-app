@@ -45,9 +45,15 @@ export const endpoints = {
     testSquares: (id: string) => `/inspections/${id}/test-squares`,
     approve: (id: string) => `/inspections/${id}/approve`,
   },
+  jobs: {
+    list: "/jobs",
+    create: "/jobs",
+  },
   staff: {
-    list: "/staff",
-    byId: (id: string) => `/staff/${id}`,
+    list: "/users/inspectors",
+    create: "/users/inspectors",
+    status: (id: string) => `/users/inspectors/${id}/status`,
+    byId: (id: string) => `/users/inspectors/${id}`,
   },
   branding: {
     get: "/branding",

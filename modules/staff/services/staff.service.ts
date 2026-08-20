@@ -1,20 +1,28 @@
+import { apiClient } from "@/lib/api/client"
 import { endpoints } from "@/lib/api/endpoints"
-import { apiGet, apiPatch, apiPost } from "@/lib/api/request"
-import {
-  createStaffMock,
-  disableStaffMock,
-  listStaffMock,
-  updateStaffMock,
-} from "@/modules/staff/mocks/staff.mock"
+import { unwrap } from "@/lib/api/unwrap"
 import type { StaffInput, StaffMember } from "@/modules/staff/types/staff.types"
 
 export const staffService = {
-  list: () => apiGet(endpoints.staff.list, listStaffMock),
-  create: (input: StaffInput) => apiPost(endpoints.staff.list, input, createStaffMock),
-  update: (id: string, input: StaffInput) =>
-    apiPatch(endpoints.staff.byId(id), input, () => updateStaffMock(id, input)),
-  disable: (id: string) =>
-    apiPatch(endpoints.staff.byId(id), { status: "suspended" }, () => disableStaffMock(id)),
+  async list() {
+    const response = await apiClient.get(endpoints.staff.list)
+    return unwrap<{ inspectors: StaffMember[] }>(response.data).inspectors
+  },
+
+  async create(input: StaffInput) {
+    const response = await apiClient.post(endpoints.staff.create, input)
+    return unwrap<{ inspector: StaffMember; emailSent: boolean }>(response.data)
+  },
+
+  async setStatus(id: string, status: "active" | "suspended") {
+    const response = await apiClient.patch(endpoints.staff.status(id), { status })
+    return unwrap<{ inspector: StaffMember }>(response.data).inspector
+  },
+
+  async remove(id: string) {
+    const response = await apiClient.delete(endpoints.staff.byId(id))
+    return unwrap<{ id: string }>(response.data)
+  },
 }
 
 export type { StaffMember, StaffInput }

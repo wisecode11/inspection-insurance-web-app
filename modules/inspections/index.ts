@@ -1,5 +1,8 @@
 export { default as InspectionListPage } from "./components/inspection-list"
 export { default as InspectionDetailPage } from "./components/inspection-detail"
 export { inspectionService } from "./services/inspection.service"
+export { jobService } from "./services/job.service"
 export { useInspections, useInspection } from "./hooks/use-inspections"
+export { useJobs } from "./hooks/use-jobs"
 export type { Inspection } from "./types/inspection.types"
+export type { JobRow } from "./types/job.types"
