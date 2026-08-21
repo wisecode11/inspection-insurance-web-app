@@ -23,18 +23,9 @@ import { templateService } from "@/modules/templates/services/template.service"
 import type {
   ChecklistStep,
   ChecklistTemplate,
-  DefaultLanguage,
   ReportSection,
   ReportTemplate,
 } from "@/modules/templates/types/template.types"
-
-const LANGUAGE_FIELDS: { key: keyof DefaultLanguage; label: string }[] = [
-  { key: "roof_damage", label: "Roof Damage" },
-  { key: "hail_damage", label: "Hail Damage" },
-  { key: "wind_damage", label: "Wind Damage" },
-  { key: "missing_shingles", label: "Missing Shingles" },
-  { key: "interior_damage", label: "Interior Damage" },
-]
 
 function reorder<T>(list: T[], from: number, to: number) {
   const next = [...list]
@@ -47,16 +38,6 @@ function reorder<T>(list: T[], from: number, to: number) {
   ) as T[]
 }
 
-function emptyLanguage(): DefaultLanguage {
-  return {
-    roof_damage: "",
-    hail_damage: "",
-    wind_damage: "",
-    missing_shingles: "",
-    interior_damage: "",
-  }
-}
-
 export default function TemplatesPage() {
   const { data, isLoading, error, reload } = useTemplates()
   const [templates, setTemplates] = React.useState<ReportTemplate[]>([])
@@ -64,16 +45,21 @@ export default function TemplatesPage() {
   const [templateId, setTemplateId] = React.useState("")
   const [checklistId, setChecklistId] = React.useState("")
   const [sections, setSections] = React.useState<ReportSection[]>([])
-  const [selectedSectionId, setSelectedSectionId] = React.useState("")
   const [legalFooter, setLegalFooter] = React.useState("")
-  const [definitions, setDefinitions] = React.useState("")
-  const [defaultLanguage, setDefaultLanguage] = React.useState<DefaultLanguage>(emptyLanguage())
   const [citationIds, setCitationIds] = React.useState<string[]>([])
   const [templateName, setTemplateName] = React.useState("")
   const [steps, setSteps] = React.useState<ChecklistStep[]>([])
   const [checklistName, setChecklistName] = React.useState("")
   const [savingTemplate, setSavingTemplate] = React.useState(false)
   const [savingChecklist, setSavingChecklist] = React.useState(false)
+  const [definitions, setDefinitions] = React.useState("")
+  const [defaultLanguage, setDefaultLanguage] = React.useState<ReportTemplate["defaultLanguage"]>({
+    roof_damage: "",
+    hail_damage: "",
+    wind_damage: "",
+    missing_shingles: "",
+    interior_damage: "",
+  })
   const dragIndex = React.useRef<number | null>(null)
 
   React.useEffect(() => {
@@ -92,11 +78,18 @@ export default function TemplatesPage() {
     setTemplateId(template.id)
     setTemplateName(template.name)
     setSections(template.sections)
-    setSelectedSectionId(template.sections[0]?.id || "")
     setLegalFooter(template.legalFooter || "")
-    setDefinitions(template.definitions || "")
-    setDefaultLanguage(template.defaultLanguage || emptyLanguage())
     setCitationIds(template.codeCitationIds || [])
+    setDefinitions(template.definitions || "")
+    setDefaultLanguage(
+      template.defaultLanguage || {
+        roof_damage: "",
+        hail_damage: "",
+        wind_damage: "",
+        missing_shingles: "",
+        interior_damage: "",
+      }
+    )
   }
 
   function applyChecklist(checklist: ChecklistTemplate) {
@@ -105,7 +98,6 @@ export default function TemplatesPage() {
     setSteps(checklist.steps)
   }
 
-  const selected = sections.find((s) => s.id === selectedSectionId) ?? sections[0]
   const citations = data?.citations ?? []
 
   function onDropSection(to: number) {
@@ -127,10 +119,10 @@ export default function TemplatesPage() {
     setSavingTemplate(true)
     try {
       const updated = await templateService.update(templateId, {
-        name: templateName.trim() || "Report template",
+        name: templateName.trim() || "PDF report",
         sections,
         legalFooter: legalFooter.trim(),
-        definitions: definitions.trim(),
+        definitions,
         defaultLanguage,
         codeCitationIds: citationIds,
         isDefault: true,
@@ -139,7 +131,7 @@ export default function TemplatesPage() {
         current.map((row) => (row.id === updated.id ? updated : { ...row, isDefault: false }))
       )
       applyTemplate(updated)
-      toast.success("Report template saved — applied to new PDF reports")
+      toast.success("Saved")
       await reload?.()
     } catch (err) {
       toast.error(getErrorMessage(err))
@@ -151,12 +143,12 @@ export default function TemplatesPage() {
   async function createReportTemplate() {
     try {
       const created = await templateService.create({
-        name: `Report template ${templates.length + 1}`,
+        name: `PDF report ${templates.length + 1}`,
         isDefault: false,
       })
       setTemplates((current) => [...current, created])
       applyTemplate(created)
-      toast.success("Report template created")
+      toast.success("Created")
     } catch (err) {
       toast.error(getErrorMessage(err))
     }
@@ -167,7 +159,7 @@ export default function TemplatesPage() {
     setSavingChecklist(true)
     try {
       const updated = await templateService.updateChecklist(checklistId, {
-        name: checklistName.trim() || "Inspection checklist",
+        name: checklistName.trim() || "Inspector form",
         steps,
         isDefault: true,
       })
@@ -175,7 +167,7 @@ export default function TemplatesPage() {
         current.map((row) => (row.id === updated.id ? updated : { ...row, isDefault: false }))
       )
       applyChecklist(updated)
-      toast.success("Checklist saved")
+      toast.success("Saved")
       await reload?.()
     } catch (err) {
       toast.error(getErrorMessage(err))
@@ -187,15 +179,30 @@ export default function TemplatesPage() {
   async function createChecklistTemplate() {
     try {
       const created = await templateService.createChecklist({
-        name: `Inspection checklist ${checklists.length + 1}`,
+        name: `Inspector form ${checklists.length + 1}`,
         isDefault: false,
       })
       setChecklists((current) => [...current, created])
       applyChecklist(created)
-      toast.success("Checklist template created")
+      toast.success("Created")
     } catch (err) {
       toast.error(getErrorMessage(err))
     }
+  }
+
+  function addSection() {
+    const id = `sec-${Date.now()}`
+    setSections((current) => [
+      ...current,
+      {
+        id,
+        key: `section_${current.length + 1}`,
+        title: "New section",
+        include: true,
+        sortOrder: current.length,
+        body: "",
+      },
+    ])
   }
 
   function addStep(type: ChecklistStep["type"] = "boolean") {
@@ -205,7 +212,7 @@ export default function TemplatesPage() {
       {
         id,
         key: `step_${current.length + 1}`,
-        label: type === "section" ? "New section" : "New inspection step",
+        label: type === "section" ? "New group" : "New question",
         type,
         required: type !== "section",
         sortOrder: current.length,
@@ -221,19 +228,19 @@ export default function TemplatesPage() {
       <PageHeader
         eyebrow="Company admin"
         title="Templates & checklists"
-        description="Company-wide report defaults, code citations, damage language, and inspection standards."
+        description="PDF report sections and inspector form questions."
       />
 
       <Tabs defaultValue="templates">
         <TabsList variant="line">
-          <TabsTrigger value="templates">Report template</TabsTrigger>
-          <TabsTrigger value="checklist">Checklist builder</TabsTrigger>
+          <TabsTrigger value="templates">PDF report</TabsTrigger>
+          <TabsTrigger value="checklist">Inspector form</TabsTrigger>
         </TabsList>
 
         <TabsContent value="templates" className="mt-4 space-y-4">
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex min-w-[16rem] flex-1 flex-col gap-1.5">
-              <Label htmlFor="template-select">Active template</Label>
+              <Label htmlFor="template-select">Layout</Label>
               <select
                 id="template-select"
                 className="h-9 rounded-lg border bg-background px-3 text-sm"
@@ -252,7 +259,7 @@ export default function TemplatesPage() {
               </select>
             </div>
             <div className="flex min-w-[16rem] flex-1 flex-col gap-1.5">
-              <Label htmlFor="template-name">Template name</Label>
+              <Label htmlFor="template-name">Name</Label>
               <Input
                 id="template-name"
                 value={templateName}
@@ -261,199 +268,113 @@ export default function TemplatesPage() {
             </div>
             <Button variant="outline" onClick={createReportTemplate}>
               <PlusIcon data-icon="inline-start" />
-              New template
+              New
             </Button>
             <Button
               className="bg-terracotta text-terracotta-foreground hover:bg-terracotta/90"
               disabled={savingTemplate}
               onClick={saveReportTemplate}
             >
-              {savingTemplate ? "Saving…" : "Save report template"}
+              {savingTemplate ? "Saving…" : "Save"}
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,18rem)_1fr]">
-            <Card>
-              <CardHeader>
-                <CardTitle>Sections</CardTitle>
-                <CardDescription>Drag to reorder PDF section headings.</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-1.5">
-                {sections.map((section, index) => (
-                  <button
-                    key={section.id}
-                    type="button"
-                    draggable
-                    onDragStart={() => {
-                      dragIndex.current = index
-                    }}
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={() => onDropSection(index)}
-                    onClick={() => setSelectedSectionId(section.id)}
-                    className={cn(
-                      "flex items-center gap-2 rounded-lg border px-2.5 py-2 text-left text-sm transition-colors",
-                      selectedSectionId === section.id
-                        ? "border-primary/40 bg-primary/8"
-                        : "hover:bg-muted/50",
-                      !section.include && "opacity-60"
-                    )}
-                  >
-                    <GripVerticalIcon className="size-4 shrink-0 text-muted-foreground" />
-                    <span className="min-w-0 flex-1 truncate font-medium">{section.title}</span>
-                  </button>
-                ))}
-                <Button
-                  variant="outline"
-                  className="mt-2"
-                  onClick={() => {
-                    const id = `sec-${Date.now()}`
-                    setSections((current) => [
-                      ...current,
-                      {
-                        id,
-                        key: `section_${current.length + 1}`,
-                        title: "New section",
-                        include: true,
-                        sortOrder: current.length,
-                        body: "",
-                      },
-                    ])
-                    setSelectedSectionId(id)
+          <Card>
+            <CardHeader>
+              <CardTitle>Sections</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              {sections.map((section, index) => (
+                <div
+                  key={section.id}
+                  draggable
+                  onDragStart={() => {
+                    dragIndex.current = index
                   }}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => onDropSection(index)}
+                  className={cn(
+                    "rounded-lg border p-3",
+                    !section.include && "opacity-60"
+                  )}
                 >
-                  <PlusIcon data-icon="inline-start" />
-                  Add section
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Section configuration</CardTitle>
-                <CardDescription>
-                  {selected ? `Editing “${selected.title}”` : "Select a section"}
-                </CardDescription>
-              </CardHeader>
-              {selected && (
-                <CardContent className="flex max-w-2xl flex-col gap-5">
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="section-title">Heading</Label>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <GripVerticalIcon className="size-4 shrink-0 text-muted-foreground" />
                     <Input
-                      id="section-title"
-                      value={selected.title}
+                      value={section.title}
+                      className="min-w-[12rem] flex-1 font-medium"
+                      aria-label="Section title"
                       onChange={(e) =>
                         setSections((current) =>
                           current.map((row) =>
-                            row.id === selected.id ? { ...row, title: e.target.value } : row
+                            row.id === section.id ? { ...row, title: e.target.value } : row
                           )
                         )
                       }
                     />
-                  </div>
-                  <div className="flex items-center justify-between gap-4 rounded-lg border px-3 py-3">
-                    <div className="flex flex-col gap-0.5">
-                      <Label htmlFor="section-visible">Include in report</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Hidden sections are omitted from PDF export.
-                      </p>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor={`include-${section.id}`} className="text-xs text-muted-foreground">
+                        Include
+                      </Label>
+                      <Switch
+                        id={`include-${section.id}`}
+                        checked={section.include}
+                        onCheckedChange={(checked) =>
+                          setSections((current) =>
+                            current.map((row) =>
+                              row.id === section.id ? { ...row, include: checked } : row
+                            )
+                          )
+                        }
+                      />
                     </div>
-                    <Switch
-                      id="section-visible"
-                      checked={selected.include}
-                      onCheckedChange={(checked) =>
-                        setSections((current) =>
-                          current.map((row) =>
-                            row.id === selected.id ? { ...row, include: checked } : row
-                          )
-                        )
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label="Remove section"
+                      onClick={() =>
+                        setSections((current) => current.filter((row) => row.id !== section.id))
                       }
-                    />
+                    >
+                      <Trash2Icon />
+                    </Button>
                   </div>
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="section-body">Default content</Label>
+                  {section.include && (
                     <Textarea
-                      id="section-body"
-                      rows={5}
-                      value={selected.body}
-                      placeholder="Default wording for this section…"
+                      className="mt-3"
+                      rows={2}
+                      value={section.body}
+                      placeholder="Optional text…"
                       onChange={(e) =>
                         setSections((current) =>
                           current.map((row) =>
-                            row.id === selected.id ? { ...row, body: e.target.value } : row
+                            row.id === section.id ? { ...row, body: e.target.value } : row
                           )
                         )
                       }
                     />
-                  </div>
-                  <Button
-                    variant="ghost"
-                    className="w-fit text-destructive"
-                    onClick={() => {
-                      setSections((current) => current.filter((row) => row.id !== selected.id))
-                      setSelectedSectionId("")
-                    }}
-                  >
-                    <Trash2Icon data-icon="inline-start" />
-                    Remove section
-                  </Button>
-                </CardContent>
-              )}
-            </Card>
-          </div>
+                  )}
+                </div>
+              ))}
+              <Button variant="outline" className="w-fit" onClick={addSection}>
+                <PlusIcon data-icon="inline-start" />
+                Add section
+              </Button>
+            </CardContent>
+          </Card>
 
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Disclaimer text</CardTitle>
-                <CardDescription>Legal footer printed on generated PDF reports.</CardDescription>
+                <CardTitle>Disclaimer</CardTitle>
               </CardHeader>
               <CardContent>
                 <Textarea
-                  rows={5}
+                  rows={3}
                   value={legalFooter}
                   onChange={(e) => setLegalFooter(e.target.value)}
-                  placeholder="This report reflects conditions observed at the time of inspection…"
+                  placeholder="Disclaimer…"
                 />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Definitions</CardTitle>
-                <CardDescription>Optional glossary or terms for inspectors.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Textarea
-                  rows={5}
-                  value={definitions}
-                  onChange={(e) => setDefinitions(e.target.value)}
-                  placeholder="Optional definitions…"
-                />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Default language</CardTitle>
-                <CardDescription>Editable report wording for common damage types.</CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-4">
-                {LANGUAGE_FIELDS.map((field) => (
-                  <div key={field.key} className="flex flex-col gap-1.5">
-                    <Label htmlFor={field.key}>{field.label}</Label>
-                    <Textarea
-                      id={field.key}
-                      rows={3}
-                      value={defaultLanguage[field.key]}
-                      onChange={(e) =>
-                        setDefaultLanguage((current) => ({
-                          ...current,
-                          [field.key]: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                ))}
               </CardContent>
             </Card>
 
@@ -461,18 +382,15 @@ export default function TemplatesPage() {
               <CardHeader>
                 <CardTitle>Code citations</CardTitle>
                 <CardDescription>
-                  Attach state codes and compliance references to this template. Manage the library on{" "}
+                  From{" "}
                   <Link href={ROUTES.company.codes} className="underline underline-offset-2">
                     Codes & standards
                   </Link>
-                  .
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex max-h-[28rem] flex-col gap-2 overflow-y-auto">
                 {citations.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No citations yet. Add state-specific codes on Codes & standards.
-                  </p>
+                  <p className="text-sm text-muted-foreground">No citations yet.</p>
                 ) : (
                   citations.map((citation) => {
                     const checked = citationIds.includes(citation.id)
@@ -492,13 +410,8 @@ export default function TemplatesPage() {
                             )
                           }}
                         />
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-sm font-medium">
-                            {citation.state} {citation.code} — {citation.title}
-                          </span>
-                          <span className="mt-0.5 block text-xs text-muted-foreground line-clamp-2">
-                            {citation.body}
-                          </span>
+                        <span className="min-w-0 flex-1 text-sm font-medium">
+                          {citation.state} {citation.code} — {citation.title}
                         </span>
                       </label>
                     )
@@ -512,7 +425,7 @@ export default function TemplatesPage() {
         <TabsContent value="checklist" className="mt-4 space-y-4">
           <div className="flex flex-wrap items-end gap-3">
             <div className="flex min-w-[16rem] flex-1 flex-col gap-1.5">
-              <Label htmlFor="checklist-select">Checklist template</Label>
+              <Label htmlFor="checklist-select">Form</Label>
               <select
                 id="checklist-select"
                 className="h-9 rounded-lg border bg-background px-3 text-sm"
@@ -531,7 +444,7 @@ export default function TemplatesPage() {
               </select>
             </div>
             <div className="flex min-w-[16rem] flex-1 flex-col gap-1.5">
-              <Label htmlFor="checklist-name">Template name</Label>
+              <Label htmlFor="checklist-name">Form name</Label>
               <Input
                 id="checklist-name"
                 value={checklistName}
@@ -540,24 +453,20 @@ export default function TemplatesPage() {
             </div>
             <Button variant="outline" onClick={createChecklistTemplate}>
               <PlusIcon data-icon="inline-start" />
-              New checklist
+              New
             </Button>
             <Button
               className="bg-terracotta text-terracotta-foreground hover:bg-terracotta/90"
               disabled={savingChecklist}
               onClick={saveChecklist}
             >
-              {savingChecklist ? "Saving…" : "Save checklist"}
+              {savingChecklist ? "Saving…" : "Save"}
             </Button>
           </div>
 
           <Card>
             <CardHeader>
-              <CardTitle>Inspection steps</CardTitle>
-              <CardDescription>
-                Build company inspection standards. Use section headers for Roof, Exterior, and
-                Interior groups. Drag to reorder.
-              </CardDescription>
+              <CardTitle>Questions</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
               {steps.map((step, index) => (
@@ -578,6 +487,7 @@ export default function TemplatesPage() {
                   <Input
                     value={step.label}
                     className={cn(step.type === "section" && "font-semibold")}
+                    aria-label={step.type === "section" ? "Group name" : "Question"}
                     onChange={(e) =>
                       setSteps((current) =>
                         current.map((row) =>
@@ -607,13 +517,10 @@ export default function TemplatesPage() {
                       />
                     </div>
                   )}
-                  <span className="hidden text-xs text-muted-foreground sm:inline">
-                    {step.type === "section" ? "Section" : "Step"}
-                  </span>
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label="Remove step"
+                    aria-label="Remove"
                     onClick={() =>
                       setSteps((current) => current.filter((row) => row.id !== step.id))
                     }
@@ -625,11 +532,11 @@ export default function TemplatesPage() {
               <div className="mt-2 flex flex-wrap gap-2">
                 <Button variant="outline" onClick={() => addStep("boolean")}>
                   <PlusIcon data-icon="inline-start" />
-                  Add step
+                  Add question
                 </Button>
                 <Button variant="outline" onClick={() => addStep("section")}>
                   <PlusIcon data-icon="inline-start" />
-                  Add section header
+                  Add group
                 </Button>
               </div>
             </CardContent>
