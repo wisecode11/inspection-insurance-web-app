@@ -9,13 +9,24 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { parseRole } from "@/lib/auth/role"
+import { env } from "@/lib/config/env"
+import { GoogleSignInButton } from "@/modules/auth/components/google-sign-in-button"
 import { PasswordField } from "@/modules/auth/components/password-field"
 import { useLogin } from "@/modules/auth/hooks/use-login"
 
 export function LoginForm() {
-  const { error, loading, submit } = useLogin()
+  const searchParams = useSearchParams()
+  const { error, loading, submit, submitGoogle, setError } = useLogin()
+  const [role, setRole] = React.useState<Role>(parseRole(searchParams.get("role")) ?? "company")
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
+
+  const showGoogle = role === "company" && Boolean(env.googleClientId)
+
+  React.useEffect(() => {
+    setRole(parseRole(searchParams.get("role")) ?? "company")
+  }, [searchParams])
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -59,7 +70,17 @@ export function LoginForm() {
         </div>
         {error && (
           <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>
+              {error}
+              {/no account found|create an account/i.test(error) ? (
+                <>
+                  {" "}
+                  <Link href="/signup" className="font-medium underline">
+                    Sign up
+                  </Link>
+                </>
+              ) : null}
+            </AlertDescription>
           </Alert>
         )}
         <Button
@@ -70,6 +91,20 @@ export function LoginForm() {
           {loading && <Loader2Icon data-icon="inline-start" className="animate-spin" />}
           Sign in
         </Button>
+        {showGoogle ? (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+              <span className="h-px flex-1 bg-border" />
+              or
+              <span className="h-px flex-1 bg-border" />
+            </div>
+            <GoogleSignInButton
+              disabled={loading}
+              onCredential={(idToken) => submitGoogle(idToken, role)}
+              onError={setError}
+            />
+          </div>
+        ) : null}
       </form>
     </AuthFrame>
   )

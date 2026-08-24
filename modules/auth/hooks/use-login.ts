@@ -26,5 +26,22 @@ export function useLogin() {
     }
   }
 
-  return { error, loading, submit, setError }
+  async function submitGoogle(idToken: string, role: Role) {
+    if (role !== "company") {
+      setError("Google sign-in is only available for company admins.")
+      return
+    }
+    setError("")
+    setLoading(true)
+    try {
+      const payload = await authService.google({ idToken, mode: "login" })
+      await persistSession(payload)
+      window.location.assign(pathAfterLogin(payload.user, role, payload.company))
+    } catch (caught) {
+      setError(getErrorMessage(caught))
+      setLoading(false)
+    }
+  }
+
+  return { error, loading, submit, submitGoogle, setError }
 }

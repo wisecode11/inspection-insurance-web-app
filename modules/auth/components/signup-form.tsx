@@ -9,6 +9,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { env } from "@/lib/config/env"
+import { GoogleSignInButton } from "@/modules/auth/components/google-sign-in-button"
 import { PasswordField } from "@/modules/auth/components/password-field"
 import { useSignup } from "@/modules/auth/hooks/use-signup"
 
@@ -23,10 +25,13 @@ function splitFullName(fullName: string) {
 }
 
 export function SignupForm() {
-  const { error, loading, submit, setError } = useSignup()
+  const { error, loading, submit, submitGoogle, setError } = useSignup()
+  const [role, setRole] = React.useState<Role>("company")
   const [fullName, setFullName] = React.useState("")
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
+
+  const showGoogle = role === "company" && Boolean(env.googleClientId)
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -73,41 +78,87 @@ export function SignupForm() {
             required
           />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="you@company.com"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
-            required
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="password">Password</Label>
-          <PasswordField
-            id="password"
-            value={password}
-            onChange={setPassword}
-            autoComplete="new-password"
-          />
-        </div>
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>
-              {error}
-              {/already registered|already exists|409/i.test(error) ? (
-                <>
-                  {" "}
-                  <Link href="/login" className="font-medium underline">
-                    Sign in
-                  </Link>
-                </>
-              ) : null}
-            </AlertDescription>
-          </Alert>
+
+        {role === "platform" ? (
+          <Button
+            type="button"
+            className="h-10 w-full bg-terracotta text-terracotta-foreground hover:bg-terracotta/90"
+            onClick={() => window.location.assign("/login?role=platform")}
+          >
+            Go to platform sign in
+          </Button>
+        ) : (
+          <>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="fullName">Full name</Label>
+              <Input
+                id="fullName"
+                value={fullName}
+                onChange={(event) => setFullName(event.target.value)}
+                autoComplete="name"
+                placeholder="Jordan Blake"
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@company.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="email"
+                required
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="password">Password</Label>
+              <PasswordField
+                id="password"
+                value={password}
+                onChange={setPassword}
+                autoComplete="new-password"
+              />
+            </div>
+            {error && (
+              <Alert variant="destructive">
+                <AlertDescription>
+                  {error}
+                  {/already registered|already exists|409/i.test(error) ? (
+                    <>
+                      {" "}
+                      <Link href="/login" className="font-medium underline">
+                        Sign in
+                      </Link>
+                    </>
+                  ) : null}
+                </AlertDescription>
+              </Alert>
+            )}
+            <Button
+              type="submit"
+              disabled={loading}
+              className="h-10 w-full bg-terracotta text-terracotta-foreground hover:bg-terracotta/90"
+            >
+              {loading && <Loader2Icon data-icon="inline-start" className="animate-spin" />}
+              Create account
+            </Button>
+            {showGoogle ? (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span className="h-px flex-1 bg-border" />
+                  or
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+                <GoogleSignInButton
+                  disabled={loading}
+                  onCredential={submitGoogle}
+                  onError={setError}
+                />
+              </div>
+            ) : null}
+          </>
         )}
         <Button
           type="submit"

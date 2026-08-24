@@ -384,10 +384,8 @@ export default function StaffPage() {
         columns={columns}
         data={inspectors}
         rowKey={(row) => row.id}
-        searchPlaceholder="Search staff…"
-        searchKeys={["name", "email"]}
         emptyTitle="No inspectors yet"
-        emptyDescription="Add an inspector to assign jobs."
+        emptyDescription="Create an inspector to get started."
       />
 
       <Dialog open={open} onOpenChange={setOpen}>

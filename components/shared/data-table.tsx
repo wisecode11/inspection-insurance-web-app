@@ -46,6 +46,12 @@ type DataTableProps<T> = {
   emptyDescription?: string
 }
 
+function defaultRowKey<T>(row: T) {
+  const record = row as { id?: string | number }
+  if (record.id != null) return String(record.id)
+  return JSON.stringify(row)
+}
+
 export function DataTable<T>({
   data,
   columns,
@@ -54,7 +60,7 @@ export function DataTable<T>({
   searchKeys,
   pageSize = 8,
   onRowClick,
-  rowKey,
+  rowKey = defaultRowKey,
   toolbar,
   emptyIcon: EmptyIcon = SearchIcon,
   emptyTitle = "No results found",

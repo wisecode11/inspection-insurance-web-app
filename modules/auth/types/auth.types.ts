@@ -25,3 +25,10 @@ export type RegisterInput = {
   email: string
   password: string
 }
+
+export type GoogleAuthMode = "login" | "signup"
+
+export type GoogleAuthInput = {
+  idToken: string
+  mode: GoogleAuthMode
+}
