@@ -27,13 +27,13 @@ export function pathAfterLogin(
 ) {
   if (user.role === "platform_admin") {
     if (expectedRole !== "platform") {
-      throw new Error("This account is a platform owner. Choose Platform owner to continue.")
+      throw new Error("This account is a platform owner. Sign in at /roofclaim/admin.")
     }
-    return ROUTES.platform.dashboard
+    return ROUTES.superAdmin.users
   }
 
   if (expectedRole === "platform") {
-    throw new Error("This account belongs to a company. Choose Company to continue.")
+    throw new Error("This account belongs to a company. Use the company sign-in page.")
   }
 
   return pathForCompany(company)

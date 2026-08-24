@@ -188,9 +188,13 @@ export function DataTable<T>({
                 </TableCell>
               </TableRow>
             ) : (
-              paged.map((row) => (
+              paged.map((row, index) => (
                 <TableRow
-                  key={rowKey(row)}
+                  key={
+                    typeof rowKey === "function"
+                      ? rowKey(row)
+                      : String((row as { id?: string }).id ?? index)
+                  }
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
                   className={cn(onRowClick && "cursor-pointer")}
                 >

@@ -5,7 +5,6 @@ import Link from "next/link"
 import { Loader2Icon } from "lucide-react"
 
 import { AuthFrame } from "@/components/auth/auth-frame"
-import { RoleCards } from "@/components/auth/role-cards"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,7 +13,6 @@ import { env } from "@/lib/config/env"
 import { GoogleSignInButton } from "@/modules/auth/components/google-sign-in-button"
 import { PasswordField } from "@/modules/auth/components/password-field"
 import { useSignup } from "@/modules/auth/hooks/use-signup"
-import type { Role } from "@/types/role"
 
 function splitFullName(fullName: string) {
   const parts = fullName.trim().split(/\s+/).filter(Boolean)
@@ -37,7 +35,6 @@ export function SignupForm() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
-    if (role === "platform") return
     if (password.length < 6) {
       setError("Password must be at least 6 characters.")
       return
@@ -57,13 +54,9 @@ export function SignupForm() {
 
   return (
     <AuthFrame
-      title={role === "platform" ? "Platform owner access" : "Create your company account"}
-      description={
-        role === "platform"
-          ? "Platform owner accounts are provisioned by RoofClaim. Sign in with your credentials."
-          : "Then create your organization and choose a plan."
-      }
-      role={role}
+      title="Create your company account"
+      description="Then create your organization and choose a plan."
+      role="company"
       footer={
         <p className="mt-6 text-sm text-muted-foreground">
           Already have an account?{" "}
@@ -74,9 +67,16 @@ export function SignupForm() {
       }
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <Label>Sign up as</Label>
-          <RoleCards value={role} onChange={setRole} />
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="fullName">Full name</Label>
+          <Input
+            id="fullName"
+            value={fullName}
+            onChange={(event) => setFullName(event.target.value)}
+            autoComplete="name"
+            placeholder="Jordan Blake"
+            required
+          />
         </div>
 
         {role === "platform" ? (
@@ -160,6 +160,14 @@ export function SignupForm() {
             ) : null}
           </>
         )}
+        <Button
+          type="submit"
+          disabled={loading}
+          className="h-10 w-full bg-terracotta text-terracotta-foreground hover:bg-terracotta/90"
+        >
+          {loading && <Loader2Icon data-icon="inline-start" className="animate-spin" />}
+          Create account
+        </Button>
       </form>
     </AuthFrame>
   )

@@ -104,9 +104,9 @@ export default function BillingPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Platform admin"
-        title="Plans & billing"
-        description="Seat limits, subscription health, failed payments, and platform churn."
+        eyebrow="Super admin"
+        title="Subscription Management"
+        description="Plans, subscription health, failed payments, and platform churn."
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">

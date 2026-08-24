@@ -152,8 +152,8 @@ export default function TenantsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Platform admin"
-        title="Tenants"
+        eyebrow="Super admin"
+        title="User Management"
         description="Every roofing company on RoofClaim, with plan, seats, and account status."
       />
 

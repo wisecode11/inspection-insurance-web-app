@@ -2,11 +2,9 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
 import { Loader2Icon } from "lucide-react"
 
 import { AuthFrame } from "@/components/auth/auth-frame"
-import { RoleCards } from "@/components/auth/role-cards"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,7 +14,6 @@ import { env } from "@/lib/config/env"
 import { GoogleSignInButton } from "@/modules/auth/components/google-sign-in-button"
 import { PasswordField } from "@/modules/auth/components/password-field"
 import { useLogin } from "@/modules/auth/hooks/use-login"
-import type { Role } from "@/types/role"
 
 export function LoginForm() {
   const searchParams = useSearchParams()
@@ -33,14 +30,14 @@ export function LoginForm() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
-    await submit({ email: email.trim(), password }, role)
+    await submit({ email: email.trim(), password }, "company")
   }
 
   return (
     <AuthFrame
       title="Welcome back"
-      description="Choose Company or Platform owner, then sign in."
-      role={role}
+      description="Sign in to your company workspace."
+      role="company"
       footer={
         <p className="mt-6 text-sm text-muted-foreground">
           New company admin?{" "}
@@ -51,10 +48,6 @@ export function LoginForm() {
       }
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2">
-          <Label>Continue as</Label>
-          <RoleCards value={role} onChange={setRole} />
-        </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="email">Email</Label>
           <Input

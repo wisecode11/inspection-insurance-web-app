@@ -24,7 +24,7 @@ export const companyNav: NavItem[] = [
   { title: "Subscription", href: ROUTES.company.billing, icon: CreditCardIcon },
   { title: "Codes & standards", href: ROUTES.company.codes, icon: BookMarkedIcon },
   { title: "Branding", href: ROUTES.company.branding, icon: PaletteIcon },
-  { title: "Templates & checklists", href: ROUTES.company.templates, icon: FileStackIcon },
+  { title: "Report language", href: ROUTES.company.templates, icon: FileStackIcon },
   { title: "Analytics", href: ROUTES.company.analytics, icon: BarChart3Icon },
 ]
 

@@ -41,6 +41,7 @@ export default function CompanyDashboardPage() {
         actions={
           <Button
             className="bg-terracotta text-terracotta-foreground hover:bg-terracotta/90"
+            nativeButton={false}
             render={<Link href={ROUTES.company.jobs} />}
           >
             <PlusIcon data-icon="inline-start" />

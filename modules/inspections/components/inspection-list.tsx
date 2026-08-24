@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { PlusIcon } from "lucide-react"
+import { MoreHorizontalIcon, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { PageHeader } from "@/components/shared/page-header"
@@ -21,6 +21,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Select,
   SelectContent,
@@ -42,6 +50,21 @@ import {
   type JobStatus,
 } from "@/modules/inspections/types/job.types"
 import { useStaff } from "@/modules/staff/hooks/use-staff"
+
+function stopRowClick(event: React.MouseEvent) {
+  event.stopPropagation()
+}
+
+function readFileAsDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result || ""))
+    reader.onerror = () => reject(new Error("Could not read attachment file"))
+    reader.readAsDataURL(file)
+  })
+}
+
+const MAX_ATTACHMENT_BYTES = 1_500_000
 
 type StatusFilter = "all" | JobStatus
 
@@ -70,6 +93,8 @@ const emptyForm = {
   notes: "",
   attachmentName: "",
   attachmentUrl: "",
+  attachmentMime: "",
+  attachmentSize: 0,
   inspectorId: "unassigned",
 }
 
@@ -78,6 +103,24 @@ export default function JobsPage() {
   const { data: jobs = [], isLoading, error, reload } = useJobs()
   const { data: staff = [] } = useStaff()
   const inspectors = staff.filter((member) => member.status === "active")
+  const inspectorItems = React.useMemo(
+    () => [
+      { value: "unassigned", label: "Unassigned" },
+      ...inspectors.map((member) => ({ value: member.id, label: member.name })),
+    ],
+    [inspectors],
+  )
+  const priorityItems = React.useMemo(
+    () => JOB_PRIORITY_OPTIONS.map((option) => ({ value: option.value, label: option.label })),
+    [],
+  )
+  const statusFilterItems = React.useMemo(
+    () => [
+      { value: "all", label: "All statuses" },
+      ...JOB_STATUS_OPTIONS.map((option) => ({ value: option.value, label: option.label })),
+    ],
+    [],
+  )
 
   const [status, setStatus] = React.useState<StatusFilter>("all")
   const [open, setOpen] = React.useState(false)
@@ -88,6 +131,7 @@ export default function JobsPage() {
   const [bulkInspectorId, setBulkInspectorId] = React.useState("")
   const [bulkDueDate, setBulkDueDate] = React.useState("")
   const [bulkPriority, setBulkPriority] = React.useState<JobPriority | "">("")
+  const [attachmentKey, setAttachmentKey] = React.useState(0)
 
   const rows = React.useMemo(
     () => jobs.filter((row) => status === "all" || row.status === status),
@@ -98,12 +142,49 @@ export default function JobsPage() {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
+  function clearAttachment() {
+    setForm((prev) => ({
+      ...prev,
+      attachmentName: "",
+      attachmentUrl: "",
+      attachmentMime: "",
+      attachmentSize: 0,
+    }))
+    setAttachmentKey((key) => key + 1)
+  }
+
+  async function onAttachmentSelected(file?: File | null) {
+    if (!file) {
+      clearAttachment()
+      return
+    }
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      toast.error("Attachment must be under 1.5MB")
+      clearAttachment()
+      return
+    }
+    try {
+      const dataUrl = await readFileAsDataUrl(file)
+      setForm((prev) => ({
+        ...prev,
+        attachmentName: file.name,
+        attachmentUrl: dataUrl,
+        attachmentMime: file.type || "application/octet-stream",
+        attachmentSize: file.size,
+      }))
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+      clearAttachment()
+    }
+  }
+
   function toggleSelected(id: string) {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]))
   }
 
   function openCreate() {
     setForm(emptyForm)
+    setAttachmentKey((key) => key + 1)
     setOpen(true)
   }
 
@@ -130,10 +211,17 @@ export default function JobsPage() {
     try {
       const attachments =
         form.attachmentName.trim() && form.attachmentUrl.trim()
-          ? [{ name: form.attachmentName.trim(), url: form.attachmentUrl.trim() }]
+          ? [
+              {
+                name: form.attachmentName.trim(),
+                url: form.attachmentUrl.trim(),
+                mimeType: form.attachmentMime || undefined,
+                size: form.attachmentSize || undefined,
+              },
+            ]
           : []
 
-      const job = await jobService.create({
+      await jobService.create({
         title: form.title.trim(),
         priority: form.priority,
         dueDate: form.dueDate || null,
@@ -161,7 +249,6 @@ export default function JobsPage() {
       toast.success("Job created")
       await reload()
       setOpen(false)
-      router.push(ROUTES.company.job(job.id))
     } catch (err) {
       toast.error(getErrorMessage(err))
     } finally {
@@ -261,6 +348,38 @@ export default function JobsPage() {
         <StatusBadge status={jobStatusVariant(row.status)} label={jobStatusLabel(row.status)} />
       ),
     },
+    {
+      key: "actions",
+      header: "",
+      cell: (row) => (
+        <div onClick={stopRowClick}>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button variant="ghost" size="icon-sm" aria-label="Job actions">
+                  <MoreHorizontalIcon />
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="end">
+              <DropdownMenuGroup>
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => router.push(ROUTES.company.job(row.id))}>
+                  View job
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() =>
+                    router.push(`${ROUTES.company.reports}?jobId=${encodeURIComponent(row.id)}`)
+                  }
+                >
+                  View report
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      ),
+    },
   ]
 
   return (
@@ -268,7 +387,7 @@ export default function JobsPage() {
       <PageHeader
         eyebrow="Company workspace"
         title="Jobs"
-        description="Create jobs, assign inspectors, track due dates, and move work through the status workflow."
+        description="Create jobs, assign inspectors, and track status. Review and approve reports from the Reports tab."
         actions={
           <div className="flex flex-wrap gap-2">
             <Button
@@ -299,13 +418,16 @@ export default function JobsPage() {
         emptyDescription="Create a job with property, homeowner, and insurance details."
         onRowClick={(row) => router.push(ROUTES.company.job(row.id))}
         toolbar={
-          <Select value={status} onValueChange={(value) => setStatus((value as StatusFilter) || "all")}>
+          <Select
+            value={status}
+            onValueChange={(value) => setStatus((value as StatusFilter) || "all")}
+            items={statusFilterItems}
+          >
             <SelectTrigger className="w-[190px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              {JOB_STATUS_OPTIONS.map((option) => (
+              {statusFilterItems.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -320,7 +442,7 @@ export default function JobsPage() {
           <DialogHeader>
             <DialogTitle>New job</DialogTitle>
             <DialogDescription>
-              Property, homeowner, insurance, and job details. Attachments are optional URL references.
+              Property, homeowner, insurance, and job details. Attach a claim/policy file from your device if needed.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -333,6 +455,7 @@ export default function JobsPage() {
               <Select
                 value={form.priority}
                 onValueChange={(value) => setField("priority", (value as JobPriority) || "normal")}
+                items={priorityItems}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue />
@@ -426,15 +549,15 @@ export default function JobsPage() {
               <Select
                 value={form.inspectorId}
                 onValueChange={(value) => setField("inspectorId", value || "unassigned")}
+                items={inspectorItems}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="unassigned">Unassigned</SelectItem>
-                  {inspectors.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
-                      {member.name}
+                  {inspectorItems.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -444,21 +567,26 @@ export default function JobsPage() {
               <Label>Notes</Label>
               <Textarea value={form.notes} onChange={(e) => setField("notes", e.target.value)} rows={3} />
             </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>Attachment name</Label>
+            <div className="flex flex-col gap-1.5 sm:col-span-2">
+              <Label>Attachment (optional)</Label>
               <Input
-                value={form.attachmentName}
-                onChange={(e) => setField("attachmentName", e.target.value)}
-                placeholder="Policy PDF"
+                key={attachmentKey}
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx"
+                onChange={(e) => onAttachmentSelected(e.target.files?.[0])}
               />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>Attachment URL</Label>
-              <Input
-                value={form.attachmentUrl}
-                onChange={(e) => setField("attachmentUrl", e.target.value)}
-                placeholder="https://..."
-              />
+              {form.attachmentName ? (
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="text-muted-foreground truncate">{form.attachmentName}</span>
+                  <Button type="button" variant="ghost" size="sm" onClick={clearAttachment}>
+                    Remove
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Upload a claim/policy PDF or photo from your computer (max 1.5MB). No external URL needed.
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>
@@ -483,7 +611,11 @@ export default function JobsPage() {
           <div className="grid gap-3">
             <div className="flex flex-col gap-1.5">
               <Label>Inspector</Label>
-              <Select value={bulkInspectorId} onValueChange={(value) => setBulkInspectorId(value || "")}>
+              <Select
+                value={bulkInspectorId}
+                onValueChange={(value) => setBulkInspectorId(value || "")}
+                items={inspectors.map((member) => ({ value: member.id, label: member.name }))}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -505,6 +637,10 @@ export default function JobsPage() {
               <Select
                 value={bulkPriority || "keep"}
                 onValueChange={(value) => setBulkPriority(value === "keep" ? "" : (value as JobPriority))}
+                items={[
+                  { value: "keep", label: "Keep existing" },
+                  ...priorityItems,
+                ]}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue />
