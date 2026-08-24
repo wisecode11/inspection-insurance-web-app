@@ -298,7 +298,13 @@ export default function StaffPage() {
         }
       />
 
-      <DataTable columns={columns} data={inspectors} emptyMessage="No inspectors yet." />
+      <DataTable
+        columns={columns}
+        data={inspectors}
+        rowKey={(row) => row.id}
+        emptyTitle="No inspectors yet"
+        emptyDescription="Create an inspector to get started."
+      />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>

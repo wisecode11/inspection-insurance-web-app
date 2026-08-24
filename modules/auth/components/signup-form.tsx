@@ -10,6 +10,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { env } from "@/lib/config/env"
+import { GoogleSignInButton } from "@/modules/auth/components/google-sign-in-button"
 import { PasswordField } from "@/modules/auth/components/password-field"
 import { useSignup } from "@/modules/auth/hooks/use-signup"
 import type { Role } from "@/types/role"
@@ -25,11 +27,13 @@ function splitFullName(fullName: string) {
 }
 
 export function SignupForm() {
-  const { error, loading, submit, setError } = useSignup()
+  const { error, loading, submit, submitGoogle, setError } = useSignup()
   const [role, setRole] = React.useState<Role>("company")
   const [fullName, setFullName] = React.useState("")
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
+
+  const showGoogle = role === "company" && Boolean(env.googleClientId)
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -140,6 +144,20 @@ export function SignupForm() {
               {loading && <Loader2Icon data-icon="inline-start" className="animate-spin" />}
               Create account
             </Button>
+            {showGoogle ? (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span className="h-px flex-1 bg-border" />
+                  or
+                  <span className="h-px flex-1 bg-border" />
+                </div>
+                <GoogleSignInButton
+                  disabled={loading}
+                  onCredential={submitGoogle}
+                  onError={setError}
+                />
+              </div>
+            ) : null}
           </>
         )}
       </form>

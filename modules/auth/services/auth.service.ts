@@ -2,7 +2,12 @@ import { apiClient } from "@/lib/api/client"
 import { publicApiClient } from "@/lib/api/public-client"
 import { endpoints } from "@/lib/api/endpoints"
 import { unwrap } from "@/lib/api/unwrap"
-import type { AuthPayload, LoginInput, RegisterInput } from "@/modules/auth/types/auth.types"
+import type {
+  AuthPayload,
+  GoogleAuthInput,
+  LoginInput,
+  RegisterInput,
+} from "@/modules/auth/types/auth.types"
 import type { AuthUser } from "@/types/user"
 
 export const authService = {
@@ -15,6 +20,14 @@ export const authService = {
 
   async login(input: LoginInput) {
     const response = await publicApiClient.post(endpoints.auth.login, {
+      ...input,
+      platform: "web",
+    })
+    return unwrap<AuthPayload>(response.data)
+  },
+
+  async google(input: GoogleAuthInput) {
+    const response = await publicApiClient.post(endpoints.auth.google, {
       ...input,
       platform: "web",
     })

@@ -25,5 +25,18 @@ export function useSignup() {
     }
   }
 
-  return { error, loading, submit, setError }
+  async function submitGoogle(idToken: string) {
+    setError("")
+    setLoading(true)
+    try {
+      const payload = await authService.google({ idToken, mode: "signup" })
+      await persistSession(payload)
+      window.location.assign(pathAfterSignup())
+    } catch (caught) {
+      setError(getErrorMessage(caught))
+      setLoading(false)
+    }
+  }
+
+  return { error, loading, submit, submitGoogle, setError }
 }

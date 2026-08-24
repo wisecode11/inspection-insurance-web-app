@@ -39,11 +39,17 @@ type DataTableProps<T> = {
   searchKeys?: (keyof T)[]
   pageSize?: number
   onRowClick?: (row: T) => void
-  rowKey: (row: T) => string
+  rowKey?: (row: T) => string
   toolbar?: React.ReactNode
   emptyIcon?: React.ComponentType<{ className?: string }>
   emptyTitle?: string
   emptyDescription?: string
+}
+
+function defaultRowKey<T>(row: T) {
+  const record = row as { id?: string | number }
+  if (record.id != null) return String(record.id)
+  return JSON.stringify(row)
 }
 
 export function DataTable<T>({
@@ -54,7 +60,7 @@ export function DataTable<T>({
   searchKeys,
   pageSize = 8,
   onRowClick,
-  rowKey,
+  rowKey = defaultRowKey,
   toolbar,
   emptyIcon: EmptyIcon = SearchIcon,
   emptyTitle = "No results found",

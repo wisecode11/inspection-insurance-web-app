@@ -142,6 +142,14 @@ export function PlanPicker() {
               )
             })}
           </div>
+          {!plans.length && !error ? (
+            <Alert>
+              <AlertDescription>
+                No subscription plans are available yet. Ask an admin to run plan seeding on the
+                backend (`npm run seed:plans`), then refresh this page.
+              </AlertDescription>
+            </Alert>
+          ) : null}
           {selected && mode === "trial" && selected.trialDays <= 0 && (
             <Alert>
               <AlertDescription>This plan has no free trial. Choose Monthly or Annual.</AlertDescription>
