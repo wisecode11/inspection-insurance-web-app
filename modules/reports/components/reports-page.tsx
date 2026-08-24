@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { FileDownIcon, Share2Icon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -10,7 +10,6 @@ import { DataTable, type Column } from "@/components/shared/data-table"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { ErrorState, LoadingState } from "@/components/shared/resource-state"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -33,7 +32,7 @@ import { ROUTES } from "@/lib/constants/routes"
 import { getErrorMessage } from "@/lib/api/errors"
 import { companyReportService } from "@/modules/reports/services/company-report.service"
 import {
-  REPORT_STATUS_OPTIONS,
+  ADMIN_REPORT_STATUS_OPTIONS,
   reportStatusLabel,
   reportStatusVariant,
   type CompanyReport,
@@ -51,6 +50,8 @@ function pdfHref(pdfUrl?: string) {
 
 export default function ReportsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const jobIdFilter = searchParams.get("jobId")
   const [reports, setReports] = React.useState<CompanyReport[]>([])
   const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState("")
@@ -58,10 +59,12 @@ export default function ReportsPage() {
   const [selected, setSelected] = React.useState<CompanyReport | null>(null)
   const [notes, setNotes] = React.useState("")
   const [busy, setBusy] = React.useState(false)
+  const openedJobId = React.useRef<string | null>(null)
 
   async function reload() {
     const rows = await companyReportService.list(status === "all" ? undefined : status)
     setReports(rows)
+    return rows
   }
 
   React.useEffect(() => {
@@ -70,6 +73,23 @@ export default function ReportsPage() {
       .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setLoading(false))
   }, [status])
+
+  React.useEffect(() => {
+    if (!jobIdFilter || loading || error) return
+    if (openedJobId.current === jobIdFilter) return
+
+    const match = reports.find((row) => row.jobId === jobIdFilter)
+    openedJobId.current = jobIdFilter
+
+    if (match) {
+      setSelected(match)
+      return
+    }
+
+    toast.message("No report for this job yet", {
+      description: "Reports appear after the inspector submits work.",
+    })
+  }, [jobIdFilter, reports, loading, error])
 
   async function run(action: () => Promise<unknown>, success: string) {
     if (!selected) return
@@ -141,7 +161,7 @@ export default function ReportsPage() {
       <PageHeader
         eyebrow="Company admin"
         title="Reports"
-        description="View, review, approve, reject, request changes, download, and share inspector reports."
+        description="Review reports submitted by inspectors — approve, reject, request changes, download, or share."
       />
 
       <DataTable
@@ -150,8 +170,8 @@ export default function ReportsPage() {
         rowKey={(row) => row.id}
         searchPlaceholder="Search report, job, customer, inspector…"
         searchKeys={["title", "jobNumber", "jobTitle", "customerName", "inspectorName", "propertyAddress"]}
-        emptyTitle="No reports yet"
-        emptyDescription="Reports appear after inspectors complete jobs and PDFs are generated."
+        emptyTitle="No submitted reports yet"
+        emptyDescription="Reports appear here only after an inspector submits their work from the field."
         onRowClick={(row) => setSelected(row)}
         toolbar={
           <Select value={status} onValueChange={(value) => setStatus((value as StatusFilter) || "all")}>
@@ -159,8 +179,8 @@ export default function ReportsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              {REPORT_STATUS_OPTIONS.map((option) => (
+              <SelectItem value="all">All review statuses</SelectItem>
+              {ADMIN_REPORT_STATUS_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -228,14 +248,6 @@ export default function ReportsPage() {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {selected.status === "draft" ? (
-                  <Button
-                    disabled={busy}
-                    onClick={() => run(() => companyReportService.submit(selected.id), "Report submitted")}
-                  >
-                    Submit for review
-                  </Button>
-                ) : null}
                 {selected.status === "submitted" ? (
                   <Button
                     disabled={busy}
@@ -313,20 +325,6 @@ export default function ReportsPage() {
                 >
                   Open job
                 </Button>
-                {!selected.pdfUrl ? (
-                  <Button
-                    variant="secondary"
-                    disabled={busy}
-                    onClick={() =>
-                      run(
-                        () => companyReportService.generateForJob(selected.jobId, selected.narrative),
-                        "PDF generated",
-                      )
-                    }
-                  >
-                    Generate PDF
-                  </Button>
-                ) : null}
               </div>
             </div>
           ) : null}

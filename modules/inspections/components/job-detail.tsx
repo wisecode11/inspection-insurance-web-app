@@ -2,12 +2,7 @@
 
 import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
-import {
-  ArrowLeftIcon,
-  CameraIcon,
-  FileDownIcon,
-  Share2Icon,
-} from "lucide-react"
+import { ArrowLeftIcon, CameraIcon, FileTextIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { PageHeader } from "@/components/shared/page-header"
@@ -17,7 +12,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -27,11 +21,9 @@ import {
 } from "@/components/ui/select"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { ROUTES } from "@/lib/constants/routes"
-import { env } from "@/lib/config/env"
 import { getErrorMessage } from "@/lib/api/errors"
 import { useJob } from "@/modules/inspections/hooks/use-job"
 import { jobService } from "@/modules/inspections/services/job.service"
-import { reportService } from "@/modules/inspections/services/report.service"
 import {
   jobStatusLabel,
   jobStatusVariant,
@@ -53,8 +45,23 @@ export default function JobDetailPage() {
   const { data: job, isLoading, error, reload } = useJob(params.id)
   const { data: staff = [] } = useStaff()
   const inspectors = staff.filter((member) => member.status === "active")
+  const inspectorItems = React.useMemo(
+    () => [
+      { value: "unassigned", label: "Unassigned" },
+      ...inspectors.map((member) => ({ value: member.id, label: member.name })),
+    ],
+    [inspectors],
+  )
+  const priorityItems = React.useMemo(
+    () => [
+      { value: "low", label: "Low" },
+      { value: "normal", label: "Normal" },
+      { value: "high", label: "High" },
+      { value: "urgent", label: "Urgent" },
+    ],
+    [],
+  )
 
-  const [narrative, setNarrative] = React.useState("")
   const [assignId, setAssignId] = React.useState("unassigned")
   const [priority, setPriority] = React.useState("normal")
   const [dueDate, setDueDate] = React.useState("")
@@ -62,8 +69,6 @@ export default function JobDetailPage() {
 
   React.useEffect(() => {
     if (!job) return
-    const latest = job.reports?.[0]?.narrative || job.inspection?.summary?.overallNotes || job.notes || ""
-    setNarrative(latest)
     setAssignId(job.assignedTo || "unassigned")
     setPriority(job.priority || "normal")
     setDueDate(job.dueDate ? String(job.dueDate).slice(0, 10) : "")
@@ -91,10 +96,9 @@ export default function JobDetailPage() {
     )
   }
 
-  const transitions = nextJobStatuses(job.status)
-  const canReject = !["rejected", "completed", "cancelled", "archived"].includes(job.status)
+  const transitions = nextJobStatuses(job.status).filter((status) => status !== "rejected")
+  const canCancel = !["completed", "cancelled", "archived"].includes(job.status)
   const photos = job.photos || []
-  const warnings = job.reports?.[0]?.warnings || []
   const progress = job.progress
 
   async function run(action: () => Promise<unknown>, success: string) {
@@ -113,7 +117,7 @@ export default function JobDetailPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Jobs & reports"
+        eyebrow="Jobs"
         title={job.title || job.addressLine || job.jobNumber}
         description={`${job.customerName || "Homeowner"} · ${job.jobNumber} · ${job.inspector}`}
         actions={
@@ -124,36 +128,12 @@ export default function JobDetailPage() {
             </Button>
             <Button
               variant="outline"
-              disabled={busy}
               onClick={() =>
-                run(async () => {
-                  const shared = await reportService.share(job.id)
-                  const url = shared.share.url.startsWith("http")
-                    ? shared.share.url
-                    : `${window.location.origin}${shared.share.url}`
-                  await navigator.clipboard.writeText(url)
-                }, "Evidence package share link copied")
+                router.push(`${ROUTES.company.reports}?jobId=${encodeURIComponent(job.id)}`)
               }
             >
-              <Share2Icon data-icon="inline-start" />
-              Share evidence
-            </Button>
-            <Button
-              disabled={busy}
-              onClick={() =>
-                run(async () => {
-                  const report = await reportService.generate(job.id, narrative)
-                  if (report.pdfUrl) {
-                    const url = report.pdfUrl.startsWith("http")
-                      ? report.pdfUrl
-                      : `${env.apiUrl.replace(/\/$/, "")}${report.pdfUrl}`
-                    window.open(url, "_blank")
-                  }
-                }, "PDF generated")
-              }
-            >
-              <FileDownIcon data-icon="inline-start" />
-              Generate PDF
+              <FileTextIcon data-icon="inline-start" />
+              View report
             </Button>
           </div>
         }
@@ -274,15 +254,18 @@ export default function JobDetailPage() {
           <CardContent className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
               <Label>Inspector</Label>
-              <Select value={assignId} onValueChange={(value) => setAssignId(value || "unassigned")}>
+              <Select
+                value={assignId}
+                onValueChange={(value) => setAssignId(value || "unassigned")}
+                items={inspectorItems}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="unassigned">Unassigned</SelectItem>
-                  {inspectors.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
-                      {member.name}
+                  {inspectorItems.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -310,15 +293,20 @@ export default function JobDetailPage() {
             <div className="grid grid-cols-2 gap-2">
               <div className="flex flex-col gap-1.5">
                 <Label>Priority</Label>
-                <Select value={priority} onValueChange={(value) => setPriority(value || "normal")}>
+                <Select
+                  value={priority}
+                  onValueChange={(value) => setPriority(value || "normal")}
+                  items={priorityItems}
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
+                    {priorityItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -365,13 +353,13 @@ export default function JobDetailPage() {
               </div>
             ) : null}
 
-            {canReject ? (
+            {canCancel ? (
               <Button
                 variant="destructive"
                 disabled={busy}
-                onClick={() => run(() => jobService.cancel(job.id), "Job rejected")}
+                onClick={() => run(() => jobService.cancel(job.id), "Job cancelled")}
               >
-                Reject job
+                Cancel job
               </Button>
             ) : null}
           </CardContent>
@@ -380,62 +368,8 @@ export default function JobDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Report narrative & review</CardTitle>
-          <CardDescription>
-            Edit the report-level narrative for this inspection. Administrative template defaults still
-            control future reports.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <Textarea
-            value={narrative}
-            onChange={(event) => setNarrative(event.target.value)}
-            rows={6}
-            placeholder="Write or adjust the assessment narrative for this report…"
-          />
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              disabled={busy}
-              onClick={() =>
-                run(() => reportService.updateNarrative(job.id, narrative), "Narrative saved")
-              }
-            >
-              Save narrative
-            </Button>
-            <Button
-              disabled={busy || !["submitted", "reviewed", "review_required"].includes(job.status)}
-              onClick={() =>
-                run(async () => {
-                  if (job.status === "submitted" || job.status === "review_required") {
-                    await jobService.setStatus(job.id, "reviewed")
-                    await jobService.setStatus(job.id, "completed")
-                    return
-                  }
-                  await jobService.setStatus(job.id, "completed")
-                }, "Review completed")
-              }
-            >
-              Complete review
-            </Button>
-          </div>
-          {warnings.length > 0 ? (
-            <div className="rounded-md border border-warning/30 bg-warning/10 p-3 text-sm">
-              <p className="font-medium">Warnings</p>
-              <ul className="mt-1 list-disc pl-5">
-                {warnings.map((warning) => (
-                  <li key={warning}>{warning}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
           <CardTitle>Photos & notes</CardTitle>
-          <CardDescription>Evidence captured for this job.</CardDescription>
+          <CardDescription>Evidence captured for this job. Report approve/reject lives on the Reports tab.</CardDescription>
         </CardHeader>
         <CardContent>
           {photos.length === 0 ? (

@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ShieldIcon } from "lucide-react"
+import { LogOutIcon, ShieldIcon } from "lucide-react"
 
 import {
   Sidebar,
@@ -16,8 +16,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { destroySession } from "@/lib/auth/session"
 import { navForRole, roleMeta } from "@/lib/navigation"
 import { getStoredUser } from "@/lib/auth/user-storage"
+import { ROUTES } from "@/lib/constants/routes"
 import type { Role } from "@/types/role"
 
 export function AppSidebar({ role }: { role: Role }) {
@@ -25,6 +27,11 @@ export function AppSidebar({ role }: { role: Role }) {
   const user = typeof window !== "undefined" ? getStoredUser() : null
   const nav = navForRole(role, user?.role)
   const meta = roleMeta[role]
+
+  async function handleLogout() {
+    await destroySession()
+    window.location.assign(role === "platform" ? ROUTES.superAdmin.login : "/login")
+  }
 
   return (
     <Sidebar collapsible="offcanvas">
@@ -68,13 +75,25 @@ export function AppSidebar({ role }: { role: Role }) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-3">
+      <SidebarFooter className="gap-2 p-3">
         <div className="rounded-lg bg-sidebar-accent/50 p-3 text-xs text-sidebar-foreground/80">
           <p className="font-medium text-sidebar-foreground">{meta.org}</p>
           <p className="mt-0.5 text-sidebar-foreground/60">
             {role === "platform" ? "42 active tenants" : "Pro plan · 12 seats"}
           </p>
         </div>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              tooltip="Log out"
+              className="text-sidebar-foreground/80 hover:bg-destructive/10 hover:text-destructive"
+              onClick={handleLogout}
+            >
+              <LogOutIcon />
+              <span>Log out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   )

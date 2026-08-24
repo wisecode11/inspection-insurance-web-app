@@ -98,7 +98,7 @@ export default function PlatformDashboardPage() {
           <CardTitle>Recently onboarded companies</CardTitle>
           <CardDescription>Newest roofing companies to join the platform</CardDescription>
           <CardAction>
-            <Button variant="outline" size="sm" render={<a href={ROUTES.platform.tenants} />}>
+            <Button variant="outline" size="sm" render={<a href={ROUTES.superAdmin.users} />}>
               View all tenants
               <ArrowUpRightIcon data-icon="inline-end" />
             </Button>

@@ -2,6 +2,11 @@ export const ROUTES = {
   home: "/",
   login: "/login",
   signup: "/signup",
+  superAdmin: {
+    login: "/roofclaim/admin",
+    users: "/roofclaim/admin/users",
+    subscriptions: "/roofclaim/admin/subscriptions",
+  },
   platform: {
     root: "/platform",
     dashboard: "/platform/dashboard",

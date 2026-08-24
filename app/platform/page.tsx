@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation"
 
+import { ROUTES } from "@/lib/constants/routes"
+
 export default function PlatformIndexPage() {
-  redirect("/platform/dashboard")
+  redirect(ROUTES.superAdmin.users)
 }

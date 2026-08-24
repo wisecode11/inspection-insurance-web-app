@@ -39,7 +39,7 @@ type DataTableProps<T> = {
   searchKeys?: (keyof T)[]
   pageSize?: number
   onRowClick?: (row: T) => void
-  rowKey: (row: T) => string
+  rowKey?: (row: T) => string
   toolbar?: React.ReactNode
   emptyIcon?: React.ComponentType<{ className?: string }>
   emptyTitle?: string
@@ -182,9 +182,13 @@ export function DataTable<T>({
                 </TableCell>
               </TableRow>
             ) : (
-              paged.map((row) => (
+              paged.map((row, index) => (
                 <TableRow
-                  key={rowKey(row)}
+                  key={
+                    typeof rowKey === "function"
+                      ? rowKey(row)
+                      : String((row as { id?: string }).id ?? index)
+                  }
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
                   className={cn(onRowClick && "cursor-pointer")}
                 >

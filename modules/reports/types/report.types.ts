@@ -49,6 +49,14 @@ export const REPORT_STATUS_OPTIONS: Array<{ value: ReportStatus; label: string }
   { value: "rejected", label: "Rejected" },
 ]
 
+/** Statuses visible on the company admin Reports tab (inspector must submit first). */
+export const ADMIN_REPORT_STATUS_OPTIONS: Array<{ value: ReportStatus; label: string }> = [
+  { value: "submitted", label: "Submitted" },
+  { value: "under_review", label: "Under review" },
+  { value: "approved", label: "Approved" },
+  { value: "rejected", label: "Rejected" },
+]
+
 export function reportStatusLabel(status: string) {
   return REPORT_STATUS_OPTIONS.find((item) => item.value === status)?.label
     || status.replaceAll("_", " ")

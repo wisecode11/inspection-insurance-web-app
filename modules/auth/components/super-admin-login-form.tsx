@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
 import { Loader2Icon } from "lucide-react"
 
 import { AuthFrame } from "@/components/auth/auth-frame"
@@ -12,29 +11,21 @@ import { Label } from "@/components/ui/label"
 import { PasswordField } from "@/modules/auth/components/password-field"
 import { useLogin } from "@/modules/auth/hooks/use-login"
 
-export function LoginForm() {
+export function SuperAdminLoginForm() {
   const { error, loading, submit } = useLogin()
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
-    await submit({ email: email.trim(), password }, "company")
+    await submit({ email: email.trim(), password }, "platform")
   }
 
   return (
     <AuthFrame
-      title="Welcome back"
-      description="Sign in to your company workspace."
-      role="company"
-      footer={
-        <p className="mt-6 text-sm text-muted-foreground">
-          New company admin?{" "}
-          <Link href="/signup" className="font-medium text-terracotta hover:underline">
-            Create an account
-          </Link>
-        </p>
-      }
+      title="Super Admin"
+      description="Sign in to manage users and subscriptions across RoofClaim."
+      role="platform"
     >
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
