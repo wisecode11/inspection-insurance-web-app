@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useSearchParams } from "next/navigation"
 import { MoreHorizontalIcon, UserPlusIcon } from "lucide-react"
 import { toast } from "@/lib/toast"
 
@@ -128,6 +129,8 @@ function StaffRowActions({
 }
 
 export default function StaffPage() {
+  const searchParams = useSearchParams()
+  const inspectorIdFilter = searchParams.get("inspectorId")
   const user = getStoredUser()
   const isAdmin = user?.role === "company_admin"
   const { data: inspectors = [], isLoading, error, reload } = useStaff()
@@ -142,6 +145,7 @@ export default function StaffPage() {
   const [email, setEmail] = React.useState("")
   const [phone, setPhone] = React.useState("")
   const [password, setPassword] = React.useState("")
+  const openedInspectorId = React.useRef<string | null>(null)
 
   function resetForm() {
     setName("")
@@ -251,6 +255,21 @@ export default function StaffPage() {
       toast.error(getErrorMessage(err))
     }
   }
+
+  React.useEffect(() => {
+    if (!inspectorIdFilter || isLoading || error) return
+    if (openedInspectorId.current === inspectorIdFilter) return
+
+    const match = inspectors.find((row) => row.id === inspectorIdFilter)
+    openedInspectorId.current = inspectorIdFilter
+
+    if (!match) {
+      toast.info("Inspector not found", "They may have been removed from this company.")
+      return
+    }
+
+    void openHistory(match)
+  }, [inspectorIdFilter, inspectors, isLoading, error])
 
   const columns: Column<StaffMember>[] = [
     { key: "name", header: "Name", cell: (row) => row.name },

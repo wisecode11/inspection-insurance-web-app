@@ -1,8 +1,19 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { FileDownIcon, Share2Icon } from "lucide-react"
+import {
+  CheckIcon,
+  ExternalLinkIcon,
+  EyeIcon,
+  FileDownIcon,
+  FileTextIcon,
+  MoreHorizontalIcon,
+  Share2Icon,
+  Undo2Icon,
+  XIcon,
+} from "lucide-react"
 import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
@@ -20,6 +31,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   Select,
   SelectContent,
@@ -41,11 +61,37 @@ import {
 
 type StatusFilter = "all" | ReportStatus
 
+const OBJECT_ID_RE = /^[a-f\d]{24}$/i
+
 function pdfHref(pdfUrl?: string) {
   if (!pdfUrl) return ""
   if (pdfUrl.startsWith("http")) return pdfUrl
   const base = env.apiUrl.replace(/\/api\/?$/, "")
   return `${base}${pdfUrl.startsWith("/") ? "" : "/"}${pdfUrl}`
+}
+
+function formatWhen(value?: string | null) {
+  if (!value) return "—"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "—"
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  })
+}
+
+function stopRowNav(event: React.MouseEvent) {
+  event.stopPropagation()
+}
+
+function resolveJobId(report: CompanyReport): string {
+  const fromJob = report.job?.id
+  if (fromJob && OBJECT_ID_RE.test(fromJob)) return fromJob
+  if (report.jobId && OBJECT_ID_RE.test(report.jobId)) return report.jobId
+  return ""
 }
 
 export default function ReportsPage() {
@@ -77,17 +123,25 @@ export default function ReportsPage() {
   React.useEffect(() => {
     if (!jobIdFilter || loading || error) return
     if (openedJobId.current === jobIdFilter) return
+    if (!OBJECT_ID_RE.test(jobIdFilter)) {
+      openedJobId.current = jobIdFilter
+      router.replace(ROUTES.company.reports)
+      return
+    }
 
-    const match = reports.find((row) => row.jobId === jobIdFilter)
+    const match = reports.find((row) => resolveJobId(row) === jobIdFilter)
     openedJobId.current = jobIdFilter
 
     if (match) {
       setSelected(match)
+      router.replace(ROUTES.company.reports)
       return
     }
 
+    // Only warn when deep-linked from a job that has no submitted report yet.
     toast.info("No report for this job yet", "Reports appear after the inspector submits work.")
-  }, [jobIdFilter, reports, loading, error])
+    router.replace(ROUTES.company.reports)
+  }, [jobIdFilter, reports, loading, error, router])
 
   async function run(action: () => Promise<unknown>, success: string) {
     if (!selected) return
@@ -106,51 +160,159 @@ export default function ReportsPage() {
     }
   }
 
+  function openPdf(report: CompanyReport) {
+    const href = pdfHref(report.pdfUrl)
+    if (!href) {
+      toast.error("PDF is not ready yet")
+      return
+    }
+    window.open(href, "_blank", "noopener,noreferrer")
+  }
+
+  function openJob(report: CompanyReport) {
+    const jobId = resolveJobId(report)
+    if (!jobId) {
+      toast.error("This report is missing a valid job link")
+      return
+    }
+    router.push(ROUTES.company.job(jobId))
+  }
+
   if (loading) return <LoadingState label="Loading reports…" />
   if (error) return <ErrorState message={error} />
+
+  const selectedJobId = selected ? resolveJobId(selected) : ""
+  const canReview = selected
+    ? ["submitted", "under_review"].includes(selected.status)
+    : false
 
   const columns: Column<CompanyReport>[] = [
     {
       key: "title",
       header: "Report",
-      cell: (row) => (
-        <div className="flex flex-col">
-          <span className="font-medium">{row.title || "Assessment report"}</span>
-          <span className="text-xs text-muted-foreground">
-            {row.jobNumber || "—"}
-            {row.jobTitle ? ` · ${row.jobTitle}` : ""}
-          </span>
-        </div>
-      ),
+      className: "min-w-[160px] max-w-[220px]",
+      cell: (row) => {
+        const jobId = resolveJobId(row)
+        return (
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <span className="truncate font-medium">{row.title || "Assessment report"}</span>
+            {jobId ? (
+              <Link
+                href={ROUTES.company.job(jobId)}
+                onClick={stopRowNav}
+                className="inline-flex max-w-full items-center gap-1 text-xs font-medium text-primary hover:underline"
+              >
+                <span className="truncate">
+                  {row.jobNumber || "Open job"}
+                  {row.jobTitle ? ` · ${row.jobTitle}` : ""}
+                </span>
+                <ExternalLinkIcon className="size-3 shrink-0 opacity-70" />
+              </Link>
+            ) : (
+              <span className="text-xs text-muted-foreground">{row.jobNumber || "—"}</span>
+            )}
+          </div>
+        )
+      },
     },
     {
       key: "customer",
       header: "Customer / property",
+      className: "min-w-[200px] max-w-[280px]",
       cell: (row) => (
-        <div className="flex flex-col">
-          <span>{row.customerName || "—"}</span>
-          <span className="text-xs text-muted-foreground">{row.propertyAddress || "—"}</span>
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="break-words font-medium leading-snug whitespace-normal">
+            {row.customerName || "—"}
+          </span>
+          <span className="break-words text-xs leading-snug text-muted-foreground whitespace-normal">
+            {row.propertyAddress || "No property address"}
+          </span>
         </div>
       ),
     },
     {
       key: "inspector",
       header: "Inspector",
-      cell: (row) => row.inspectorName || "—",
+      className: "min-w-[120px] max-w-[160px]",
+      cell: (row) =>
+        row.inspectorId && OBJECT_ID_RE.test(row.inspectorId) ? (
+          <Link
+            href={`${ROUTES.company.staff}?inspectorId=${encodeURIComponent(row.inspectorId)}`}
+            onClick={stopRowNav}
+            className="break-words font-medium text-primary hover:underline"
+          >
+            {row.inspectorName || "Inspector"}
+          </Link>
+        ) : (
+          <span className="break-words">{row.inspectorName || "—"}</span>
+        ),
     },
     {
       key: "status",
       header: "Status",
+      className: "whitespace-nowrap",
       cell: (row) => (
         <StatusBadge status={reportStatusVariant(row.status)} label={reportStatusLabel(row.status)} />
       ),
     },
     {
-      key: "pdf",
-      header: "PDF",
+      key: "submittedAt",
+      header: "Submitted",
+      className: "whitespace-nowrap text-muted-foreground",
       cell: (row) => (
-        <span className="capitalize text-muted-foreground">{row.pdfStatus || "—"}</span>
+        <span className="text-xs">{formatWhen(row.submittedAt || row.updatedAt)}</span>
       ),
+    },
+    {
+      key: "actions",
+      header: "",
+      className: "w-[1%] whitespace-nowrap",
+      cell: (row) => {
+        const jobId = resolveJobId(row)
+        return (
+          <div onClick={stopRowNav}>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={`Actions for ${row.title || "report"}`}
+                  >
+                    <MoreHorizontalIcon />
+                  </Button>
+                }
+              />
+              <DropdownMenuContent align="end">
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>Report actions</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => setSelected(row)}>
+                    Review report
+                  </DropdownMenuItem>
+                  <DropdownMenuItem disabled={!row.pdfUrl} onClick={() => openPdf(row)}>
+                    Download PDF
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem disabled={!jobId} onClick={() => openJob(row)}>
+                    Open job
+                  </DropdownMenuItem>
+                  {row.inspectorId && OBJECT_ID_RE.test(row.inspectorId) ? (
+                    <DropdownMenuItem
+                      onClick={() =>
+                        router.push(
+                          `${ROUTES.company.staff}?inspectorId=${encodeURIComponent(row.inspectorId!)}`,
+                        )
+                      }
+                    >
+                      View inspector
+                    </DropdownMenuItem>
+                  ) : null}
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )
+      },
     },
   ]
 
@@ -159,7 +321,7 @@ export default function ReportsPage() {
       <PageHeader
         eyebrow="Company admin"
         title="Reports"
-        description="Review reports submitted by inspectors — approve, reject, request changes, download, or share."
+        description="Review inspector evidence packages — open the job or staff profile, download the PDF, then approve, reject, or request changes."
       />
 
       <DataTable
@@ -171,6 +333,7 @@ export default function ReportsPage() {
         emptyTitle="No submitted reports yet"
         emptyDescription="Reports appear here only after an inspector submits their work from the field."
         onRowClick={(row) => setSelected(row)}
+        emptyIcon={FileTextIcon}
         toolbar={
           <Select value={status} onValueChange={(value) => setStatus((value as StatusFilter) || "all")}>
             <SelectTrigger className="w-[190px]">
@@ -189,35 +352,76 @@ export default function ReportsPage() {
       />
 
       <Dialog open={Boolean(selected)} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{selected?.title || "Report"}</DialogTitle>
-            <DialogDescription>
-              {selected?.jobNumber} · {selected?.customerName || "Customer"} ·{" "}
-              {reportStatusLabel(selected?.status || "draft")}
+            <DialogTitle className="pr-8">{selected?.title || "Report"}</DialogTitle>
+            <DialogDescription className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <StatusBadge
+                status={reportStatusVariant(selected?.status || "draft")}
+                label={reportStatusLabel(selected?.status || "draft")}
+              />
+              <span>·</span>
+              <span>Submitted {formatWhen(selected?.submittedAt || selected?.updatedAt)}</span>
             </DialogDescription>
           </DialogHeader>
 
           {selected ? (
-            <div className="flex flex-col gap-4 text-sm">
-              <div className="grid gap-2 sm:grid-cols-2">
-                <div>
-                  <p className="text-muted-foreground">Inspector</p>
-                  <p className="font-medium">{selected.inspectorName || "—"}</p>
+            <div className="flex flex-col gap-5 text-sm">
+              <div className="grid gap-3 rounded-lg border bg-muted/20 p-4 sm:grid-cols-2">
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">Job</p>
+                  {selectedJobId ? (
+                    <Link
+                      href={ROUTES.company.job(selectedJobId)}
+                      className="mt-1 inline-flex max-w-full items-center gap-1 font-medium text-primary hover:underline"
+                    >
+                      <span className="truncate">
+                        {selected.jobNumber || "Open job"}
+                        {selected.jobTitle ? ` · ${selected.jobTitle}` : ""}
+                      </span>
+                      <ExternalLinkIcon className="size-3.5 shrink-0" />
+                    </Link>
+                  ) : (
+                    <p className="mt-1 font-medium">{selected.jobNumber || "—"}</p>
+                  )}
                 </div>
-                <div>
-                  <p className="text-muted-foreground">Claim</p>
-                  <p className="font-medium">{selected.claimNumber || "—"}</p>
+
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">Inspector</p>
+                  {selected.inspectorId && OBJECT_ID_RE.test(selected.inspectorId) ? (
+                    <Link
+                      href={`${ROUTES.company.staff}?inspectorId=${encodeURIComponent(selected.inspectorId)}`}
+                      className="mt-1 inline-flex max-w-full items-center gap-1 font-medium text-primary hover:underline"
+                    >
+                      <span className="break-words">{selected.inspectorName || "Inspector"}</span>
+                      <ExternalLinkIcon className="size-3.5 shrink-0" />
+                    </Link>
+                  ) : (
+                    <p className="mt-1 break-words font-medium">{selected.inspectorName || "—"}</p>
+                  )}
                 </div>
-                <div className="sm:col-span-2">
-                  <p className="text-muted-foreground">Property</p>
-                  <p className="font-medium">{selected.propertyAddress || "—"}</p>
+
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">Customer</p>
+                  <p className="mt-1 break-words font-medium">{selected.customerName || "—"}</p>
+                </div>
+
+                <div className="min-w-0">
+                  <p className="text-xs text-muted-foreground">Claim</p>
+                  <p className="mt-1 font-medium">{selected.claimNumber || "—"}</p>
+                </div>
+
+                <div className="min-w-0 sm:col-span-2">
+                  <p className="text-xs text-muted-foreground">Property</p>
+                  <p className="mt-1 break-words font-medium leading-snug">
+                    {selected.propertyAddress || "—"}
+                  </p>
                 </div>
               </div>
 
               <div>
-                <p className="mb-1 text-muted-foreground">Narrative</p>
-                <p className="whitespace-pre-wrap rounded-md border bg-muted/30 p-3">
+                <p className="mb-1.5 text-xs font-medium text-muted-foreground">Narrative</p>
+                <p className="max-h-40 overflow-y-auto whitespace-pre-wrap rounded-md border bg-muted/30 p-3 leading-relaxed">
                   {selected.narrative || "No narrative yet."}
                 </p>
               </div>
@@ -225,45 +429,55 @@ export default function ReportsPage() {
               {selected.changesRequested ? (
                 <div className="rounded-md border border-warning/30 bg-warning/10 p-3">
                   <p className="font-medium">Changes requested</p>
-                  <p className="mt-1">{selected.changesRequested}</p>
+                  <p className="mt-1 break-words">{selected.changesRequested}</p>
                 </div>
               ) : null}
               {selected.rejectionReason ? (
                 <div className="rounded-md border border-danger/30 bg-danger/10 p-3">
                   <p className="font-medium">Rejection reason</p>
-                  <p className="mt-1">{selected.rejectionReason}</p>
+                  <p className="mt-1 break-words">{selected.rejectionReason}</p>
+                </div>
+              ) : null}
+              {selected.reviewNotes ? (
+                <div className="rounded-md border bg-muted/40 p-3">
+                  <p className="font-medium">Admin remarks</p>
+                  <p className="mt-1 whitespace-pre-wrap break-words">{selected.reviewNotes}</p>
                 </div>
               ) : null}
 
-              <div className="flex flex-col gap-1.5">
-                <Label>Review notes / reason</Label>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={3}
-                  placeholder="Optional notes for approve, reject, or request changes"
-                />
-              </div>
+              {canReview ? (
+                <div className="flex flex-col gap-3 rounded-lg border p-4">
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="report-review-notes">Review notes / reason</Label>
+                    <Textarea
+                      id="report-review-notes"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      rows={3}
+                      placeholder="Notes saved with approve, reject, or request changes"
+                    />
+                  </div>
 
-              <div className="flex flex-wrap gap-2">
-                {selected.status === "submitted" ? (
-                  <Button
-                    disabled={busy}
-                    onClick={() =>
-                      run(() => companyReportService.startReview(selected.id), "Marked under review")
-                    }
-                  >
-                    Start review
-                  </Button>
-                ) : null}
-                {["submitted", "under_review"].includes(selected.status) ? (
-                  <>
+                  <div className="flex flex-wrap gap-2">
+                    {selected.status === "submitted" ? (
+                      <Button
+                        variant="secondary"
+                        disabled={busy}
+                        onClick={() =>
+                          run(() => companyReportService.startReview(selected.id), "Marked under review")
+                        }
+                      >
+                        <EyeIcon data-icon="inline-start" />
+                        Start review
+                      </Button>
+                    ) : null}
                     <Button
                       disabled={busy}
                       onClick={() =>
                         run(() => companyReportService.approve(selected.id, notes), "Report approved")
                       }
                     >
+                      <CheckIcon data-icon="inline-start" />
                       Approve
                     </Button>
                     <Button
@@ -276,6 +490,7 @@ export default function ReportsPage() {
                         )
                       }
                     >
+                      <Undo2Icon data-icon="inline-start" />
                       Request changes
                     </Button>
                     <Button
@@ -285,27 +500,25 @@ export default function ReportsPage() {
                         run(() => companyReportService.reject(selected.id, notes), "Report rejected")
                       }
                     >
+                      <XIcon data-icon="inline-start" />
                       Reject
                     </Button>
-                  </>
-                ) : null}
-              </div>
+                  </div>
+                </div>
+              ) : null}
 
-              <div className="flex flex-wrap gap-2 border-t pt-3">
+              <div className="flex flex-wrap gap-2 border-t pt-4">
                 <Button
                   variant="outline"
                   disabled={!selected.pdfUrl}
-                  onClick={() => {
-                    const href = pdfHref(selected.pdfUrl)
-                    if (href) window.open(href, "_blank")
-                  }}
+                  onClick={() => openPdf(selected)}
                 >
                   <FileDownIcon data-icon="inline-start" />
                   Download PDF
                 </Button>
                 <Button
                   variant="outline"
-                  disabled={busy}
+                  disabled={busy || !selected.pdfUrl}
                   onClick={() =>
                     run(async () => {
                       const shared = await companyReportService.share(selected.id)
@@ -319,10 +532,23 @@ export default function ReportsPage() {
                 </Button>
                 <Button
                   variant="ghost"
-                  onClick={() => router.push(ROUTES.company.job(selected.jobId))}
+                  disabled={!selectedJobId}
+                  onClick={() => openJob(selected)}
                 >
                   Open job
                 </Button>
+                {selected.inspectorId && OBJECT_ID_RE.test(selected.inspectorId) ? (
+                  <Button
+                    variant="ghost"
+                    render={
+                      <Link
+                        href={`${ROUTES.company.staff}?inspectorId=${encodeURIComponent(selected.inspectorId)}`}
+                      />
+                    }
+                  >
+                    View inspector
+                  </Button>
+                ) : null}
               </div>
             </div>
           ) : null}

@@ -28,6 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { env } from "@/lib/config/env"
 import { ROUTES } from "@/lib/constants/routes"
 import { getErrorMessage } from "@/lib/api/errors"
 import { useJob } from "@/modules/inspections/hooks/use-job"
@@ -46,6 +47,13 @@ function formatDate(value?: string | null) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
   return date.toLocaleDateString()
+}
+
+function mediaHref(url?: string) {
+  if (!url) return ""
+  if (url.startsWith("http")) return url
+  const base = env.apiUrl.replace(/\/api\/?$/, "")
+  return `${base}${url.startsWith("/") ? "" : "/"}${url}`
 }
 
 export default function JobDetailPage() {
@@ -431,7 +439,11 @@ export default function JobDetailPage() {
                   <p className="text-xs text-muted-foreground">{photo.status}</p>
                   {photo.url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={photo.url} alt={photo.caption || "Evidence"} className="mt-2 rounded-md" />
+                    <img
+                      src={mediaHref(photo.url)}
+                      alt={photo.caption || "Evidence"}
+                      className="mt-2 max-h-48 w-full rounded-md object-cover"
+                    />
                   ) : null}
                 </div>
               ))}
