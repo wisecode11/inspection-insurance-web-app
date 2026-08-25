@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { MoreHorizontalIcon, UserPlusIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable, type Column } from "@/components/shared/data-table"
@@ -27,13 +27,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { PasswordField } from "@/modules/auth/components/password-field"
 import { staffService } from "@/modules/staff/services/staff.service"
 import { useStaff } from "@/modules/staff/hooks/use-staff"
@@ -56,7 +49,6 @@ type StaffActionsProps = {
   member: StaffMember
   onEdit: (member: StaffMember) => void
   onHistory: (member: StaffMember) => void
-  onReassign: (member: StaffMember) => void
   onResetPassword: (member: StaffMember) => void
   onSetStatus: (member: StaffMember, status: "active" | "suspended" | "deactivated") => void
 }
@@ -65,7 +57,6 @@ function StaffRowActions({
   member,
   onEdit,
   onHistory,
-  onReassign,
   onResetPassword,
   onSetStatus,
 }: StaffActionsProps) {
@@ -87,21 +78,14 @@ function StaffRowActions({
                 onEdit(member)
               }}
             >
-              Edit
+              Edit profile
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
                 onHistory(member)
               }}
             >
-              Job history
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                onReassign(member)
-              }}
-            >
-              Reassign jobs
+              View work history
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
@@ -151,23 +135,13 @@ export default function StaffPage() {
   const [open, setOpen] = React.useState(false)
   const [editOpen, setEditOpen] = React.useState(false)
   const [historyOpen, setHistoryOpen] = React.useState(false)
-  const [reassignOpen, setReassignOpen] = React.useState(false)
   const [saving, setSaving] = React.useState(false)
   const [actionMember, setActionMember] = React.useState<StaffMember | null>(null)
   const [history, setHistory] = React.useState<InspectorHistoryItem[]>([])
-  const [reassignTargetId, setReassignTargetId] = React.useState("")
   const [name, setName] = React.useState("")
   const [email, setEmail] = React.useState("")
   const [phone, setPhone] = React.useState("")
   const [password, setPassword] = React.useState("")
-
-  const reassignTargetItems = React.useMemo(
-    () =>
-      inspectors
-        .filter((item) => item.id !== actionMember?.id && item.status === "active")
-        .map((item) => ({ value: item.id, label: item.name })),
-    [inspectors, actionMember?.id],
-  )
 
   function resetForm() {
     setName("")
@@ -278,35 +252,6 @@ export default function StaffPage() {
     }
   }
 
-  function openReassign(member: StaffMember) {
-    setActionMember(member)
-    setReassignTargetId(
-      inspectors.find((item) => item.id !== member.id && item.status === "active")?.id || "",
-    )
-    setReassignOpen(true)
-  }
-
-  async function saveReassign() {
-    if (!actionMember || !reassignTargetId) {
-      toast.error("Select a target inspector")
-      return
-    }
-    setSaving(true)
-    try {
-      const result = await staffService.reassignJobs(actionMember.id, reassignTargetId)
-      const targetName =
-        inspectors.find((item) => item.id === reassignTargetId)?.name || "selected inspector"
-      toast.success(`${result.count} job(s) moved from ${actionMember.name} to ${targetName}`)
-      await reload()
-      setReassignOpen(false)
-      setActionMember(null)
-    } catch (err) {
-      toast.error(getErrorMessage(err))
-    } finally {
-      setSaving(false)
-    }
-  }
-
   const columns: Column<StaffMember>[] = [
     { key: "name", header: "Name", cell: (row) => row.name },
     { key: "email", header: "Email", cell: (row) => row.email },
@@ -353,7 +298,6 @@ export default function StaffPage() {
             member={row}
             onEdit={openEdit}
             onHistory={openHistory}
-            onReassign={openReassign}
             onResetPassword={resetPassword}
             onSetStatus={setStatus}
           />
@@ -369,7 +313,7 @@ export default function StaffPage() {
       <PageHeader
         eyebrow="Company admin"
         title="Staff"
-        description="Create and manage inspectors for your company only."
+        description="Manage inspectors for your company — profiles, access, and work history. Assign or reassign jobs from the Jobs tab."
         actions={
           isAdmin ? (
             <Button onClick={openAdd} className="bg-terracotta text-terracotta-foreground hover:bg-terracotta/90">
@@ -461,50 +405,6 @@ export default function StaffPage() {
       </Dialog>
 
       <Dialog
-        open={reassignOpen}
-        onOpenChange={(next) => {
-          setReassignOpen(next)
-          if (!next) setActionMember(null)
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reassign jobs</DialogTitle>
-            <DialogDescription>
-              Move open jobs from {actionMember?.name} to another inspector.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-1.5">
-            <Label>Target inspector</Label>
-            <Select
-              value={reassignTargetId || null}
-              onValueChange={(value) => setReassignTargetId(value || "")}
-              items={reassignTargetItems}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {reassignTargetItems.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setReassignOpen(false)}>
-              Cancel
-            </Button>
-            <Button disabled={saving || !actionMember || !reassignTargetId} onClick={saveReassign}>
-              {saving ? "Reassigning…" : "Reassign jobs"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
         open={historyOpen}
         onOpenChange={(next) => {
           setHistoryOpen(next)
@@ -513,7 +413,10 @@ export default function StaffPage() {
       >
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>{actionMember?.name} · job history</DialogTitle>
+            <DialogTitle>{actionMember?.name} · work history</DialogTitle>
+            <DialogDescription>
+              Read-only list of jobs this inspector has worked. To assign or reassign, use the Jobs tab.
+            </DialogDescription>
           </DialogHeader>
           <ul className="max-h-80 space-y-2 overflow-y-auto text-sm">
             {history.length === 0 ? (

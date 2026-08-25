@@ -65,6 +65,7 @@ export const endpoints = {
     unassign: (id: string) => `/jobs/${id}/unassign`,
     status: (id: string) => `/jobs/${id}/status`,
     cancel: (id: string) => `/jobs/${id}/cancel`,
+    delete: (id: string) => `/jobs/${id}`,
     bulkAssign: "/jobs/bulk-assign",
   },
   reports: {

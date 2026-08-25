@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { PlusIcon, TrendingDownIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable, type Column } from "@/components/shared/data-table"
@@ -64,7 +64,6 @@ export default function BillingPage() {
   const [open, setOpen] = React.useState(false)
   const [busy, setBusy] = React.useState(false)
   const [form, setForm] = React.useState(emptyForm)
-  const [formError, setFormError] = React.useState("")
 
   if (isLoading) return <LoadingState label="Loading billing…" />
   if (error) return <ErrorState message={error} />
@@ -189,7 +188,6 @@ export default function BillingPage() {
   ]
 
   async function handleCreate() {
-    setFormError("")
     setBusy(true)
     try {
       const name = form.name.trim()
@@ -213,7 +211,7 @@ export default function BillingPage() {
       setForm(emptyForm)
       await reload()
     } catch (caught) {
-      setFormError(getErrorMessage(caught))
+      toast.error(getErrorMessage(caught))
     } finally {
       setBusy(false)
     }
@@ -394,8 +392,6 @@ export default function BillingPage() {
               />
             </div>
           </div>
-
-          {formError ? <p className="text-sm text-danger">{formError}</p> : null}
 
           <DialogFooter>
             <Button variant="outline" disabled={busy} onClick={() => setOpen(false)}>

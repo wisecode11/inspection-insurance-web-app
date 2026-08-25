@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { MoreHorizontalIcon, PlusIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable, type Column } from "@/components/shared/data-table"
@@ -27,6 +27,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
@@ -43,6 +44,8 @@ import { jobService } from "@/modules/inspections/services/job.service"
 import {
   JOB_PRIORITY_OPTIONS,
   JOB_STATUS_OPTIONS,
+  canReassignJob,
+  canShowCancelJob,
   jobStatusLabel,
   jobStatusVariant,
   type JobPriority,
@@ -125,6 +128,9 @@ export default function JobsPage() {
   const [status, setStatus] = React.useState<StatusFilter>("all")
   const [open, setOpen] = React.useState(false)
   const [bulkOpen, setBulkOpen] = React.useState(false)
+  const [reassignOpen, setReassignOpen] = React.useState(false)
+  const [reassignJob, setReassignJob] = React.useState<JobRow | null>(null)
+  const [reassignInspectorId, setReassignInspectorId] = React.useState("")
   const [saving, setSaving] = React.useState(false)
   const [form, setForm] = React.useState(emptyForm)
   const [selectedIds, setSelectedIds] = React.useState<string[]>([])
@@ -132,6 +138,11 @@ export default function JobsPage() {
   const [bulkDueDate, setBulkDueDate] = React.useState("")
   const [bulkPriority, setBulkPriority] = React.useState<JobPriority | "">("")
   const [attachmentKey, setAttachmentKey] = React.useState(0)
+  const [confirmAction, setConfirmAction] = React.useState<{
+    type: "cancel" | "delete"
+    job: JobRow
+  } | null>(null)
+  const [confirmBusy, setConfirmBusy] = React.useState(false)
 
   const rows = React.useMemo(
     () => jobs.filter((row) => status === "all" || row.status === status),
@@ -175,6 +186,62 @@ export default function JobsPage() {
     } catch (err) {
       toast.error(getErrorMessage(err))
       clearAttachment()
+    }
+  }
+
+  function requestCancelJob(row: JobRow) {
+    if (!canShowCancelJob(row)) return
+    setConfirmAction({ type: "cancel", job: row })
+  }
+
+  function requestDeleteJob(row: JobRow) {
+    setConfirmAction({ type: "delete", job: row })
+  }
+
+  async function confirmJobAction() {
+    if (!confirmAction) return
+    setConfirmBusy(true)
+    try {
+      if (confirmAction.type === "cancel") {
+        await jobService.cancel(confirmAction.job.id)
+        toast.success("Job cancelled. Use Reassign job to assign another inspector.")
+      } else {
+        await jobService.remove(confirmAction.job.id)
+        toast.success("Job deleted")
+      }
+      setSelectedIds((ids) => ids.filter((id) => id !== confirmAction.job.id))
+      setConfirmAction(null)
+      await reload()
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    } finally {
+      setConfirmBusy(false)
+    }
+  }
+
+  function openReassign(row: JobRow) {
+    const otherInspectors = inspectors.filter((member) => member.id !== row.assignedTo)
+    setReassignJob(row)
+    setReassignInspectorId(otherInspectors[0]?.id || inspectors[0]?.id || "")
+    setReassignOpen(true)
+  }
+
+  async function saveReassign() {
+    if (!reassignJob || !reassignInspectorId) {
+      toast.error("Select an inspector")
+      return
+    }
+    setSaving(true)
+    try {
+      await jobService.assign(reassignJob.id, reassignInspectorId)
+      toast.success("Job reassigned to inspector")
+      setReassignOpen(false)
+      setReassignJob(null)
+      await reload()
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -310,11 +377,14 @@ export default function JobsPage() {
       key: "addressLine",
       header: "Property / homeowner",
       sortable: true,
+      className: "max-w-[18rem] whitespace-normal sm:max-w-[22rem] lg:max-w-[28rem]",
       accessor: (row) => row.addressLine,
       cell: (row) => (
-        <div className="flex flex-col">
-          <span className="font-medium">{row.addressLine || "—"}</span>
-          <span className="text-xs text-muted-foreground">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="font-medium break-words whitespace-normal">
+            {row.addressLine || "—"}
+          </span>
+          <span className="text-xs break-words whitespace-normal text-muted-foreground">
             {row.customerName || "—"}
             {row.claim?.claimNumber ? ` · Claim ${row.claim.claimNumber}` : ""}
           </span>
@@ -363,16 +433,30 @@ export default function JobsPage() {
             />
             <DropdownMenuContent align="end">
               <DropdownMenuGroup>
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuLabel>Job actions</DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => router.push(ROUTES.company.job(row.id))}>
                   View job
                 </DropdownMenuItem>
+                {canShowCancelJob(row) ? (
+                  <DropdownMenuItem onClick={() => requestCancelJob(row)}>
+                    Cancel job
+                  </DropdownMenuItem>
+                ) : null}
+                {!row.assignedTo && canReassignJob(row.status) ? (
+                  <DropdownMenuItem onClick={() => openReassign(row)}>
+                    Reassign job
+                  </DropdownMenuItem>
+                ) : null}
                 <DropdownMenuItem
                   onClick={() =>
                     router.push(`${ROUTES.company.reports}?jobId=${encodeURIComponent(row.id)}`)
                   }
                 >
-                  View report
+                  Open reports
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onClick={() => requestDeleteJob(row)}>
+                  Delete job
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>
@@ -387,7 +471,7 @@ export default function JobsPage() {
       <PageHeader
         eyebrow="Company workspace"
         title="Jobs"
-        description="Create jobs, assign inspectors, and track status. Review and approve reports from the Reports tab."
+        description="Create jobs, assign or reassign inspectors, cancel assignments, and track status."
         actions={
           <div className="flex flex-wrap gap-2">
             <Button
@@ -662,6 +746,95 @@ export default function JobsPage() {
             </Button>
             <Button disabled={saving} onClick={saveBulkAssign}>
               {saving ? "Assigning…" : "Assign jobs"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={reassignOpen}
+        onOpenChange={(next) => {
+          setReassignOpen(next)
+          if (!next) setReassignJob(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reassign job</DialogTitle>
+            <DialogDescription>
+              {reassignJob
+                ? `${reassignJob.jobNumber} is unassigned — pick an inspector.`
+                : "Pick an inspector for this job."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-1.5">
+            <Label>Inspector</Label>
+            <Select
+              value={reassignInspectorId}
+              onValueChange={(value) => setReassignInspectorId(value || "")}
+              items={inspectors.map((member) => ({ value: member.id, label: member.name }))}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {inspectors.map((member) => (
+                  <SelectItem key={member.id} value={member.id}>
+                    {member.name}
+                    {reassignJob?.assignedTo === member.id ? " (current)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReassignOpen(false)} disabled={saving}>
+              Cancel
+            </Button>
+            <Button disabled={saving || !reassignInspectorId} onClick={() => void saveReassign()}>
+              {saving ? "Saving…" : "Reassign job"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!confirmAction}
+        onOpenChange={(next) => {
+          if (!next && !confirmBusy) setConfirmAction(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {confirmAction?.type === "delete" ? "Delete job?" : "Cancel job?"}
+            </DialogTitle>
+            <DialogDescription>
+              {confirmAction?.type === "delete"
+                ? `${confirmAction.job.jobNumber} will be removed from the jobs list.`
+                : `${confirmAction?.job.jobNumber} — inspector will be unassigned. You can reassign afterward.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              disabled={confirmBusy}
+              onClick={() => setConfirmAction(null)}
+            >
+              Keep job
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={confirmBusy}
+              onClick={() => void confirmJobAction()}
+            >
+              {confirmBusy
+                ? confirmAction?.type === "delete"
+                  ? "Deleting…"
+                  : "Cancelling…"
+                : confirmAction?.type === "delete"
+                  ? "Delete job"
+                  : "Cancel job"}
             </Button>
           </DialogFooter>
         </DialogContent>

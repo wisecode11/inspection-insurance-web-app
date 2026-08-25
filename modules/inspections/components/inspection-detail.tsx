@@ -9,7 +9,7 @@ import {
   MapPinIcon,
   Share2Icon,
 } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
 import { StatusBadge } from "@/components/shared/status-badge"
@@ -95,7 +95,7 @@ export default function InspectionDetailPage() {
             >
               Approve
             </Button>
-            <Button variant="outline" onClick={() => toast.message("Share link copied")}>
+            <Button variant="outline" onClick={() => toast.info("Share link copied")}>
               <Share2Icon data-icon="inline-start" />
               Share
             </Button>

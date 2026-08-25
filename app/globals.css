@@ -172,6 +172,49 @@
   }
 }
 
+/* Sonner — consistent admin toast chrome */
+.cn-toast {
+  font-family: var(--font-sans);
+  border-width: 1px !important;
+  box-shadow:
+    0 1px 2px color-mix(in oklab, var(--foreground) 6%, transparent),
+    0 8px 24px color-mix(in oklab, var(--foreground) 8%, transparent) !important;
+}
+
+.cn-toast-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.cn-toast-description {
+  font-size: 0.8125rem;
+  color: var(--muted-foreground) !important;
+  line-height: 1.4;
+}
+
+.cn-toast-close {
+  background: transparent !important;
+  border: 1px solid var(--border) !important;
+  color: var(--muted-foreground) !important;
+}
+
+.cn-toast-success [data-icon] {
+  color: var(--success);
+}
+
+.cn-toast-error [data-icon] {
+  color: var(--danger);
+}
+
+.cn-toast-warning [data-icon] {
+  color: var(--warning);
+}
+
+.cn-toast-info [data-icon] {
+  color: var(--brand);
+}
+
 @keyframes hero-orbit {
   from {
     transform: rotate(0deg);

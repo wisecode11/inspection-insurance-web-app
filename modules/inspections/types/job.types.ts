@@ -151,6 +151,25 @@ export const JOB_STATUS_OPTIONS: Array<{ value: JobStatus; label: string }> = [
   { value: "on_hold", label: "On hold" },
 ]
 
+/** Cancel = unassign inspector; job returns to Unassigned and can be reassigned. */
+export function canCancelJob(status: JobStatus) {
+  return !["completed", "archived", "report_generated"].includes(status)
+}
+
+/** Show Cancel only when an inspector is (or was) on the job. */
+export function canShowCancelJob(job: Pick<JobRow, "status" | "assignedTo">) {
+  if (!canCancelJob(job.status)) return false
+  if (job.assignedTo) return true
+  return ["assigned", "in_progress", "submitted", "reviewed", "on_hold", "reopened", "scheduled", "accepted", "pending_sync"].includes(
+    job.status,
+  )
+}
+
+/** Reassign / assign allowed unless job is terminal. */
+export function canReassignJob(status: JobStatus) {
+  return !["completed", "rejected", "cancelled", "archived", "report_generated"].includes(status)
+}
+
 export const JOB_PRIORITY_OPTIONS: Array<{ value: JobPriority; label: string }> = [
   { value: "low", label: "Low" },
   { value: "normal", label: "Normal" },

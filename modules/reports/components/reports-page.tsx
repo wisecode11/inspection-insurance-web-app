@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { FileDownIcon, Share2Icon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable, type Column } from "@/components/shared/data-table"
@@ -86,9 +86,7 @@ export default function ReportsPage() {
       return
     }
 
-    toast.message("No report for this job yet", {
-      description: "Reports appear after the inspector submits work.",
-    })
+    toast.info("No report for this job yet", "Reports appear after the inspector submits work.")
   }, [jobIdFilter, reports, loading, error])
 
   async function run(action: () => Promise<unknown>, success: string) {
