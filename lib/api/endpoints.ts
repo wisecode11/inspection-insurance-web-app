@@ -20,6 +20,9 @@ export const endpoints = {
     cancel: "/subscriptions/me/cancel",
     invoices: "/subscriptions/me/invoices",
     paymentMethod: "/subscriptions/me/payment-method",
+    billingPortal: "/subscriptions/me/billing-portal",
+    syncCheckout: "/subscriptions/me/sync-checkout",
+    advanceTestClock: "/subscriptions/me/test-clock/advance",
   },
   tenants: {
     list: "/tenants",
@@ -29,6 +32,8 @@ export const endpoints = {
   billing: {
     list: "/billing",
     plans: "/billing/plans",
+    syncPlans: "/billing/plans/sync-stripe",
+    createPlan: "/billing/plans",
     retry: (id: string) => `/billing/${id}/retry`,
   },
   usage: {

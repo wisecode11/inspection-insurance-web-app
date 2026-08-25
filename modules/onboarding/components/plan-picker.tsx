@@ -7,8 +7,6 @@ import { AuthFrame } from "@/components/auth/auth-frame"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { getErrorMessage } from "@/lib/api/errors"
-import { persistSession } from "@/lib/auth/session"
-import { ROUTES } from "@/lib/constants/routes"
 import { cn } from "@/lib/utils"
 import { OnboardingSteps } from "@/modules/onboarding/components/onboarding-steps"
 import { billingPlanService } from "@/modules/onboarding/services/billing-plan.service"
@@ -48,8 +46,12 @@ export function PlanPicker() {
     setBuying(true)
     try {
       const payload = await billingPlanService.start(selectedId, mode)
-      await persistSession(payload)
-      window.location.assign(ROUTES.company.dashboard)
+      if (payload.checkoutUrl) {
+        window.location.assign(payload.checkoutUrl)
+        return
+      }
+      setError("Stripe Checkout URL was not returned. Check Stripe keys on the backend.")
+      setBuying(false)
     } catch (caught) {
       setError(getErrorMessage(caught))
       setBuying(false)
@@ -67,7 +69,7 @@ export function PlanPicker() {
   return (
     <AuthFrame
       title="Choose a subscription"
-      description="Pick a plan and billing option. Stripe billing is recorded locally until live keys are connected."
+      description="Pick a plan and billing option. You will complete payment securely on Stripe Checkout."
       role="company"
       wide
     >
@@ -98,7 +100,14 @@ export function PlanPicker() {
             ))}
           </div>
 
-          <div className="grid gap-3 md:grid-cols-3">
+          <div
+            className={cn(
+              "grid gap-3",
+              plans.length === 1 && "mx-auto w-full max-w-sm",
+              plans.length === 2 && "mx-auto w-full max-w-3xl md:grid-cols-2",
+              plans.length >= 3 && "md:grid-cols-3",
+            )}
+          >
             {plans.map((plan) => {
               const isSelected = plan.id === selectedId
               const price =
@@ -145,8 +154,8 @@ export function PlanPicker() {
           {!plans.length && !error ? (
             <Alert>
               <AlertDescription>
-                No subscription plans are available yet. Ask an admin to run plan seeding on the
-                backend (`npm run seed:plans`), then refresh this page.
+                No subscription plans are available yet. Ask a platform admin to create a plan in
+                Subscription Management, then refresh this page.
               </AlertDescription>
             </Alert>
           ) : null}

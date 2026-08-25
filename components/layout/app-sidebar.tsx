@@ -79,7 +79,7 @@ export function AppSidebar({ role }: { role: Role }) {
         <div className="rounded-lg bg-sidebar-accent/50 p-3 text-xs text-sidebar-foreground/80">
           <p className="font-medium text-sidebar-foreground">{meta.org}</p>
           <p className="mt-0.5 text-sidebar-foreground/60">
-            {role === "platform" ? "42 active tenants" : "Pro plan · 12 seats"}
+            {role === "platform" ? "Platform console" : "Company workspace"}
           </p>
         </div>
         <SidebarMenu>

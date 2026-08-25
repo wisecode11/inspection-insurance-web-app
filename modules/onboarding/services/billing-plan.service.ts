@@ -5,6 +5,14 @@ import type { CatalogPlan, CompanySessionPayload } from "@/modules/onboarding/ty
 
 export type BillingMode = "trial" | "monthly" | "yearly"
 
+export type CheckoutStartPayload = {
+  checkoutUrl: string
+  sessionId: string
+  publishableKey?: string
+  company: CompanySessionPayload["company"]
+  user: CompanySessionPayload["user"]
+}
+
 export const billingPlanService = {
   async list() {
     const response = await apiClient.get(endpoints.subscriptions.plans)
@@ -17,6 +25,6 @@ export const billingPlanService = {
       mode,
       interval: mode === "yearly" ? "yearly" : "monthly",
     })
-    return unwrap<CompanySessionPayload>(response.data)
+    return unwrap<CheckoutStartPayload>(response.data)
   },
 }

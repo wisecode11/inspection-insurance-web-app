@@ -24,6 +24,7 @@ export type StatusVariant =
   | "in_progress"
   | "completed"
   | "cancelled"
+  | "none"
 
 const toneMap: Record<StatusVariant, { tone: Tone; label: string }> = {
   active: { tone: "success", label: "Active" },
@@ -47,6 +48,7 @@ const toneMap: Record<StatusVariant, { tone: Tone; label: string }> = {
   open: { tone: "info", label: "Open" },
   draft: { tone: "neutral", label: "Draft" },
   canceled: { tone: "neutral", label: "Canceled" },
+  none: { tone: "neutral", label: "No subscription" },
 }
 
 const toneClasses: Record<Tone, string> = {

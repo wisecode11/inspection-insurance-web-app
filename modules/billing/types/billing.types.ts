@@ -24,6 +24,7 @@ export type CompanySubscription = {
   seats: number
   currentPeriodStart: string | null
   currentPeriodEnd: string | null
+  nextBillingDate?: string | null
   trialStart: string | null
   trialEnd: string | null
   cancelAtPeriodEnd: boolean
@@ -72,4 +73,6 @@ export type BillingInvoice = {
   paidAt: string | null
   dueDate: string | null
   createdAt: string
+  hostedInvoiceUrl?: string
+  pdfUrl?: string
 }

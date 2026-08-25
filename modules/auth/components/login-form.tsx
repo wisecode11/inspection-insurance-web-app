@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { Loader2Icon } from "lucide-react"
 
 import { AuthFrame } from "@/components/auth/auth-frame"
@@ -14,6 +15,7 @@ import { env } from "@/lib/config/env"
 import { GoogleSignInButton } from "@/modules/auth/components/google-sign-in-button"
 import { PasswordField } from "@/modules/auth/components/password-field"
 import { useLogin } from "@/modules/auth/hooks/use-login"
+import type { Role } from "@/types/role"
 
 export function LoginForm() {
   const searchParams = useSearchParams()

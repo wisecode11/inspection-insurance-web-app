@@ -33,13 +33,32 @@ export const billingService = {
     return unwrap<BillingOverview>(response.data)
   },
 
-  async updatePaymentMethod(input: {
-    brand: string
-    last4: string
-    expMonth: number
-    expYear: number
-  }) {
-    const response = await apiClient.put(endpoints.subscriptions.paymentMethod, input)
+  async openBillingPortal() {
+    const response = await apiClient.post(endpoints.subscriptions.billingPortal)
+    return unwrap<{ portalUrl: string }>(response.data)
+  },
+
+  async syncCheckout(sessionId?: string) {
+    const response = await apiClient.post(endpoints.subscriptions.syncCheckout, {
+      sessionId: sessionId || undefined,
+    })
     return unwrap<BillingOverview>(response.data)
+  },
+
+  async advanceTestClock(seconds?: number) {
+    const response = await apiClient.post(endpoints.subscriptions.advanceTestClock, {
+      seconds,
+    })
+    return unwrap<{
+      testClockId: string
+      frozenTime: number
+      status: string
+      advancedSeconds?: number
+      subscriptionStatus?: string | null
+      periodStart?: string | null
+      periodEnd?: string | null
+      invoiceCount?: number
+      overview?: BillingOverview
+    }>(response.data)
   },
 }
