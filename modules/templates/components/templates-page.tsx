@@ -2,12 +2,12 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
 import { ErrorState, LoadingState } from "@/components/shared/resource-state"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 import { ROUTES } from "@/lib/constants/routes"
@@ -37,14 +37,12 @@ function readNarrativeBodies(template: ReportTemplate): Record<NarrativeSlotKey,
   for (const slot of NARRATIVE_SLOTS) {
     next[slot.key] = findSection(template.sections, slot.key, slot.title)?.body || ""
   }
-  // Prefer dedicated definitions field when the damage-definitions section body is empty.
   if (!next.damage_definitions_assessment_criteria.trim() && template.definitions?.trim()) {
     next.damage_definitions_assessment_criteria = template.definitions
   }
   return next
 }
 
-/** Merge admin narrative edits into the full section list without touching photo/layout sections. */
 function mergeNarrativeIntoSections(
   sections: ReportSection[],
   bodies: Record<NarrativeSlotKey, string>
@@ -136,7 +134,7 @@ export default function TemplatesPage() {
   if (isLoading) return <LoadingState label="Loading report language…" />
   if (error) return <ErrorState message={error} />
   if (!template) {
-    return <ErrorState message="No company report language defaults found." />
+    return <ErrorState message="No report language defaults found." />
   }
 
   return (
@@ -144,7 +142,7 @@ export default function TemplatesPage() {
       <PageHeader
         eyebrow="Company admin"
         title="Report language"
-        description="Company-wide default wording for evidence packages. Inspectors can override narrative text on a single report; Codes & Standards stay admin-only."
+        description="Default wording used in evidence package PDFs."
         actions={
           <Button
             className="bg-terracotta text-terracotta-foreground hover:bg-terracotta/90"
@@ -159,15 +157,16 @@ export default function TemplatesPage() {
       <div className="flex flex-col gap-4">
         {NARRATIVE_SLOTS.map((slot) => (
           <Card key={slot.key}>
-            <CardHeader>
+            <CardHeader className="pb-3">
               <CardTitle>{slot.title}</CardTitle>
-              <CardDescription>{slot.description}</CardDescription>
+              {slot.hint ? (
+                <p className="text-xs text-muted-foreground">{slot.hint}</p>
+              ) : null}
             </CardHeader>
             <CardContent>
               <Textarea
                 rows={slot.key === "damage_definitions_assessment_criteria" ? 6 : 4}
                 value={bodies[slot.key]}
-                placeholder={slot.placeholder}
                 onChange={(e) =>
                   setBodies((current) => ({ ...current, [slot.key]: e.target.value }))
                 }
@@ -178,36 +177,32 @@ export default function TemplatesPage() {
 
         <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
           <Card>
-            <CardHeader>
+            <CardHeader className="pb-3">
               <CardTitle>Disclaimer</CardTitle>
-              <CardDescription>Shown near the end of the evidence package.</CardDescription>
             </CardHeader>
             <CardContent>
               <Textarea
                 rows={4}
                 value={legalFooter}
                 onChange={(e) => setLegalFooter(e.target.value)}
-                placeholder="Disclaimer…"
               />
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>Codes &amp; Standards citations</CardTitle>
-              <CardDescription>
-                Choose which citations from{" "}
+            <CardHeader className="pb-3">
+              <CardTitle>Codes &amp; standards</CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Manage citations in{" "}
                 <Link href={ROUTES.company.codes} className="underline underline-offset-2">
                   Codes &amp; standards
-                </Link>{" "}
-                appear in every report. Inspectors cannot edit this section.
-              </CardDescription>
+                </Link>
+                .
+              </p>
             </CardHeader>
             <CardContent className="flex max-h-[28rem] flex-col gap-2 overflow-y-auto">
               {citations.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No citations yet. Add them under Codes &amp; standards.
-                </p>
+                <p className="text-sm text-muted-foreground">No citations yet.</p>
               ) : (
                 citations.map((citation) => {
                   const checked = citationIds.includes(citation.id)

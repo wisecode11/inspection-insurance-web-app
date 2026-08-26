@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
 import { ArrowLeftIcon, CameraIcon, FileTextIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
 import { StatusBadge } from "@/components/shared/status-badge"
@@ -19,12 +19,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { env } from "@/lib/config/env"
 import { ROUTES } from "@/lib/constants/routes"
 import { getErrorMessage } from "@/lib/api/errors"
 import { useJob } from "@/modules/inspections/hooks/use-job"
 import { jobService } from "@/modules/inspections/services/job.service"
 import {
+  canCancelJob,
   jobStatusLabel,
   jobStatusVariant,
   nextJobStatuses,
@@ -37,6 +47,13 @@ function formatDate(value?: string | null) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
   return date.toLocaleDateString()
+}
+
+function mediaHref(url?: string) {
+  if (!url) return ""
+  if (url.startsWith("http")) return url
+  const base = env.apiUrl.replace(/\/api\/?$/, "")
+  return `${base}${url.startsWith("/") ? "" : "/"}${url}`
 }
 
 export default function JobDetailPage() {
@@ -66,6 +83,7 @@ export default function JobDetailPage() {
   const [priority, setPriority] = React.useState("normal")
   const [dueDate, setDueDate] = React.useState("")
   const [busy, setBusy] = React.useState(false)
+  const [confirmKind, setConfirmKind] = React.useState<"cancel" | "delete" | null>(null)
 
   React.useEffect(() => {
     if (!job) return
@@ -97,7 +115,7 @@ export default function JobDetailPage() {
   }
 
   const transitions = nextJobStatuses(job.status).filter((status) => status !== "rejected")
-  const canCancel = !["completed", "cancelled", "archived"].includes(job.status)
+  const canCancel = canCancelJob(job.status) && Boolean(job.assignedTo || job.status !== "draft")
   const photos = job.photos || []
   const progress = job.progress
 
@@ -111,6 +129,29 @@ export default function JobDetailPage() {
       toast.error(getErrorMessage(err))
     } finally {
       setBusy(false)
+    }
+  }
+
+  async function confirmDestructive() {
+    if (!confirmKind) return
+    if (confirmKind === "cancel") {
+      setConfirmKind(null)
+      await run(
+        () => jobService.cancel(job.id),
+        "Job cancelled — inspector unassigned. You can reassign now.",
+      )
+      return
+    }
+    setBusy(true)
+    try {
+      await jobService.remove(job.id)
+      toast.success("Job deleted")
+      router.push(ROUTES.company.jobs)
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+      setBusy(false)
+    } finally {
+      setConfirmKind(null)
     }
   }
 
@@ -284,10 +325,16 @@ export default function JobDetailPage() {
                       priority: priority as "low" | "normal" | "high" | "urgent",
                     })
                   }
-                }, "Assignment updated")
+                }, job.assignedTo && assignId !== "unassigned" ? "Job reassigned" : "Assignment updated")
               }
             >
-              Save assignment
+              {job.assignedTo && assignId !== "unassigned" && assignId !== job.assignedTo
+                ? "Reassign inspector"
+                : assignId === "unassigned"
+                  ? "Unassign inspector"
+                  : job.assignedTo
+                    ? "Save assignment"
+                    : "Assign inspector"}
             </Button>
 
             <div className="grid grid-cols-2 gap-2">
@@ -357,11 +404,19 @@ export default function JobDetailPage() {
               <Button
                 variant="destructive"
                 disabled={busy}
-                onClick={() => run(() => jobService.cancel(job.id), "Job cancelled")}
+                onClick={() => setConfirmKind("cancel")}
               >
-                Cancel job
+                Cancel & unassign
               </Button>
             ) : null}
+
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => setConfirmKind("delete")}
+            >
+              Delete job
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -384,7 +439,11 @@ export default function JobDetailPage() {
                   <p className="text-xs text-muted-foreground">{photo.status}</p>
                   {photo.url ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={photo.url} alt={photo.caption || "Evidence"} className="mt-2 rounded-md" />
+                    <img
+                      src={mediaHref(photo.url)}
+                      alt={photo.caption || "Evidence"}
+                      className="mt-2 max-h-48 w-full rounded-md object-cover"
+                    />
                   ) : null}
                 </div>
               ))}
@@ -398,6 +457,44 @@ export default function JobDetailPage() {
           ) : null}
         </CardContent>
       </Card>
+
+      <Dialog
+        open={!!confirmKind}
+        onOpenChange={(next) => {
+          if (!next && !busy) setConfirmKind(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {confirmKind === "delete" ? "Delete job?" : "Cancel job?"}
+            </DialogTitle>
+            <DialogDescription>
+              {confirmKind === "delete"
+                ? `${job.jobNumber} will be removed from the jobs list.`
+                : `${job.jobNumber} — inspector will be unassigned. You can reassign someone else.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" disabled={busy} onClick={() => setConfirmKind(null)}>
+              Keep job
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={busy}
+              onClick={() => void confirmDestructive()}
+            >
+              {busy
+                ? confirmKind === "delete"
+                  ? "Deleting…"
+                  : "Cancelling…"
+                : confirmKind === "delete"
+                  ? "Delete job"
+                  : "Cancel & unassign"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

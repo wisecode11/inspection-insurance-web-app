@@ -30,6 +30,7 @@ export type CompanyReport = {
   claimNumber?: string
   propertyAddress?: string
   inspectorName?: string
+  inspectorId?: string | null
   customerName?: string
   createdAt?: string
   updatedAt?: string

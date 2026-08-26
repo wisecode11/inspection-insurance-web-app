@@ -68,4 +68,9 @@ export const jobService = {
     const response = await apiClient.post(endpoints.jobs.cancel(id), { reason })
     return unwrap<{ job: JobRow }>(response.data).job
   },
+
+  async remove(id: string) {
+    const response = await apiClient.delete(endpoints.jobs.delete(id))
+    return unwrap<{ id: string }>(response.data)
+  },
 }

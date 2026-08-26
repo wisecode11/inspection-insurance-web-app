@@ -1,11 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
 import { ErrorState, LoadingState } from "@/components/shared/resource-state"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getErrorMessage } from "@/lib/api/errors"
@@ -70,19 +69,17 @@ export default function BillingPage() {
 
   async function openPortal() {
     setBusy(true)
-    setError("")
     try {
       const { portalUrl } = await billingService.openBillingPortal()
       window.location.assign(portalUrl)
     } catch (caught) {
-      setError(getErrorMessage(caught))
+      toast.error(getErrorMessage(caught))
       setBusy(false)
     }
   }
 
   async function simulateNextPeriod() {
     setBusy(true)
-    setError("")
     try {
       const result = await billingService.advanceTestClock()
       toast.success(
@@ -93,7 +90,7 @@ export default function BillingPage() {
       }
       await reload()
     } catch (caught) {
-      setError(getErrorMessage(caught))
+      toast.error(getErrorMessage(caught))
     } finally {
       setBusy(false)
     }
@@ -118,12 +115,6 @@ export default function BillingPage() {
         //   </Button>
         // }
       />
-
-      {error && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>

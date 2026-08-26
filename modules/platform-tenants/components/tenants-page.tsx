@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { MoreHorizontalIcon } from "lucide-react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable, type Column } from "@/components/shared/data-table"
@@ -137,7 +137,7 @@ export default function TenantsPage() {
                 onClick={async () => {
                   await tenantService.suspend(t.id)
                   await reload()
-                  toast.message(`${t.name} marked as suspended`)
+                  toast.success(`${t.name} marked as suspended`)
                 }}
               >
                 Suspend
@@ -234,7 +234,7 @@ export default function TenantsPage() {
                     if (!selected) return
                     await tenantService.suspend(selected.id)
                     await reload()
-                    toast.message(`${selected.name} marked as suspended`)
+                    toast.success(`${selected.name} marked as suspended`)
                     setSelected(null)
                   }}
                 >

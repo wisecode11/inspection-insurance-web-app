@@ -33,7 +33,7 @@ export type ReportTemplate = {
   includePhotoIndex: boolean
 }
 
-/** Fixed admin-editable narrative slots (ClaimCapture v4). Photo/checklist steps are not admin-configurable. */
+/** Fixed admin-editable narrative slots. Photo/checklist steps are not admin-configurable. */
 export type NarrativeSlotKey =
   | "summary_of_findings"
   | "investigation_process"
@@ -43,35 +43,27 @@ export type NarrativeSlotKey =
 export type NarrativeSlot = {
   key: NarrativeSlotKey
   title: string
-  description: string
-  placeholder: string
+  hint?: string
+  placeholder?: string
 }
 
 export const NARRATIVE_SLOTS: NarrativeSlot[] = [
   {
     key: "summary_of_findings",
     title: "Summary of Findings",
-    description: "Company-wide default. Inspectors can tweak wording only on their own report.",
-    placeholder: "Default summary language for every evidence package…",
   },
   {
     key: "investigation_process",
     title: "Investigation Process",
-    description: "How the inspection is described in every report by default.",
-    placeholder: "Default investigation process language…",
   },
   {
     key: "damage_definitions_assessment_criteria",
     title: "Damage Definitions & Assessment Criteria",
-    description: "Definitions and criteria language used across reports.",
-    placeholder: "Default damage definitions…",
   },
   {
     key: "existing_conditions",
     title: "Existing Conditions",
-    description:
-      "Use [ROOF AGE] where the inspector’s estimated roof age should be inserted automatically.",
-    placeholder: "The estimated roof age is [ROOF AGE]…",
+    hint: "Use [ROOF AGE] for estimated roof age.",
   },
 ]
 
