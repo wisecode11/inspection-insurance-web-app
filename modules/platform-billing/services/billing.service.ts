@@ -1,5 +1,5 @@
 import { endpoints } from "@/lib/api/endpoints"
-import { apiGet, apiPost } from "@/lib/api/request"
+import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api/request"
 import { listBillingMock } from "@/modules/platform-billing/mocks/billing.mock"
 import type {
   BillingRow,
@@ -30,8 +30,11 @@ type ApiPlan = {
   trialDays: number
   limits?: {
     seats?: number
-    inspectionsPerMonth?: number
-    storageGb?: number
+  }
+  billingOptions?: {
+    trial?: { priceLabel?: string; description?: string; bullets?: string[] }
+    monthly?: { priceLabel?: string; description?: string; bullets?: string[] }
+    annual?: { priceLabel?: string; description?: string; bullets?: string[] }
   }
   isActive?: boolean
   isPublic?: boolean
@@ -76,19 +79,33 @@ function mapBillingRows(rows: ApiBillingRow[]): BillingRow[] {
   })
 }
 
+function mapOptionCopy(
+  option?: { priceLabel?: string; description?: string; bullets?: string[] },
+  fallbackDescription = "",
+) {
+  return {
+    priceLabel: option?.priceLabel || "",
+    description: option?.description || fallbackDescription || "",
+    bullets: Array.isArray(option?.bullets) ? option.bullets.filter(Boolean) : [],
+  }
+}
+
 function mapPlan(plan: ApiPlan): PlatformPlan {
+  const description = plan.description || ""
   return {
     id: plan.id,
     name: plan.name,
     slug: plan.slug,
-    description: plan.description || "",
+    description,
     price: Number(plan.price) || 0,
     yearlyPrice: Number(plan.yearlyPrice) || 0,
     currency: plan.currency || "USD",
     trialDays: Number(plan.trialDays) || 0,
-    seats: plan.limits?.seats || 0,
-    inspectionsPerMonth: plan.limits?.inspectionsPerMonth || 0,
-    storageGb: plan.limits?.storageGb || 0,
+    billingOptions: {
+      trial: mapOptionCopy(plan.billingOptions?.trial, description),
+      monthly: mapOptionCopy(plan.billingOptions?.monthly, description),
+      annual: mapOptionCopy(plan.billingOptions?.annual, description),
+    },
     isActive: plan.isActive !== false,
     isPublic: plan.isPublic !== false,
     stripeProductId: plan.stripe?.productId || "",
@@ -119,17 +136,62 @@ export const billingService = {
         yearlyPrice: input.yearlyAmount,
         currency: "USD",
         trialDays: input.trialDays,
-        limits: {
-          seats: input.seats,
-          inspectionsPerMonth: input.inspectionsPerMonth,
-          storageGb: input.storageGb,
-        },
+        billingOptions: input.billingOptions,
+        limits: {},
         isActive: true,
         isPublic: true,
         stripe: {},
       }),
     )
     return mapPlan(data)
+  },
+
+  updatePlan: async (id: string, input: CreatePlanInput) => {
+    const data = await apiPatch<ApiPlan, CreatePlanInput>(
+      endpoints.billing.updatePlan(id),
+      input,
+      async () => ({
+        id,
+        name: input.name,
+        slug: input.slug,
+        description: input.description || "",
+        price: input.monthlyAmount,
+        yearlyPrice: input.yearlyAmount,
+        currency: "USD",
+        trialDays: input.trialDays,
+        billingOptions: input.billingOptions,
+        limits: {},
+        isActive: true,
+        isPublic: true,
+        stripe: {},
+      }),
+    )
+    return mapPlan(data)
+  },
+
+  setPlanActive: async (id: string, isActive: boolean) => {
+    const data = await apiPatch<ApiPlan, { isActive: boolean }>(
+      endpoints.billing.planStatus(id),
+      { isActive },
+      async () => ({
+        id,
+        name: "Plan",
+        slug: "plan",
+        description: "",
+        price: 0,
+        yearlyPrice: 0,
+        currency: "USD",
+        trialDays: 0,
+        isActive,
+        isPublic: true,
+        stripe: {},
+      }),
+    )
+    return mapPlan(data)
+  },
+
+  deletePlan: async (id: string) => {
+    await apiDelete<{ id: string }>(endpoints.billing.deletePlan(id), async () => ({ id }))
   },
 
   retry: (id: string) =>

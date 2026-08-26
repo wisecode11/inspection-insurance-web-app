@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label"
 import { getErrorMessage } from "@/lib/api/errors"
 import { persistSession } from "@/lib/auth/session"
 import { pathAfterOrganization, pathForCompany } from "@/lib/auth/next-path"
+import { ROUTES } from "@/lib/constants/routes"
 import { authService } from "@/modules/auth/services/auth.service"
 import { OnboardingSteps } from "@/modules/onboarding/components/onboarding-steps"
 import { organizationService } from "@/modules/onboarding/services/organization.service"
@@ -23,9 +24,15 @@ export function OrganizationForm() {
   React.useEffect(() => {
     authService
       .me()
-      .then(({ company }) => {
-        if (!company) return
-        window.location.replace(pathForCompany(company))
+      .then(({ company, user }) => {
+        if (company) {
+          window.location.replace(pathForCompany(company))
+          return
+        }
+        // Org already linked on the user — never show create-organization again.
+        if (user?.companyId) {
+          window.location.replace(ROUTES.company.dashboard)
+        }
       })
       .catch(() => undefined)
   }, [])

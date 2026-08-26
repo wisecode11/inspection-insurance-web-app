@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 import { OnboardingSteps } from "@/modules/onboarding/components/onboarding-steps"
 import { billingPlanService } from "@/modules/onboarding/services/billing-plan.service"
 import type { CatalogPlan } from "@/modules/onboarding/types/onboarding.types"
-import { planBullets } from "@/modules/onboarding/utils/plan-bullets"
+import { planOptionContent } from "@/modules/onboarding/utils/plan-bullets"
 
 type BillingMode = "trial" | "monthly" | "yearly"
 
@@ -110,9 +110,7 @@ export function PlanPicker() {
           >
             {plans.map((plan) => {
               const isSelected = plan.id === selectedId
-              const price =
-                mode === "yearly" ? plan.yearlyPrice : plan.price
-              const suffix = mode === "yearly" ? " / yr" : " / mo"
+              const content = planOptionContent(plan, mode)
               return (
                 <button
                   key={plan.id}
@@ -133,14 +131,18 @@ export function PlanPicker() {
                   )}
                   <h3 className="text-lg font-semibold">{plan.name}</h3>
                   <p className="mt-2 text-3xl font-bold tracking-tight">
-                    {mode === "trial" ? "$0" : `$${price}`}
-                    <span className="text-base font-normal text-muted-foreground">
-                      {mode === "trial" ? ` then $${plan.price}/mo` : suffix}
-                    </span>
+                    {content.pricePrimary}
+                    {content.priceSecondary ? (
+                      <span className="text-base font-normal text-muted-foreground">
+                        {content.priceSecondary}
+                      </span>
+                    ) : null}
                   </p>
-                  <p className="mt-2 text-sm text-muted-foreground">{plan.description}</p>
+                  {content.description ? (
+                    <p className="mt-2 text-sm text-muted-foreground">{content.description}</p>
+                  ) : null}
                   <ul className="mt-4 flex flex-1 flex-col gap-2">
-                    {planBullets(plan).map((item) => (
+                    {content.bullets.map((item) => (
                       <li key={item} className="flex items-start gap-2 text-sm">
                         <CheckCircle2Icon className="mt-0.5 size-4 shrink-0 text-terracotta" />
                         {item}

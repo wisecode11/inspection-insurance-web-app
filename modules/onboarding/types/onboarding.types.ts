@@ -4,6 +4,12 @@ export type OrganizationInput = {
   name: string
 }
 
+export type BillingOptionCopy = {
+  priceLabel: string
+  description: string
+  bullets: string[]
+}
+
 export type CatalogPlan = {
   id: string
   name: string
@@ -14,6 +20,11 @@ export type CatalogPlan = {
   currency: string
   trialDays: number
   highlight: boolean
+  billingOptions?: {
+    trial: BillingOptionCopy
+    monthly: BillingOptionCopy
+    annual: BillingOptionCopy
+  }
   limits: {
     seats: number
     inspectionsPerMonth: number

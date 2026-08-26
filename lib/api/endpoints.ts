@@ -34,6 +34,9 @@ export const endpoints = {
     plans: "/billing/plans",
     syncPlans: "/billing/plans/sync-stripe",
     createPlan: "/billing/plans",
+    updatePlan: (id: string) => `/billing/plans/${id}`,
+    planStatus: (id: string) => `/billing/plans/${id}/status`,
+    deletePlan: (id: string) => `/billing/plans/${id}`,
     retry: (id: string) => `/billing/${id}/retry`,
   },
   usage: {

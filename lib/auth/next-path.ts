@@ -36,6 +36,11 @@ export function pathAfterLogin(
     throw new Error("This account belongs to a company. Use the company sign-in page.")
   }
 
+  // Existing accounts that already have an organization must never re-enter org creation.
+  if (!company && user.companyId) {
+    return ROUTES.company.dashboard
+  }
+
   return pathForCompany(company)
 }
 

@@ -9,6 +9,12 @@ export type BillingRow = {
   failedPayments: number
 }
 
+export type BillingOptionCopy = {
+  priceLabel: string
+  description: string
+  bullets: string[]
+}
+
 export type PlatformPlan = {
   id: string
   name: string
@@ -18,9 +24,11 @@ export type PlatformPlan = {
   yearlyPrice: number
   currency: string
   trialDays: number
-  seats: number
-  inspectionsPerMonth: number
-  storageGb: number
+  billingOptions?: {
+    trial: BillingOptionCopy
+    monthly: BillingOptionCopy
+    annual: BillingOptionCopy
+  }
   isActive: boolean
   isPublic: boolean
   stripeProductId: string
@@ -33,9 +41,11 @@ export type CreatePlanInput = {
   monthlyAmount: number
   yearlyAmount: number
   trialDays: number
-  seats: number
-  inspectionsPerMonth: number
-  storageGb: number
+  billingOptions: {
+    trial: BillingOptionCopy
+    monthly: BillingOptionCopy
+    annual: BillingOptionCopy
+  }
 }
 
 /** @deprecated kept for mock compatibility */

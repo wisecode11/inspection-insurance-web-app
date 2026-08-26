@@ -4,7 +4,7 @@ import * as React from "react"
 
 import { getErrorMessage } from "@/lib/api/errors"
 import { persistSession } from "@/lib/auth/session"
-import { pathAfterSignup } from "@/lib/auth/next-path"
+import { pathAfterLogin, pathAfterSignup } from "@/lib/auth/next-path"
 import { authService } from "@/modules/auth/services/auth.service"
 import type { RegisterInput } from "@/modules/auth/types/auth.types"
 
@@ -31,7 +31,8 @@ export function useSignup() {
     try {
       const payload = await authService.google({ idToken, mode: "signup" })
       await persistSession(payload)
-      window.location.assign(pathAfterSignup())
+      // Returning Google users may already have org + plan — route like login, not fresh signup.
+      window.location.assign(pathAfterLogin(payload.user, "company", payload.company))
     } catch (caught) {
       setError(getErrorMessage(caught))
       setLoading(false)
