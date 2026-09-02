@@ -414,7 +414,7 @@ export default function JobDetailPage() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="mt-4">
         <CardHeader>
           <CardTitle>Photos & notes</CardTitle>
           <CardDescription>Evidence captured for this job. Report approve/reject lives on the Reports tab.</CardDescription>

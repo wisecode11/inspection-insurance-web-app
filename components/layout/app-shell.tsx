@@ -24,10 +24,12 @@ export function AppShell({ role, children }: { role: Role; children: ReactNode }
         <AppSidebarDesktop role={role} />
         <AppSidebarMobile role={role} />
 
-        <div className="app-main relative flex h-svh min-w-0 flex-1 flex-col overflow-hidden bg-[var(--color-bg-canvas)] md:rounded-tl-[2.75rem] md:rounded-bl-[2.75rem]">
+        <div className="app-main relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[var(--color-bg-canvas)] md:rounded-tl-[2.75rem] md:rounded-bl-[2.75rem]">
           <TopBar role={role} />
-          <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-x-hidden overflow-y-auto px-4 pb-6 sm:gap-6 sm:px-5 sm:pb-8 lg:px-6">
-            {children}
+          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 pb-6 sm:px-5 sm:pb-8 lg:px-6">
+            <div className="flex flex-col gap-5 sm:gap-6 [&>*]:shrink-0">
+              {children}
+            </div>
           </div>
         </div>
       </div>
