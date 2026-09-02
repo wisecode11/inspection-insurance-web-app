@@ -8,19 +8,12 @@ import { toast } from "@/lib/toast"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable, type Column } from "@/components/shared/data-table"
 import { StatusBadge } from "@/components/shared/status-badge"
-import { ErrorState, LoadingState } from "@/components/shared/resource-state"
+import { ErrorState, LoadingSkeleton } from "@/components/shared/resource-state"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { FormDrawer } from "@/components/shared/form-drawer"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -345,7 +338,7 @@ export default function JobsPage() {
     }
   }
 
-  if (isLoading) return <LoadingState label="Loading jobs…" />
+  if (isLoading) return <LoadingSkeleton />
   if (error) return <ErrorState message={error} />
 
   const columns: Column<JobRow>[] = [
@@ -484,7 +477,7 @@ export default function JobsPage() {
             >
               Bulk assign ({selectedIds.length})
             </Button>
-            <Button onClick={openCreate}>
+            <Button variant="default" onClick={openCreate}>
               <PlusIcon data-icon="inline-start" />
               New job
             </Button>
@@ -507,7 +500,7 @@ export default function JobsPage() {
             onValueChange={(value) => setStatus((value as StatusFilter) || "all")}
             items={statusFilterItems}
           >
-            <SelectTrigger className="w-[190px]">
+            <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -521,14 +514,23 @@ export default function JobsPage() {
         }
       />
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>New job</DialogTitle>
-            <DialogDescription>
-              Property, homeowner, insurance, and job details. Attach a claim/policy file from your device if needed.
-            </DialogDescription>
-          </DialogHeader>
+      <FormDrawer
+        open={open}
+        onOpenChange={setOpen}
+        title="New job"
+        description="Property, homeowner, insurance, and job details. Attach a claim/policy file from your device if needed."
+        size="xl"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
+              Cancel
+            </Button>
+            <Button onClick={saveJob} disabled={saving}>
+              {saving ? "Creating…" : "Create job"}
+            </Button>
+          </>
+        }
+      >
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5 sm:col-span-2">
               <Label>Job title</Label>
@@ -673,25 +675,24 @@ export default function JobsPage() {
               )}
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
+      </FormDrawer>
+
+      <FormDrawer
+        open={bulkOpen}
+        onOpenChange={setBulkOpen}
+        title="Bulk assign jobs"
+        description={`Assign ${selectedIds.length} selected job(s) to one inspector.`}
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setBulkOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={saveJob} disabled={saving}>
-              {saving ? "Creating…" : "Create job"}
+            <Button disabled={saving} onClick={saveBulkAssign}>
+              {saving ? "Assigning…" : "Assign jobs"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Bulk assign jobs</DialogTitle>
-            <DialogDescription>
-              Assign {selectedIds.length} selected job(s) to one inspector.
-            </DialogDescription>
-          </DialogHeader>
+          </>
+        }
+      >
           <div className="grid gap-3">
             <div className="flex flex-col gap-1.5">
               <Label>Inspector</Label>
@@ -740,33 +741,31 @@ export default function JobsPage() {
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setBulkOpen(false)}>
-              Cancel
-            </Button>
-            <Button disabled={saving} onClick={saveBulkAssign}>
-              {saving ? "Assigning…" : "Assign jobs"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </FormDrawer>
 
-      <Dialog
+      <FormDrawer
         open={reassignOpen}
         onOpenChange={(next) => {
           setReassignOpen(next)
           if (!next) setReassignJob(null)
         }}
+        title="Reassign job"
+        description={
+          reassignJob
+            ? `${reassignJob.jobNumber} is unassigned — pick an inspector.`
+            : "Pick an inspector for this job."
+        }
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setReassignOpen(false)} disabled={saving}>
+              Cancel
+            </Button>
+            <Button disabled={saving || !reassignInspectorId} onClick={() => void saveReassign()}>
+              {saving ? "Saving…" : "Reassign job"}
+            </Button>
+          </>
+        }
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Reassign job</DialogTitle>
-            <DialogDescription>
-              {reassignJob
-                ? `${reassignJob.jobNumber} is unassigned — pick an inspector.`
-                : "Pick an inspector for this job."}
-            </DialogDescription>
-          </DialogHeader>
           <div className="flex flex-col gap-1.5">
             <Label>Inspector</Label>
             <Select
@@ -787,35 +786,22 @@ export default function JobsPage() {
               </SelectContent>
             </Select>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setReassignOpen(false)} disabled={saving}>
-              Cancel
-            </Button>
-            <Button disabled={saving || !reassignInspectorId} onClick={() => void saveReassign()}>
-              {saving ? "Saving…" : "Reassign job"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </FormDrawer>
 
-      <Dialog
+      <FormDrawer
         open={!!confirmAction}
         onOpenChange={(next) => {
           if (!next && !confirmBusy) setConfirmAction(null)
         }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {confirmAction?.type === "delete" ? "Delete job?" : "Cancel job?"}
-            </DialogTitle>
-            <DialogDescription>
-              {confirmAction?.type === "delete"
-                ? `${confirmAction.job.jobNumber} will be removed from the jobs list.`
-                : `${confirmAction?.job.jobNumber} — inspector will be unassigned. You can reassign afterward.`}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
+        title={confirmAction?.type === "delete" ? "Delete job?" : "Cancel job?"}
+        description={
+          confirmAction?.type === "delete"
+            ? `${confirmAction.job.jobNumber} will be removed from the jobs list.`
+            : `${confirmAction?.job.jobNumber} — inspector will be unassigned. You can reassign afterward.`
+        }
+        size="default"
+        footer={
+          <>
             <Button
               variant="outline"
               disabled={confirmBusy}
@@ -836,9 +822,9 @@ export default function JobsPage() {
                   ? "Delete job"
                   : "Cancel job"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+      />
     </>
   )
 }

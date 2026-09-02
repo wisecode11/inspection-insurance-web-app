@@ -1,13 +1,19 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { BellIcon, Building2Icon, LogOutIcon, ShieldIcon, UserRoundIcon } from "lucide-react"
+import {
+  LogOutIcon,
+  MoonIcon,
+  SearchIcon,
+  SunIcon,
+  UserRoundIcon,
+} from "lucide-react"
+import { useTheme } from "next-themes"
+import * as React from "react"
 
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
+import { Input } from "@/components/ui/input"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { ThemeToggle } from "@/components/theme-toggle"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,23 +27,25 @@ import { destroySession } from "@/lib/auth/session"
 import { displayName, initials } from "@/lib/auth/portal"
 import { ROUTES } from "@/lib/constants/routes"
 import { roleMeta } from "@/lib/navigation"
+import { NotificationBell } from "@/components/layout/notification-bell"
 import { useSessionUser } from "@/modules/auth/hooks/use-session-user"
 import type { Role } from "@/types/role"
-import { cn } from "@/lib/utils"
-
-const roleIcon = { platform: ShieldIcon, company: Building2Icon }
 
 export function TopBar({ role }: { role: Role }) {
   const router = useRouter()
+  const { resolvedTheme, setTheme } = useTheme()
+  const [themeMounted, setThemeMounted] = React.useState(false)
   const meta = roleMeta[role]
   const user = useSessionUser()
-  const Icon = roleIcon[role]
   const name = user ? displayName(user) : meta.label
   const email = user?.email ?? ""
   const avatar = user ? initials(user) : role === "platform" ? "PA" : "CA"
+  const isDark = resolvedTheme === "dark"
 
   const accountHref =
     role === "platform" ? ROUTES.superAdmin.users : ROUTES.company.organization
+
+  React.useEffect(() => setThemeMounted(true), [])
 
   async function handleLogout() {
     await destroySession()
@@ -45,62 +53,51 @@ export function TopBar({ role }: { role: Role }) {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b bg-background/95 px-3 backdrop-blur supports-backdrop-filter:bg-background/80 sm:px-4">
-      <SidebarTrigger />
-      <Separator orientation="vertical" className="mr-1 h-5" />
+    <header className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 bg-[var(--color-bg-canvas)] px-4 py-4 sm:gap-6 sm:px-6 sm:pt-5 sm:pb-4">
+      {/* Left — pill search (~reference width, icon right) */}
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <SidebarTrigger className="size-10 shrink-0 text-muted-foreground hover:bg-card hover:text-foreground md:hidden" />
 
-      <div className="flex items-center gap-2 rounded-md border px-2.5 py-1.5">
-        <span className="flex size-5 items-center justify-center rounded bg-primary text-primary-foreground">
-          <Icon className="size-3" />
-        </span>
-        <span className="hidden text-sm font-medium sm:inline">{meta.label}</span>
+        <div className="relative w-full min-w-0 max-w-[calc(100vw-10rem)] sm:max-w-xs md:w-72 md:max-w-none md:flex-none">
+          <Input
+            type="search"
+            placeholder="Search..."
+            aria-label="Search"
+            className="h-11 w-full rounded-full border-0 bg-card pr-11 pl-5 text-sm shadow-none focus-visible:ring-2 focus-visible:ring-primary/25"
+          />
+          <SearchIcon className="pointer-events-none absolute top-1/2 right-4 size-[18px] -translate-y-1/2 text-muted-foreground" />
+        </div>
       </div>
 
-      <div className="ml-auto flex items-center gap-1">
-        <ThemeToggle />
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Notifications"
-          className="relative"
-          type="button"
-        >
-          <BellIcon />
-          <span
-            className={cn(
-              "absolute top-1 right-1 size-2 rounded-full bg-terracotta ring-2 ring-background",
-            )}
-          />
-        </Button>
-        <Separator orientation="vertical" className="mx-1 h-5" />
+      {/* Right — green pill: notifications + avatar */}
+      <div className="flex shrink-0 items-center gap-1.5 rounded-full bg-primary px-2 py-1.5 sm:gap-2.5 sm:px-3 sm:py-2">
+        {role === "company" ? <NotificationBell /> : null}
+
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
               <Button
-                variant="ghost"
                 type="button"
-                className="h-9 gap-2 px-1.5"
+                variant="ghost"
+                size="icon"
                 aria-label="Account menu"
+                className="size-9 shrink-0 !rounded-full bg-white p-0 text-primary hover:bg-white/90"
               >
-                <Avatar className="size-7">
-                  <AvatarFallback className="bg-primary text-xs text-primary-foreground">
-                    {avatar}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="hidden text-sm font-medium sm:inline">{name}</span>
+                <span className="text-xs font-bold tracking-tight">{avatar}</span>
               </Button>
             }
           />
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2">
             <DropdownMenuGroup>
-              <DropdownMenuLabel className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium text-foreground">{name}</span>
+              <DropdownMenuLabel className="flex flex-col gap-1 px-2 py-2 font-normal">
+                <span className="text-sm font-semibold text-foreground">{name}</span>
                 {email ? (
                   <span className="text-xs font-normal text-muted-foreground">{email}</span>
                 ) : null}
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="my-1.5" />
               <DropdownMenuItem
+                className="rounded-lg px-2 py-2"
                 onClick={() => {
                   router.push(accountHref)
                 }}
@@ -108,9 +105,20 @@ export function TopBar({ role }: { role: Role }) {
                 <UserRoundIcon />
                 {role === "platform" ? "User Management" : "Organization"}
               </DropdownMenuItem>
+              <DropdownMenuItem
+                className="rounded-lg px-2 py-2"
+                onClick={() => setTheme(isDark ? "light" : "dark")}
+              >
+                {themeMounted && isDark ? <SunIcon /> : <MoonIcon />}
+                {themeMounted && isDark ? "Light mode" : "Dark mode"}
+              </DropdownMenuItem>
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+            <DropdownMenuSeparator className="my-1.5" />
+            <DropdownMenuItem
+              variant="destructive"
+              className="rounded-lg px-2 py-2"
+              onClick={handleLogout}
+            >
               <LogOutIcon />
               Log out
             </DropdownMenuItem>

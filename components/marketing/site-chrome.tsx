@@ -68,7 +68,7 @@ export function SiteHeader() {
               <Button variant="ghost" size="sm" className="hidden sm:inline-flex" render={<Link href="/login" />}>
                 Log in
               </Button>
-              <Button size="sm" className="hidden sm:inline-flex rounded-full px-4" render={<Link href="/signup" />}>
+              <Button size="sm" className="hidden px-4 sm:inline-flex" render={<Link href="/signup" />}>
                 Start free trial
               </Button>
             </>

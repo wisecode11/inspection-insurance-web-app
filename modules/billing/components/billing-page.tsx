@@ -4,7 +4,7 @@ import * as React from "react"
 import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
-import { ErrorState, LoadingState } from "@/components/shared/resource-state"
+import { ErrorState, LoadingSkeleton } from "@/components/shared/resource-state"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { getErrorMessage } from "@/lib/api/errors"
@@ -96,7 +96,7 @@ export default function BillingPage() {
     }
   }
 
-  if (loading) return <LoadingState label="Loading subscription…" />
+  if (loading) return <LoadingSkeleton rows={4} />
   if (!overview && error) return <ErrorState message={error} />
 
   const sub = overview?.subscription
@@ -123,7 +123,7 @@ export default function BillingPage() {
             <CardDescription>Current plan synced from Stripe.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
-            <p className="text-2xl font-semibold">{sub?.plan?.name || "No active subscription"}</p>
+            <p className="text-2xl font-bold text-primary-dark">{sub?.plan?.name || "No active subscription"}</p>
             <p className="text-sm capitalize text-muted-foreground">
               {sub?.status?.replaceAll("_", " ") || "inactive"}
               {sub?.interval ? ` · ${sub.interval}` : ""}

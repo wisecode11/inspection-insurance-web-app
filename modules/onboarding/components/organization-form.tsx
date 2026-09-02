@@ -77,7 +77,7 @@ export function OrganizationForm() {
         <Button
           type="submit"
           disabled={loading}
-          className="h-10 w-full bg-terracotta text-terracotta-foreground hover:bg-terracotta/90"
+          className="h-10 w-full"
         >
           {loading && <Loader2Icon data-icon="inline-start" className="animate-spin" />}
           Continue to plans

@@ -7,7 +7,7 @@ import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
 import { StatusBadge } from "@/components/shared/status-badge"
-import { ErrorState, LoadingState } from "@/components/shared/resource-state"
+import { ErrorState, LoadingSkeleton } from "@/components/shared/resource-state"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -19,14 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { FormDrawer } from "@/components/shared/form-drawer"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { env } from "@/lib/config/env"
 import { ROUTES } from "@/lib/constants/routes"
@@ -92,7 +85,7 @@ export default function JobDetailPage() {
     setDueDate(job.dueDate ? String(job.dueDate).slice(0, 10) : "")
   }, [job])
 
-  if (isLoading) return <LoadingState label="Loading job…" />
+  if (isLoading) return <LoadingSkeleton rows={8} />
   if (error) return <ErrorState message={error} />
 
   if (!job) {
@@ -276,7 +269,7 @@ export default function JobDetailPage() {
                 <ul className="mt-1 space-y-1">
                   {job.attachments?.map((item) => (
                     <li key={`${item.name}-${item.url}`}>
-                      <a className="text-terracotta underline" href={item.url} target="_blank" rel="noreferrer">
+                      <a className="text-primary underline hover:text-primary-dark" href={item.url} target="_blank" rel="noreferrer">
                         {item.name}
                       </a>
                     </li>
@@ -450,7 +443,7 @@ export default function JobDetailPage() {
             </div>
           )}
           {job.inspection?.summary?.overallNotes ? (
-            <div className="mt-4 rounded-md bg-muted/50 p-3 text-sm">
+            <div className="mt-4 rounded-md bg-primary-tint/60 p-3 text-sm">
               <p className="font-medium">Inspector notes</p>
               <p className="mt-1 whitespace-pre-wrap">{job.inspection.summary.overallNotes}</p>
             </div>
@@ -458,24 +451,19 @@ export default function JobDetailPage() {
         </CardContent>
       </Card>
 
-      <Dialog
+      <FormDrawer
         open={!!confirmKind}
         onOpenChange={(next) => {
           if (!next && !busy) setConfirmKind(null)
         }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {confirmKind === "delete" ? "Delete job?" : "Cancel job?"}
-            </DialogTitle>
-            <DialogDescription>
-              {confirmKind === "delete"
-                ? `${job.jobNumber} will be removed from the jobs list.`
-                : `${job.jobNumber} — inspector will be unassigned. You can reassign someone else.`}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
+        title={confirmKind === "delete" ? "Delete job?" : "Cancel job?"}
+        description={
+          confirmKind === "delete"
+            ? `${job.jobNumber} will be removed from the jobs list.`
+            : `${job.jobNumber} — inspector will be unassigned. You can reassign someone else.`
+        }
+        footer={
+          <>
             <Button variant="outline" disabled={busy} onClick={() => setConfirmKind(null)}>
               Keep job
             </Button>
@@ -492,9 +480,9 @@ export default function JobDetailPage() {
                   ? "Delete job"
                   : "Cancel & unassign"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+      />
     </>
   )
 }

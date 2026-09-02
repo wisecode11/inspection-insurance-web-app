@@ -19,18 +19,11 @@ import { toast } from "@/lib/toast"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable, type Column } from "@/components/shared/data-table"
 import { StatusBadge } from "@/components/shared/status-badge"
-import { ErrorState, LoadingState } from "@/components/shared/resource-state"
+import { ErrorState, LoadingSkeleton } from "@/components/shared/resource-state"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { FormDrawer } from "@/components/shared/form-drawer"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -178,7 +171,7 @@ export default function ReportsPage() {
     router.push(ROUTES.company.job(jobId))
   }
 
-  if (loading) return <LoadingState label="Loading reports…" />
+  if (loading) return <LoadingSkeleton />
   if (error) return <ErrorState message={error} />
 
   const selectedJobId = selected ? resolveJobId(selected) : ""
@@ -336,7 +329,7 @@ export default function ReportsPage() {
         emptyIcon={FileTextIcon}
         toolbar={
           <Select value={status} onValueChange={(value) => setStatus((value as StatusFilter) || "all")}>
-            <SelectTrigger className="w-[190px]">
+            <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -351,23 +344,28 @@ export default function ReportsPage() {
         }
       />
 
-      <Dialog open={Boolean(selected)} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="pr-8">{selected?.title || "Report"}</DialogTitle>
-            <DialogDescription className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <StatusBadge
-                status={reportStatusVariant(selected?.status || "draft")}
-                label={reportStatusLabel(selected?.status || "draft")}
-              />
-              <span>·</span>
-              <span>Submitted {formatWhen(selected?.submittedAt || selected?.updatedAt)}</span>
-            </DialogDescription>
-          </DialogHeader>
-
+      <FormDrawer
+        open={Boolean(selected)}
+        onOpenChange={(open) => !open && setSelected(null)}
+        title={selected?.title || "Report"}
+        size="xl"
+        footer={
+          <Button variant="outline" onClick={() => setSelected(null)}>
+            Close
+          </Button>
+        }
+      >
           {selected ? (
             <div className="flex flex-col gap-5 text-sm">
-              <div className="grid gap-3 rounded-lg border bg-muted/20 p-4 sm:grid-cols-2">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
+                <StatusBadge
+                  status={reportStatusVariant(selected.status || "draft")}
+                  label={reportStatusLabel(selected.status || "draft")}
+                />
+                <span>·</span>
+                <span>Submitted {formatWhen(selected.submittedAt || selected.updatedAt)}</span>
+              </div>
+              <div className="grid gap-3 rounded-lg border border-border bg-primary-tint/40 p-4 sm:grid-cols-2">
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">Job</p>
                   {selectedJobId ? (
@@ -421,7 +419,7 @@ export default function ReportsPage() {
 
               <div>
                 <p className="mb-1.5 text-xs font-medium text-muted-foreground">Narrative</p>
-                <p className="max-h-40 overflow-y-auto whitespace-pre-wrap rounded-md border bg-muted/30 p-3 leading-relaxed">
+                <p className="max-h-40 overflow-y-auto whitespace-pre-wrap rounded-md border border-border bg-primary-tint/50 p-3 leading-relaxed">
                   {selected.narrative || "No narrative yet."}
                 </p>
               </div>
@@ -439,7 +437,7 @@ export default function ReportsPage() {
                 </div>
               ) : null}
               {selected.reviewNotes ? (
-                <div className="rounded-md border bg-muted/40 p-3">
+                <div className="rounded-md border border-border bg-primary-tint/60 p-3">
                   <p className="font-medium">Admin remarks</p>
                   <p className="mt-1 whitespace-pre-wrap break-words">{selected.reviewNotes}</p>
                 </div>
@@ -552,14 +550,7 @@ export default function ReportsPage() {
               </div>
             </div>
           ) : null}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSelected(null)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </FormDrawer>
     </>
   )
 }

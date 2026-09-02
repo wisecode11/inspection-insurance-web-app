@@ -146,7 +146,7 @@ export function HouseStageStory() {
               className={cn(
                 "w-full rounded-lg border px-1.5 py-2 text-center text-[11px] font-medium transition-colors sm:text-xs",
                 i === index
-                  ? "border-terracotta bg-terracotta text-terracotta-foreground"
+                  ? "border-primary bg-primary text-primary-foreground"
                   : "border-white/15 bg-white/5 text-white/70 hover:bg-white/10",
               )}
             >

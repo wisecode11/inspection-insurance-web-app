@@ -4,7 +4,7 @@ import * as React from "react"
 import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
-import { ErrorState, LoadingState } from "@/components/shared/resource-state"
+import { ErrorState, LoadingSkeleton } from "@/components/shared/resource-state"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -104,7 +104,7 @@ export default function OrganizationPage() {
     }
   }
 
-  if (isLoading) return <LoadingState label="Loading organization…" />
+  if (isLoading) return <LoadingSkeleton rows={4} />
   if (error) return <ErrorState message={error} />
 
   return (

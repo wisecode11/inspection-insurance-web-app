@@ -55,15 +55,15 @@ const toneClasses: Record<Tone, string> = {
   success: "bg-success/12 text-success border-success/20",
   danger: "bg-danger/12 text-danger border-danger/20",
   warning: "bg-warning/14 text-warning border-warning/25",
-  info: "bg-brand/12 text-brand border-brand/20 dark:text-primary",
-  neutral: "bg-muted text-muted-foreground border-border",
+  info: "bg-primary-tint text-primary border-primary/20",
+  neutral: "bg-primary-tint/60 text-muted-foreground border-border",
 }
 
 const dotClasses: Record<Tone, string> = {
   success: "bg-success",
   danger: "bg-danger",
   warning: "bg-warning",
-  info: "bg-brand dark:bg-primary",
+  info: "bg-primary",
   neutral: "bg-muted-foreground",
 }
 

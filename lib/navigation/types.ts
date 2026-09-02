@@ -5,3 +5,8 @@ export type NavItem = {
   href: string
   icon: LucideIcon
 }
+
+export type NavGroup = {
+  label: string
+  items: NavItem[]
+}

@@ -30,14 +30,14 @@ export function RoleCards({
             className={cn(
               "flex flex-col items-center gap-2 rounded-xl border-2 px-3 py-4 text-center transition-colors",
               selected
-                ? "border-terracotta bg-terracotta/10"
-                : "border-terracotta/35 hover:border-terracotta hover:bg-terracotta/5",
+                ? "border-primary bg-primary-tint"
+                : "border-border hover:border-primary hover:bg-primary-tint",
             )}
           >
             <span
               className={cn(
                 "flex size-9 items-center justify-center rounded-lg",
-                selected ? "bg-terracotta text-terracotta-foreground" : "bg-muted text-muted-foreground",
+                selected ? "bg-primary text-primary-foreground" : "bg-primary-tint text-primary",
               )}
             >
               <Icon className="size-4" />

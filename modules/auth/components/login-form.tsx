@@ -43,7 +43,7 @@ export function LoginForm() {
       footer={
         <p className="mt-6 text-sm text-muted-foreground">
           New company admin?{" "}
-          <Link href="/signup" className="font-medium text-terracotta hover:underline">
+          <Link href="/signup" className="font-medium text-primary hover:text-primary-dark hover:underline">
             Create an account
           </Link>
         </p>
@@ -87,7 +87,7 @@ export function LoginForm() {
         )}
         <Button
           type="submit"
-          className="h-10 w-full bg-terracotta text-terracotta-foreground hover:bg-terracotta/90"
+          className="h-10 w-full"
           disabled={loading}
         >
           {loading && <Loader2Icon data-icon="inline-start" className="animate-spin" />}

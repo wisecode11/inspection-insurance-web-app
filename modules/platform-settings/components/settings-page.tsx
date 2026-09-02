@@ -49,7 +49,6 @@ export default function SettingsPage() {
               ])
               toast.success("Global settings saved")
             }}
-            className="bg-terracotta text-terracotta-foreground hover:bg-terracotta/90"
           >
             Save changes
           </Button>

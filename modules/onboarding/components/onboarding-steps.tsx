@@ -22,8 +22,8 @@ export function OnboardingSteps({ current }: { current: "organization" | "plan" 
               className={cn(
                 "flex size-6 shrink-0 items-center justify-center rounded-full",
                 done || active
-                  ? "bg-terracotta text-terracotta-foreground"
-                  : "bg-muted text-muted-foreground",
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-primary-tint text-muted-foreground",
               )}
             >
               {index + 1}
@@ -32,7 +32,7 @@ export function OnboardingSteps({ current }: { current: "organization" | "plan" 
               {step.label}
             </span>
             {index < steps.length - 1 && (
-              <span className={cn("h-px flex-1", done ? "bg-terracotta" : "bg-border")} />
+              <span className={cn("h-px flex-1", done ? "bg-primary" : "bg-border")} />
             )}
           </li>
         )

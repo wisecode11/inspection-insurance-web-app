@@ -33,13 +33,13 @@ export function AuthFrame({
         <div className="relative z-10 flex h-full flex-col justify-between p-10 text-primary-foreground">
           <BrandMark href="/" onDark />
           <div>
-            <p className="text-xs font-medium tracking-wider text-terracotta uppercase">
+            <p className="text-xs font-medium tracking-wider text-primary-foreground/80 uppercase">
               {roleMeta[role].label}
             </p>
             <p className="mt-3 max-w-sm text-3xl font-semibold tracking-tight">
               Roof evidence the carrier can trust.
             </p>
-            <div className="mt-5 h-1 w-16 rounded-full bg-terracotta" />
+            <div className="mt-5 h-1 w-16 rounded-full bg-white/90" />
           </div>
         </div>
       </div>

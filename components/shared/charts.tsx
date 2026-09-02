@@ -204,7 +204,7 @@ const claimColors: Record<string, string> = {
   completed: "var(--chart-3)",
   reopened: "var(--chart-5)",
   on_hold: "var(--chart-4)",
-  cancelled: "var(--muted-foreground)",
+  cancelled: "var(--chart-5)",
 }
 
 const FALLBACK_CHART_COLORS = [

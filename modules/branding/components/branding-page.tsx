@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useBranding } from "@/modules/branding/hooks/use-branding"
 import { brandingService } from "@/modules/branding/services/branding.service"
-import { ErrorState, LoadingState } from "@/components/shared/resource-state"
+import { ErrorState, LoadingSkeleton } from "@/components/shared/resource-state"
 import { getErrorMessage } from "@/lib/api/errors"
 
 function readFileAsDataUrl(file: File) {
@@ -29,8 +29,8 @@ export default function BrandingPage() {
   const [companyDisplayName, setCompanyDisplayName] = React.useState("")
   const [footerText, setFooterText] = React.useState("")
   const [tagline, setTagline] = React.useState("")
-  const [primary, setPrimary] = React.useState("#1B4F72")
-  const [accent, setAccent] = React.useState("#E07A3D")
+  const [primary, setPrimary] = React.useState("#2D6A4F")
+  const [accent, setAccent] = React.useState("#40916C")
   const [logoUrl, setLogoUrl] = React.useState("")
   const [email, setEmail] = React.useState("")
   const [phone, setPhone] = React.useState("")
@@ -92,7 +92,7 @@ export default function BrandingPage() {
     }
   }
 
-  if (isLoading) return <LoadingState label="Loading branding…" />
+  if (isLoading) return <LoadingSkeleton rows={8} />
   if (error) return <ErrorState message={error} />
 
   return (
@@ -102,11 +102,7 @@ export default function BrandingPage() {
         title="Branding"
         description="Logo, company name, footer text, and contact details applied automatically to PDF reports, customer report emails, and email templates."
         actions={
-          <Button
-            className="bg-terracotta text-terracotta-foreground hover:bg-terracotta/90"
-            disabled={saving}
-            onClick={save}
-          >
+          <Button disabled={saving} onClick={save}>
             {saving ? "Saving…" : "Save branding"}
           </Button>
         }
@@ -120,7 +116,7 @@ export default function BrandingPage() {
               <CardDescription>Used in report headers and branded emails. PNG/JPG/SVG, under 1.5MB.</CardDescription>
             </CardHeader>
             <CardContent>
-              <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-10 text-center hover:bg-muted/40">
+              <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border px-4 py-10 text-center hover:bg-primary-tint">
                 {logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={logoUrl} alt="Company logo" className="max-h-16 max-w-full object-contain" />

@@ -115,10 +115,10 @@ export function DataTable<T>({
   return (
     <div className="flex flex-col gap-3">
       {(searchable || toolbar) && (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          {searchable && (
-            <div className="relative w-full sm:max-w-xs">
-              <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-stretch sm:gap-3">
+          {searchable ? (
+            <div className="relative min-w-0 w-full flex-1 sm:min-w-[14rem] sm:max-w-md">
+              <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={query}
                 onChange={(e) => {
@@ -126,15 +126,19 @@ export function DataTable<T>({
                   setPage(0)
                 }}
                 placeholder={searchPlaceholder}
-                className="h-9 pl-8"
+                className="h-10 w-full bg-card pl-9"
               />
             </div>
-          )}
-          {toolbar && <div className="flex items-center gap-2">{toolbar}</div>}
+          ) : null}
+          {toolbar ? (
+            <div className="flex w-full shrink-0 flex-wrap items-center gap-2 sm:ml-auto sm:w-auto sm:justify-end [&_[data-slot=select-trigger]]:h-10 [&_[data-slot=select-trigger]]:w-full [&_[data-slot=select-trigger]]:min-w-[11rem] [&_[data-slot=select-trigger]]:justify-between [&_[data-slot=select-trigger]]:bg-card sm:[&_[data-slot=select-trigger]]:w-[12.5rem]">
+              {toolbar}
+            </div>
+          ) : null}
         </div>
       )}
 
-      <div className="overflow-hidden rounded-lg border bg-card">
+      <div className="overflow-hidden rounded-[var(--radius)] bg-card shadow-[0_2px_16px_color-mix(in_oklab,var(--foreground)_5%,transparent)]">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
@@ -142,7 +146,7 @@ export function DataTable<T>({
                 <TableHead
                   key={col.key}
                   className={cn(
-                    "h-11 bg-muted/40 text-xs font-medium text-muted-foreground",
+                    "h-11",
                     col.align === "right" && "text-right",
                     col.align === "center" && "text-center",
                     col.className,
@@ -153,7 +157,7 @@ export function DataTable<T>({
                       type="button"
                       onClick={() => toggleSort(col.key)}
                       className={cn(
-                        "inline-flex items-center gap-1 transition-colors hover:text-foreground",
+                        "inline-flex items-center gap-1 text-primary-foreground/90 transition-colors hover:text-primary-foreground",
                         col.align === "right" && "flex-row-reverse",
                       )}
                     >
@@ -161,7 +165,7 @@ export function DataTable<T>({
                       <ArrowUpDownIcon
                         className={cn(
                           "size-3",
-                          sortKey === col.key ? "text-foreground" : "text-muted-foreground/50",
+                          sortKey === col.key ? "text-primary-foreground" : "text-primary-foreground/55",
                         )}
                       />
                     </button>
@@ -196,7 +200,10 @@ export function DataTable<T>({
                       : String((row as { id?: string }).id ?? index)
                   }
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
-                  className={cn(onRowClick && "cursor-pointer")}
+                  className={cn(
+                    "transition-colors duration-200 hover:bg-primary-tint/80",
+                    onRowClick && "cursor-pointer",
+                  )}
                 >
                   {columns.map((col) => (
                     <TableCell

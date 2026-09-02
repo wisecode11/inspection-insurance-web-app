@@ -99,10 +99,7 @@ export default function InspectionDetailPage() {
               <Share2Icon data-icon="inline-start" />
               Share
             </Button>
-            <Button
-              className="bg-terracotta text-terracotta-foreground hover:bg-terracotta/90"
-              onClick={() => toast.success("PDF export started")}
-            >
+            <Button onClick={() => toast.success("PDF export started")}>
               <FileDownIcon data-icon="inline-start" />
               Export PDF
             </Button>
@@ -128,9 +125,9 @@ export default function InspectionDetailPage() {
                 <div
                   className={cn(
                     "relative flex aspect-[4/3] items-center justify-center",
-                    index % 3 === 0 && "bg-primary/10",
-                    index % 3 === 1 && "bg-terracotta/10",
-                    index % 3 === 2 && "bg-muted",
+                    index % 3 === 0 && "bg-primary-tint",
+                    index % 3 === 1 && "bg-primary-tint-strong/60",
+                    index % 3 === 2 && "bg-primary-tint/40",
                   )}
                 >
                   <CameraIcon className="size-8 text-muted-foreground/70" />

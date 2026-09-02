@@ -90,8 +90,8 @@ export function PlanPicker() {
                 className={cn(
                   "rounded-xl border px-4 py-3 text-left transition-colors",
                   mode === item.id
-                    ? "border-terracotta bg-terracotta/10 ring-1 ring-terracotta/30"
-                    : "border-border hover:border-terracotta/40",
+                    ? "border-primary bg-primary/10 ring-1 ring-primary/30"
+                    : "border-border hover:border-primary/40",
                 )}
               >
                 <p className="text-sm font-semibold">{item.label}</p>
@@ -119,13 +119,13 @@ export function PlanPicker() {
                   className={cn(
                     "flex flex-col rounded-2xl border bg-card p-5 text-left transition-colors",
                     isSelected
-                      ? "border-terracotta ring-2 ring-terracotta/25"
-                      : "border-border hover:border-terracotta/40",
+                      ? "border-primary ring-2 ring-primary/25"
+                      : "border-border hover:border-primary/40",
                     plan.highlight && "md:scale-[1.02]",
                   )}
                 >
                   {plan.highlight && (
-                    <span className="mb-2 w-fit rounded-full bg-terracotta px-2.5 py-0.5 text-[11px] font-semibold text-terracotta-foreground">
+                    <span className="mb-2 w-fit rounded-full bg-primary px-2.5 py-0.5 text-[11px] font-semibold text-primary-foreground">
                       Most popular
                     </span>
                   )}
@@ -144,7 +144,7 @@ export function PlanPicker() {
                   <ul className="mt-4 flex flex-1 flex-col gap-2">
                     {content.bullets.map((item) => (
                       <li key={item} className="flex items-start gap-2 text-sm">
-                        <CheckCircle2Icon className="mt-0.5 size-4 shrink-0 text-terracotta" />
+                        <CheckCircle2Icon className="mt-0.5 size-4 shrink-0 text-primary" />
                         {item}
                       </li>
                     ))}
@@ -172,7 +172,7 @@ export function PlanPicker() {
             </Alert>
           )}
           <Button
-            className="h-10 w-full bg-terracotta text-terracotta-foreground hover:bg-terracotta/90 md:w-auto md:self-end"
+            className="h-10 w-full md:w-auto md:self-end"
             disabled={!selectedId || buying || (mode === "trial" && (selected?.trialDays ?? 0) <= 0)}
             onClick={handleBuy}
           >

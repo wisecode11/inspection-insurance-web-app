@@ -38,8 +38,8 @@ function mapCompany(company: CompanyMe["company"]): CompanyBranding {
     logoUrl: company.branding?.logoUrl || "",
     companyDisplayName: company.branding?.companyDisplayName || company.name || "",
     footerText: company.branding?.footerText || "",
-    primaryColor: company.branding?.primaryColor || "#1B4F72",
-    accentColor: company.branding?.accentColor || "#E07A3D",
+    primaryColor: company.branding?.primaryColor || "#2D6A4F",
+    accentColor: company.branding?.accentColor || "#40916C",
     tagline: company.branding?.tagline || "",
     contact: {
       email: company.contact?.email || "",

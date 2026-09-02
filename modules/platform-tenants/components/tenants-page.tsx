@@ -168,7 +168,7 @@ export default function TenantsPage() {
         emptyDescription="Try a different search or status filter."
         toolbar={
           <Select value={status} onValueChange={(value) => setStatus(value as StatusFilter)}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

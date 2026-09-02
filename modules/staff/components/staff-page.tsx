@@ -11,14 +11,7 @@ import { StatusBadge } from "@/components/shared/status-badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { FormDrawer } from "@/components/shared/form-drawer"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,7 +25,7 @@ import { PasswordField } from "@/modules/auth/components/password-field"
 import { staffService } from "@/modules/staff/services/staff.service"
 import { useStaff } from "@/modules/staff/hooks/use-staff"
 import type { InspectorHistoryItem, StaffMember } from "@/modules/staff/types/staff.types"
-import { ErrorState, LoadingState } from "@/components/shared/resource-state"
+import { ErrorState, LoadingSkeleton } from "@/components/shared/resource-state"
 import { getErrorMessage } from "@/lib/api/errors"
 import { getStoredUser } from "@/lib/auth/user-storage"
 
@@ -324,7 +317,7 @@ export default function StaffPage() {
     },
   ]
 
-  if (isLoading) return <LoadingState label="Loading staff…" />
+  if (isLoading) return <LoadingSkeleton />
   if (error) return <ErrorState message={error} />
 
   return (
@@ -335,7 +328,7 @@ export default function StaffPage() {
         description="Manage inspectors for your company — profiles, access, and work history. Assign or reassign jobs from the Jobs tab."
         actions={
           isAdmin ? (
-            <Button onClick={openAdd} className="bg-terracotta text-terracotta-foreground hover:bg-terracotta/90">
+            <Button variant="default" onClick={openAdd}>
               <UserPlusIcon data-icon="inline-start" />
               Add inspector
             </Button>
@@ -351,110 +344,104 @@ export default function StaffPage() {
         emptyDescription="Create an inspector to get started."
       />
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create inspector</DialogTitle>
-            <DialogDescription>Name, email, phone, and a temporary password.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label>Name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>Email</Label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>Phone</Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>Password</Label>
-              <PasswordField value={password} onChange={setPassword} autoComplete="new-password" />
-            </div>
-          </div>
-          <DialogFooter>
+      <FormDrawer
+        open={open}
+        onOpenChange={setOpen}
+        title="Create inspector"
+        description="Name, email, phone, and a temporary password."
+        footer={
+          <>
             <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button disabled={saving} onClick={saveCreate}>
               {saving ? "Saving…" : "Create"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+      >
+        <div className="grid gap-3">
+          <div className="flex flex-col gap-1.5">
+            <Label>Name</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>Email</Label>
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>Phone</Label>
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>Password</Label>
+            <PasswordField value={password} onChange={setPassword} autoComplete="new-password" />
+          </div>
+        </div>
+      </FormDrawer>
 
-      <Dialog
+      <FormDrawer
         open={editOpen}
         onOpenChange={(next) => {
           setEditOpen(next)
           if (!next) setActionMember(null)
         }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit {actionMember?.name || "inspector"}</DialogTitle>
-            <DialogDescription>{actionMember?.email}</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label>Name</Label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>Phone</Label>
-              <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>New password (optional)</Label>
-              <PasswordField value={password} onChange={setPassword} autoComplete="new-password" />
-            </div>
-          </div>
-          <DialogFooter>
+        title={`Edit ${actionMember?.name || "inspector"}`}
+        description={actionMember?.email}
+        footer={
+          <>
             <Button variant="outline" onClick={() => setEditOpen(false)}>
               Cancel
             </Button>
             <Button disabled={saving || !actionMember} onClick={saveEdit}>
               {saving ? "Saving…" : "Save"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+      >
+        <div className="grid gap-3">
+          <div className="flex flex-col gap-1.5">
+            <Label>Name</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>Phone</Label>
+            <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>New password (optional)</Label>
+            <PasswordField value={password} onChange={setPassword} autoComplete="new-password" />
+          </div>
+        </div>
+      </FormDrawer>
 
-      <Dialog
+      <FormDrawer
         open={historyOpen}
         onOpenChange={(next) => {
           setHistoryOpen(next)
           if (!next) setActionMember(null)
         }}
+        title={`${actionMember?.name || "Inspector"} · work history`}
+        description="Read-only list of jobs this inspector has worked. To assign or reassign, use the Jobs tab."
+        size="lg"
       >
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{actionMember?.name} · work history</DialogTitle>
-            <DialogDescription>
-              Read-only list of jobs this inspector has worked. To assign or reassign, use the Jobs tab.
-            </DialogDescription>
-          </DialogHeader>
-          <ul className="max-h-80 space-y-2 overflow-y-auto text-sm">
-            {history.length === 0 ? (
-              <li className="text-muted-foreground">No jobs yet.</li>
-            ) : (
-              history.map((item) => (
-                <li key={item.id} className="rounded-md border px-3 py-2">
-                  <p className="font-medium">
-                    {item.jobNumber} {item.title ? `· ${item.title}` : ""}
-                  </p>
-                  <p className="text-muted-foreground">
-                    {item.customerName} · {item.status.replaceAll("_", " ")}
-                  </p>
-                </li>
-              ))
-            )}
-          </ul>
-        </DialogContent>
-      </Dialog>
+        <ul className="space-y-2 text-sm">
+          {history.length === 0 ? (
+            <li className="text-muted-foreground">No jobs yet.</li>
+          ) : (
+            history.map((item) => (
+              <li key={item.id} className="rounded-md border border-border px-3 py-2">
+                <p className="font-medium">
+                  {item.jobNumber} {item.title ? `· ${item.title}` : ""}
+                </p>
+                <p className="text-muted-foreground">
+                  {item.customerName} · {item.status.replaceAll("_", " ")}
+                </p>
+              </li>
+            ))
+          )}
+        </ul>
+      </FormDrawer>
     </>
   )
 }

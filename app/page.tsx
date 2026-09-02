@@ -50,7 +50,7 @@ const features = [
     title: "Storm check",
     description: "NOAA cross-check on the date of loss.",
     icon: CloudSunIcon,
-    iconBg: "bg-gradient-to-br from-terracotta to-terracotta/80 text-terracotta-foreground",
+    iconBg: "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground",
     tag: "Weather",
     gridClass: "lg:col-start-4 lg:row-start-1",
     compact: true,
@@ -95,7 +95,7 @@ const features = [
     title: "Branding",
     description: "Logo and colors on the report header.",
     icon: PaletteIcon,
-    iconBg: "bg-gradient-to-br from-terracotta to-terracotta/85 text-terracotta-foreground",
+    iconBg: "bg-gradient-to-br from-primary to-primary/85 text-primary-foreground",
     tag: "Brand",
     gridClass: "lg:col-start-3 lg:row-start-3",
     compact: true,
@@ -122,7 +122,7 @@ const features = [
 
 const steps = [
   { step: "01", title: "Create your account", description: "Open a company workspace in minutes.", icon: UsersIcon, iconBg: "bg-gradient-to-br from-primary to-primary/70" },
-  { step: "02", title: "Capture the roof", description: "Photos, GPS, and test squares on site.", icon: CameraIcon, iconBg: "bg-gradient-to-br from-terracotta to-terracotta/80 text-terracotta-foreground" },
+  { step: "02", title: "Capture the roof", description: "Photos, GPS, and test squares on site.", icon: CameraIcon, iconBg: "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground" },
   { step: "03", title: "Verify the storm", description: "Match weather data to the date of loss.", icon: CloudSunIcon, iconBg: "bg-gradient-to-br from-warning to-warning/80 text-warning-foreground" },
   { step: "04", title: "Send the file", description: "Approve and export a branded PDF.", icon: FileTextIcon, iconBg: "bg-gradient-to-br from-success to-success/85" },
 ]
@@ -210,7 +210,7 @@ export default function HomePage() {
               <div className="hero-float relative h-[300px] w-[300px] shrink-0 sm:h-[360px] sm:w-[360px] lg:h-[420px] lg:w-[420px]">
                 <svg
                   viewBox="0 0 420 420"
-                  className="hero-orbit pointer-events-none absolute inset-0 h-full w-full text-terracotta"
+                  className="hero-orbit pointer-events-none absolute inset-0 h-full w-full text-primary"
                   aria-hidden
                 >
                   <defs>
@@ -249,7 +249,7 @@ export default function HomePage() {
                     strokeWidth="1.5"
                     strokeDasharray="6 14"
                   />
-                  <circle cx="210" cy="38" r="5" fill="var(--terracotta)" />
+                  <circle cx="210" cy="38" r="5" fill="var(--primary)" />
                 </svg>
                 <div className="absolute inset-[36px] overflow-hidden rounded-full border bg-card shadow-sm sm:inset-[42px]">
                   <img
@@ -272,7 +272,7 @@ export default function HomePage() {
               </span>
               <h2 className="mt-5 text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
                 One workspace for the roof, the office, and the{" "}
-                <span className="text-terracotta">carrier file</span>
+                <span className="text-primary">carrier file</span>
               </h2>
               <ul className="mt-8 flex flex-col gap-4">
                 {whyPoints.map((point) => (
@@ -321,7 +321,7 @@ export default function HomePage() {
             </div>
             <Button
               size="lg"
-              className="h-11 shrink-0 rounded-full bg-terracotta px-7 text-terracotta-foreground hover:bg-terracotta/90"
+              className="h-11 shrink-0 bg-primary-foreground px-7 text-primary hover:bg-primary-foreground/90"
               render={<Link href="/signup" />}
             >
               Start free trial
@@ -330,7 +330,7 @@ export default function HomePage() {
         </section>
 
         <section className="relative overflow-hidden py-16 md:py-24">
-          <div className="absolute top-0 right-0 h-full w-1/2 bg-gradient-to-l from-terracotta/10 to-transparent" />
+          <div className="absolute top-0 right-0 h-full w-1/2 bg-gradient-to-l from-primary/10 to-transparent" />
           <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
             <div className="max-w-xl">
               <h2 className="text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
@@ -366,7 +366,7 @@ export default function HomePage() {
               </div>
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
                 Everything you need to{" "}
-                <span className="text-terracotta">file the claim</span>
+                <span className="text-primary">file the claim</span>
               </h2>
             </div>
 
@@ -509,7 +509,7 @@ export default function HomePage() {
           <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
             {[
               { title: "Evidence-grade photos", text: "GPS and time on every file.", icon: CameraIcon, iconBg: "bg-gradient-to-br from-primary to-primary/70" },
-              { title: "Priority support", text: "Help when a claim is on the clock.", icon: HeadphonesIcon, iconBg: "bg-gradient-to-br from-terracotta to-terracotta/80 text-terracotta-foreground" },
+              { title: "Priority support", text: "Help when a claim is on the clock.", icon: HeadphonesIcon, iconBg: "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground" },
               { title: "Secure workspace", text: "Role-based company and platform access.", icon: ShieldIcon, iconBg: "bg-gradient-to-br from-success to-success/85" },
               { title: "Same-day setup", text: "Invite inspectors and start a job.", icon: ZapIcon, iconBg: "bg-gradient-to-br from-warning to-warning/80 text-warning-foreground" },
             ].map((item) => (
@@ -524,17 +524,17 @@ export default function HomePage() {
 
         <section className="py-20 md:py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="relative overflow-hidden rounded-3xl border border-terracotta/30 bg-gradient-to-br from-terracotta/10 via-background to-primary/8 p-8 text-center md:p-16 dark:from-terracotta/15 dark:via-background dark:to-background dark:border-terracotta/20">
+            <div className="relative overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/10 via-background to-primary/8 p-8 text-center md:p-16 dark:from-primary/15 dark:via-background dark:to-background dark:border-primary/20">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Ready to tighten the claim file?</h2>
               <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
                 Start a company trial or log in as platform admin.
               </p>
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                <Button size="lg" className="h-12 rounded-xl px-8" render={<Link href="/signup" />}>
+                <Button size="lg" className="h-12 px-8" render={<Link href="/signup" />}>
                   Get started free
                   <ArrowRightIcon data-icon="inline-end" />
                 </Button>
-                <Button size="lg" variant="outline" className="h-12 rounded-xl bg-card px-8" render={<Link href="/login" />}>
+                <Button size="lg" variant="outline" className="h-12 bg-card px-8" render={<Link href="/login" />}>
                   Log in
                 </Button>
               </div>

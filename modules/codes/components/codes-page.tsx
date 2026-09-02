@@ -6,19 +6,12 @@ import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable, type Column } from "@/components/shared/data-table"
-import { ErrorState, LoadingState } from "@/components/shared/resource-state"
+import { ErrorState, LoadingSkeleton } from "@/components/shared/resource-state"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
+import { FormDrawer } from "@/components/shared/form-drawer"
 import { apiClient } from "@/lib/api/client"
 import { endpoints } from "@/lib/api/endpoints"
 import { unwrap } from "@/lib/api/unwrap"
@@ -78,7 +71,7 @@ export default function CodesPage() {
     }
   }
 
-  if (isLoading) return <LoadingState label="Loading codes…" />
+  if (isLoading) return <LoadingSkeleton />
   if (error) return <ErrorState message={error} />
 
   const columns: Column<Citation>[] = [
@@ -119,6 +112,7 @@ export default function CodesPage() {
         actions={
           canManage ? (
             <Button
+              variant="default"
               onClick={() => {
                 setState("")
                 setCode("")
@@ -145,44 +139,46 @@ export default function CodesPage() {
         emptyDescription="Add company-specific code citations, or rely on the platform library."
       />
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Add code citation</DialogTitle>
-            <DialogDescription>Company-scoped citations appear alongside the platform library.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="flex flex-col gap-1.5">
-              <Label>State</Label>
-              <Input value={state} onChange={(e) => setState(e.target.value)} placeholder="TX" />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>Code</Label>
-              <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="IRC R908.3" />
-            </div>
-            <div className="flex flex-col gap-1.5 sm:col-span-2">
-              <Label>Title</Label>
-              <Input value={title} onChange={(e) => setTitle(e.target.value)} />
-            </div>
-            <div className="flex flex-col gap-1.5 sm:col-span-2">
-              <Label>Body</Label>
-              <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={5} />
-            </div>
-            <div className="flex flex-col gap-1.5 sm:col-span-2">
-              <Label>Source</Label>
-              <Input value={source} onChange={(e) => setSource(e.target.value)} />
-            </div>
-          </div>
-          <DialogFooter>
+      <FormDrawer
+        open={open}
+        onOpenChange={setOpen}
+        title="Add code citation"
+        description="Company-scoped citations appear alongside the platform library."
+        size="lg"
+        footer={
+          <>
             <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>
               Cancel
             </Button>
             <Button onClick={createCitation} disabled={saving}>
               {saving ? "Saving…" : "Create"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-1.5">
+            <Label>State</Label>
+            <Input value={state} onChange={(e) => setState(e.target.value)} placeholder="TX" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>Code</Label>
+            <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="IRC R908.3" />
+          </div>
+          <div className="flex flex-col gap-1.5 sm:col-span-2">
+            <Label>Title</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+          </div>
+          <div className="flex flex-col gap-1.5 sm:col-span-2">
+            <Label>Body</Label>
+            <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={5} />
+          </div>
+          <div className="flex flex-col gap-1.5 sm:col-span-2">
+            <Label>Source</Label>
+            <Input value={source} onChange={(e) => setSource(e.target.value)} />
+          </div>
+        </div>
+      </FormDrawer>
     </>
   )
 }

@@ -20,7 +20,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useCompanyAnalytics } from "@/modules/analytics/hooks/use-analytics"
 import type { InspectorAnalyticsRow } from "@/modules/analytics/types/analytics.types"
-import { ErrorState, LoadingState } from "@/components/shared/resource-state"
+import { ErrorState, LoadingSkeleton } from "@/components/shared/resource-state"
 
 const inspectorColumns: Column<InspectorAnalyticsRow>[] = [
   {
@@ -73,7 +73,7 @@ const inspectorColumns: Column<InspectorAnalyticsRow>[] = [
 export default function AnalyticsPage() {
   const { data, isLoading, error } = useCompanyAnalytics()
 
-  if (isLoading) return <LoadingState label="Loading analytics…" />
+  if (isLoading) return <LoadingSkeleton rows={10} />
   if (error || !data) return <ErrorState message={error || "Unable to load analytics"} />
 
   const { jobs, inspectors, reports } = data

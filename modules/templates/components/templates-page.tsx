@@ -5,7 +5,7 @@ import Link from "next/link"
 import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
-import { ErrorState, LoadingState } from "@/components/shared/resource-state"
+import { ErrorState, LoadingSkeleton } from "@/components/shared/resource-state"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -131,7 +131,7 @@ export default function TemplatesPage() {
     }
   }
 
-  if (isLoading) return <LoadingState label="Loading report language…" />
+  if (isLoading) return <LoadingSkeleton rows={8} />
   if (error) return <ErrorState message={error} />
   if (!template) {
     return <ErrorState message="No report language defaults found." />
@@ -144,11 +144,7 @@ export default function TemplatesPage() {
         title="Report language"
         description="Default wording used in evidence package PDFs."
         actions={
-          <Button
-            className="bg-terracotta text-terracotta-foreground hover:bg-terracotta/90"
-            disabled={saving}
-            onClick={saveTemplate}
-          >
+          <Button disabled={saving} onClick={saveTemplate}>
             {saving ? "Saving…" : "Save"}
           </Button>
         }

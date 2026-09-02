@@ -59,7 +59,7 @@ export function SignupForm() {
       footer={
         <p className="mt-6 text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-terracotta hover:underline">
+          <Link href="/login" className="font-medium text-primary hover:text-primary-dark hover:underline">
             Sign in
           </Link>
         </p>
@@ -116,7 +116,7 @@ export function SignupForm() {
         <Button
           type="submit"
           disabled={loading}
-          className="h-10 w-full bg-terracotta text-terracotta-foreground hover:bg-terracotta/90"
+          className="h-10 w-full"
         >
           {loading && <Loader2Icon data-icon="inline-start" className="animate-spin" />}
           Create account
