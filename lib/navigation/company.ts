@@ -2,12 +2,12 @@ import {
   LayoutDashboardIcon,
   ClipboardListIcon,
   UsersIcon,
-  PaletteIcon,
-  FileStackIcon,
-  BarChart3Icon,
-  Building2Icon,
-  BookMarkedIcon,
-  CreditCardIcon,
+  // PaletteIcon,
+  // FileStackIcon,
+  // BarChart3Icon,
+  // Building2Icon,
+  // BookMarkedIcon,
+  // CreditCardIcon,
   FileTextIcon,
 } from "lucide-react"
 
@@ -22,25 +22,25 @@ export const companyNavGroups: NavGroup[] = [
       { title: "Dashboard", href: ROUTES.company.dashboard, icon: LayoutDashboardIcon },
       { title: "Jobs", href: ROUTES.company.jobs, icon: ClipboardListIcon },
       { title: "Reports", href: ROUTES.company.reports, icon: FileTextIcon },
-      { title: "Analytics", href: ROUTES.company.analytics, icon: BarChart3Icon },
+      // { title: "Analytics", href: ROUTES.company.analytics, icon: BarChart3Icon },
     ],
   },
   {
     label: "Team",
     items: [
       { title: "Staff", href: ROUTES.company.staff, icon: UsersIcon },
-      { title: "Organization", href: ROUTES.company.organization, icon: Building2Icon },
+      // { title: "Organization", href: ROUTES.company.organization, icon: Building2Icon },
     ],
   },
-  {
-    label: "Configuration",
-    items: [
-      { title: "Subscription", href: ROUTES.company.billing, icon: CreditCardIcon },
-      { title: "Codes & standards", href: ROUTES.company.codes, icon: BookMarkedIcon },
-      { title: "Branding", href: ROUTES.company.branding, icon: PaletteIcon },
-      { title: "Report language", href: ROUTES.company.templates, icon: FileStackIcon },
-    ],
-  },
+  // {
+  //   label: "Configuration",
+  //   items: [
+  //     { title: "Subscription", href: ROUTES.company.billing, icon: CreditCardIcon },
+  //     { title: "Codes & standards", href: ROUTES.company.codes, icon: BookMarkedIcon },
+  //     { title: "Branding", href: ROUTES.company.branding, icon: PaletteIcon },
+  //     { title: "Report language", href: ROUTES.company.templates, icon: FileStackIcon },
+  //   ],
+  // },
 ]
 
 /** Flat list — kept for backwards compatibility. */
@@ -51,8 +51,8 @@ const OFFICE_STAFF_HREFS = new Set<string>([
   ROUTES.company.dashboard,
   ROUTES.company.jobs,
   ROUTES.company.reports,
-  ROUTES.company.organization,
-  ROUTES.company.analytics,
+  // ROUTES.company.organization,
+  // ROUTES.company.analytics,
 ])
 
 export function companyNavForUserRole(userRole?: UserRole | null): NavItem[] {
