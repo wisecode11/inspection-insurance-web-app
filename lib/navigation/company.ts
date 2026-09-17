@@ -7,8 +7,8 @@ import {
   // BarChart3Icon,
   // Building2Icon,
   // BookMarkedIcon,
-  // CreditCardIcon,
-  FileTextIcon,
+  CreditCardIcon,
+  // FileTextIcon,
 } from "lucide-react"
 
 import { ROUTES } from "@/lib/constants/routes"
@@ -21,7 +21,7 @@ export const companyNavGroups: NavGroup[] = [
     items: [
       { title: "Dashboard", href: ROUTES.company.dashboard, icon: LayoutDashboardIcon },
       { title: "Jobs", href: ROUTES.company.jobs, icon: ClipboardListIcon },
-      { title: "Reports", href: ROUTES.company.reports, icon: FileTextIcon },
+      // { title: "Reports", href: ROUTES.company.reports, icon: FileTextIcon },
       // { title: "Analytics", href: ROUTES.company.analytics, icon: BarChart3Icon },
     ],
   },
@@ -32,15 +32,15 @@ export const companyNavGroups: NavGroup[] = [
       // { title: "Organization", href: ROUTES.company.organization, icon: Building2Icon },
     ],
   },
-  // {
-  //   label: "Configuration",
-  //   items: [
-  //     { title: "Subscription", href: ROUTES.company.billing, icon: CreditCardIcon },
-  //     { title: "Codes & standards", href: ROUTES.company.codes, icon: BookMarkedIcon },
-  //     { title: "Branding", href: ROUTES.company.branding, icon: PaletteIcon },
-  //     { title: "Report language", href: ROUTES.company.templates, icon: FileStackIcon },
-  //   ],
-  // },
+  {
+    label: "Configuration",
+    items: [
+      { title: "Subscription", href: ROUTES.company.billing, icon: CreditCardIcon },
+      // { title: "Codes & standards", href: ROUTES.company.codes, icon: BookMarkedIcon },
+      // { title: "Branding", href: ROUTES.company.branding, icon: PaletteIcon },
+      // { title: "Report language", href: ROUTES.company.templates, icon: FileStackIcon },
+    ],
+  },
 ]
 
 /** Flat list — kept for backwards compatibility. */
@@ -50,7 +50,7 @@ export const companyNav: NavItem[] = companyNavGroups.flatMap((group) => group.i
 const OFFICE_STAFF_HREFS = new Set<string>([
   ROUTES.company.dashboard,
   ROUTES.company.jobs,
-  ROUTES.company.reports,
+  // ROUTES.company.reports,
   // ROUTES.company.organization,
   // ROUTES.company.analytics,
 ])
