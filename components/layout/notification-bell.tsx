@@ -15,7 +15,11 @@ import { cn } from "@/lib/utils"
 import { ROUTES } from "@/lib/constants/routes"
 import { useReportNotifications } from "@/modules/notifications/hooks/use-report-notifications"
 
-export function NotificationBell() {
+export function NotificationBell({
+  tone = "onPrimary",
+}: {
+  tone?: "onPrimary" | "default"
+}) {
   const { items, unreadCount, loading, error, open, setOpen, markAllRead, markOneRead } =
     useReportNotifications()
 
@@ -23,6 +27,8 @@ export function NotificationBell() {
     setOpen(next)
     if (next) markAllRead()
   }
+
+  const onPrimary = tone === "onPrimary"
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
@@ -35,11 +41,23 @@ export function NotificationBell() {
             aria-label={
               unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"
             }
-            className="relative size-9 shrink-0 text-white hover:bg-white/10 hover:text-white"
+            className={cn(
+              "relative size-10 shrink-0 rounded-md",
+              onPrimary
+                ? "text-white hover:bg-white/10 hover:text-white"
+                : "bg-card text-primary shadow-[0_2px_12px_color-mix(in_oklab,var(--color-primary)_12%,transparent)] hover:bg-primary-tint hover:text-primary-dark",
+            )}
           >
             <BellIcon className="size-[18px]" />
             {unreadCount > 0 ? (
-              <span className="absolute top-0.5 right-0.5 flex size-4 min-w-4 items-center justify-center rounded-full bg-white px-0.5 text-[10px] font-bold leading-none text-primary">
+              <span
+                className={cn(
+                  "absolute top-0.5 right-0.5 flex size-4 min-w-4 items-center justify-center rounded-full px-0.5 text-[10px] font-bold leading-none",
+                  onPrimary
+                    ? "bg-white text-primary"
+                    : "bg-primary text-primary-foreground",
+                )}
+              >
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             ) : null}

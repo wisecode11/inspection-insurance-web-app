@@ -15,6 +15,14 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { FormDrawer } from "@/components/shared/form-drawer"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -131,11 +139,10 @@ export default function JobsPage() {
   const [bulkDueDate, setBulkDueDate] = React.useState("")
   const [bulkPriority, setBulkPriority] = React.useState<JobPriority | "">("")
   const [attachmentKey, setAttachmentKey] = React.useState(0)
-  const [confirmAction, setConfirmAction] = React.useState<{
-    type: "cancel" | "delete"
-    job: JobRow
-  } | null>(null)
-  const [confirmBusy, setConfirmBusy] = React.useState(false)
+  const [cancelJob, setCancelJob] = React.useState<JobRow | null>(null)
+  const [deleteJob, setDeleteJob] = React.useState<JobRow | null>(null)
+  const [cancelBusy, setCancelBusy] = React.useState(false)
+  const [deleteBusy, setDeleteBusy] = React.useState(false)
 
   const rows = React.useMemo(
     () => jobs.filter((row) => status === "all" || row.status === status),
@@ -184,31 +191,42 @@ export default function JobsPage() {
 
   function requestCancelJob(row: JobRow) {
     if (!canShowCancelJob(row)) return
-    setConfirmAction({ type: "cancel", job: row })
+    setCancelJob(row)
   }
 
   function requestDeleteJob(row: JobRow) {
-    setConfirmAction({ type: "delete", job: row })
+    setDeleteJob(row)
   }
 
-  async function confirmJobAction() {
-    if (!confirmAction) return
-    setConfirmBusy(true)
+  async function confirmCancelJob() {
+    if (!cancelJob) return
+    setCancelBusy(true)
     try {
-      if (confirmAction.type === "cancel") {
-        await jobService.cancel(confirmAction.job.id)
-        toast.success("Job cancelled. Use Reassign job to assign another inspector.")
-      } else {
-        await jobService.remove(confirmAction.job.id)
-        toast.success("Job deleted")
-      }
-      setSelectedIds((ids) => ids.filter((id) => id !== confirmAction.job.id))
-      setConfirmAction(null)
+      await jobService.cancel(cancelJob.id)
+      toast.success("Job cancelled. Use Reassign job to assign another inspector.")
+      setSelectedIds((ids) => ids.filter((id) => id !== cancelJob.id))
+      setCancelJob(null)
       await reload()
     } catch (err) {
       toast.error(getErrorMessage(err))
     } finally {
-      setConfirmBusy(false)
+      setCancelBusy(false)
+    }
+  }
+
+  async function confirmDeleteJob() {
+    if (!deleteJob) return
+    setDeleteBusy(true)
+    try {
+      await jobService.remove(deleteJob.id)
+      toast.success("Job deleted")
+      setSelectedIds((ids) => ids.filter((id) => id !== deleteJob.id))
+      setDeleteJob(null)
+      await reload()
+    } catch (err) {
+      toast.error(getErrorMessage(err))
+    } finally {
+      setDeleteBusy(false)
     }
   }
 
@@ -789,42 +807,62 @@ export default function JobsPage() {
       </FormDrawer>
 
       <FormDrawer
-        open={!!confirmAction}
+        open={!!cancelJob}
         onOpenChange={(next) => {
-          if (!next && !confirmBusy) setConfirmAction(null)
+          if (!next && !cancelBusy) setCancelJob(null)
         }}
-        title={confirmAction?.type === "delete" ? "Delete job?" : "Cancel job?"}
+        title="Cancel job?"
         description={
-          confirmAction?.type === "delete"
-            ? `${confirmAction.job.jobNumber} will be removed from the jobs list.`
-            : `${confirmAction?.job.jobNumber} — inspector will be unassigned. You can reassign afterward.`
+          cancelJob
+            ? `${cancelJob.jobNumber} — inspector will be unassigned. You can reassign afterward.`
+            : undefined
         }
         size="default"
         footer={
           <>
-            <Button
-              variant="outline"
-              disabled={confirmBusy}
-              onClick={() => setConfirmAction(null)}
-            >
+            <Button variant="outline" disabled={cancelBusy} onClick={() => setCancelJob(null)}>
               Keep job
             </Button>
             <Button
               variant="destructive"
-              disabled={confirmBusy}
-              onClick={() => void confirmJobAction()}
+              disabled={cancelBusy}
+              onClick={() => void confirmCancelJob()}
             >
-              {confirmBusy
-                ? confirmAction?.type === "delete"
-                  ? "Deleting…"
-                  : "Cancelling…"
-                : confirmAction?.type === "delete"
-                  ? "Delete job"
-                  : "Cancel job"}
+              {cancelBusy ? "Cancelling…" : "Cancel job"}
             </Button>
           </>
         }
       />
+
+      <Dialog
+        open={!!deleteJob}
+        onOpenChange={(open) => {
+          if (!open && !deleteBusy) setDeleteJob(null)
+        }}
+      >
+        <DialogContent showCloseButton={!deleteBusy}>
+          <DialogHeader>
+            <DialogTitle>Delete job?</DialogTitle>
+            <DialogDescription>
+              {deleteJob
+                ? `${deleteJob.jobNumber} will be removed from the jobs list.`
+                : null}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" disabled={deleteBusy} onClick={() => setDeleteJob(null)}>
+              Keep job
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={deleteBusy}
+              onClick={() => void confirmDeleteJob()}
+            >
+              {deleteBusy ? "Deleting…" : "Delete job"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

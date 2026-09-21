@@ -34,7 +34,7 @@ export function BrandMark({
     <>
       <span
         className={cn(
-          "flex size-10 shrink-0 items-center justify-center rounded-xl",
+          "flex size-10 shrink-0 items-center justify-center rounded-md",
           iconClass,
         )}
       >

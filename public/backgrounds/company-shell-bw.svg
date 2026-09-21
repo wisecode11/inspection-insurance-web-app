@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <radialGradient id="creamBloom" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f7f5f0" stop-opacity="1"/>
+      <stop offset="55%" stop-color="#f7f5f0" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#f7f5f0" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="whiteGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="40%" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tealTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0c282e"/>
+      <stop offset="55%" stop-color="#10343c"/>
+      <stop offset="100%" stop-color="#133a42"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="#f7f5f0"/>
+  <rect width="1920" height="620" fill="url(#tealTop)"/>
+
+  <ellipse cx="1500" cy="720" rx="900" ry="380" fill="url(#creamBloom)"/>
+  <ellipse cx="1100" cy="780" rx="780" ry="320" fill="url(#creamBloom)"/>
+  <ellipse cx="1920" cy="640" rx="520" ry="360" fill="url(#creamBloom)"/>
+
+  <ellipse cx="420" cy="680" rx="560" ry="300" fill="url(#whiteGlow)"/>
+  <ellipse cx="680" cy="740" rx="480" ry="260" fill="url(#whiteGlow)"/>
+
+  <rect y="760" width="1920" height="320" fill="#f7f5f0"/>
+</svg>

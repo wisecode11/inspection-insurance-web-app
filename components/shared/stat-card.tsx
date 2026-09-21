@@ -3,13 +3,12 @@ import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 
-/** Standard icon chip — primary-tint bg + primary icon (app-wide). */
+/** Standard icon chip — solid primary accent. */
 export const statIconChipClass =
-  "flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary-tint text-primary"
+  "flex size-10 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm"
 
 /**
- * StatCard — metric tile for dashboards and analytics.
- * Uses design tokens: surface white, border, primary-tint chips, primary-dark values.
+ * StatCard — metric tile with visible forest-green brand accents.
  */
 export function StatCard({
   label,
@@ -34,14 +33,18 @@ export function StatCard({
   return (
     <Card
       className={cn(
-        "gap-0 py-0 transition-colors duration-200 hover:border-primary",
-        highlight && "border-primary/30",
+        "gap-0 overflow-hidden py-0 shadow-[0_8px_28px_-16px_rgba(19,58,66,0.18)] ring-1 ring-primary/10 transition-all duration-200 hover:-translate-y-0.5 hover:ring-primary/25 hover:shadow-[0_14px_36px_-18px_rgba(19,58,66,0.28)]",
+        highlight && "bg-gradient-to-br from-primary-tint/80 to-card ring-primary/25",
         className,
       )}
     >
-      <CardContent className="p-4 sm:p-5">
-        <div className="mb-3 flex items-center justify-between gap-3">
-          <span className="text-xs font-medium text-muted-foreground sm:text-sm">{label}</span>
+      <CardContent className="relative p-5 sm:p-6">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-primary/70 to-transparent"
+        />
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <span className="text-xs font-medium text-primary-dark/70 sm:text-sm">{label}</span>
           <span className={statIconChipClass}>
             <Icon className="size-4" aria-hidden />
           </span>
@@ -49,7 +52,7 @@ export function StatCard({
         <p
           className={cn(
             "text-2xl font-bold tracking-tight tabular-nums sm:text-3xl",
-            isZero ? "text-muted-foreground" : "text-primary-dark",
+            isZero ? "text-muted-foreground" : "text-primary",
           )}
         >
           {value}

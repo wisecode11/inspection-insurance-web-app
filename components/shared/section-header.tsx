@@ -16,7 +16,7 @@ export function SectionHeader({
   return (
     <div
       className={cn(
-        "flex items-start justify-between gap-4 border-b border-border/40 px-5 py-4 sm:px-6",
+        "flex items-start justify-between gap-4 border-b border-primary/15 bg-primary-tint px-5 py-4 sm:px-6",
         className,
       )}
     >

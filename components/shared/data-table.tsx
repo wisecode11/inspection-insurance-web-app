@@ -138,7 +138,7 @@ export function DataTable<T>({
         </div>
       )}
 
-      <div className="overflow-hidden rounded-[var(--radius)] bg-card shadow-[0_2px_16px_color-mix(in_oklab,var(--foreground)_5%,transparent)]">
+      <div className="overflow-hidden rounded-[var(--radius)] bg-card shadow-[0_8px_28px_-16px_rgba(19,58,66,0.16)] ring-1 ring-primary/10">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">

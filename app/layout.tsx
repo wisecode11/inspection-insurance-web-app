@@ -1,6 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Instrument_Serif, Inter } from 'next/font/google'
 import { ThemeProvider } from '@/components/theme-provider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
@@ -13,8 +13,18 @@ const inter = Inter({
   display: 'swap',
 })
 
+const instrument = Instrument_Serif({
+  subsets: ['latin'],
+  variable: '--font-instrument',
+  weight: ['400'],
+  display: 'swap',
+})
+
 export const metadata: Metadata = {
   title: 'RoofClaim — Inspection & Claims Evidence Platform',
+  icons: {
+    icon: '/icon.png',
+  },
   description:
     'Multi-tenant admin portal for roof inspection and insurance claims evidence management.',
   generator: 'v0.app',
@@ -23,7 +33,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   colorScheme: 'light dark',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#2d6a4f' },
+    { media: '(prefers-color-scheme: light)', color: '#133a42' },
     { media: '(prefers-color-scheme: dark)', color: '#0b1220' },
   ],
 }
@@ -35,7 +45,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="bg-background" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased`} suppressHydrationWarning>
+      <body
+        className={`${inter.variable} ${instrument.variable} font-sans antialiased`}
+        suppressHydrationWarning
+      >
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

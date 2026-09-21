@@ -18,16 +18,26 @@ import {
   ZapIcon,
 } from "lucide-react"
 
+import { ConnectHubVisual } from "@/components/marketing/connect-hub-visual"
+import { HeroVisual } from "@/components/marketing/hero-visual"
 import { SiteFooter, SiteHeader } from "@/components/marketing/site-chrome"
 import { Button } from "@/components/ui/button"
 import { plansMock as plans } from "@/modules/platform-billing/mocks/billing.mock"
 import { cn } from "@/lib/utils"
 
-const whyPoints = [
-  "GPS and timestamp on every inspection photo",
-  "Storm data checked against the date of loss",
-  "Test-square counts ready for the carrier",
-  "Branded PDFs with your license and logo",
+const connectPoints = [
+  {
+    title: "We don't replace what's working.",
+    text: "Field crews keep shooting. Office keeps reviewing. RoofClaim ties the evidence together.",
+  },
+  {
+    title: "Storm, GPS, and photos in one packet.",
+    text: "Date-of-loss checks and location stamps land next to the images carriers need.",
+  },
+  {
+    title: "We build only what's missing.",
+    text: "Test squares, branded PDFs, and a carrier-ready file — without another disconnected tool.",
+  },
 ]
 
 const pillars = [
@@ -163,138 +173,88 @@ export default function HomePage() {
       <SiteHeader />
 
       <main>
-        <section className="relative border-b px-4 py-16 sm:px-6 md:py-24">
+        <section className="relative overflow-x-clip bg-[radial-gradient(ellipse_at_70%_45%,#f4faf7_0%,#e8f3ed_48%,#dceee6_100%)]">
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_20%,color-mix(in_oklab,var(--primary)_16%,transparent),transparent_58%)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_50%,rgba(255,255,255,0.85),transparent_55%)]"
           />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--primary)_7%,transparent),transparent_72%)]"
-          />
-          <div className="relative mx-auto grid max-w-7xl items-center gap-12 md:grid-cols-2 lg:gap-8">
-            <div className="max-w-xl">
-              <p className="text-sm font-medium tracking-wide text-primary">
+
+          <div className="relative mx-auto grid max-w-7xl items-start gap-4 px-4 pt-16 pb-6 sm:px-6 sm:pt-[4.5rem] md:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] md:gap-2 md:pb-8 xl:gap-0">
+            <div className="relative z-20 max-w-lg md:max-w-none md:pr-1 md:pt-2 lg:pr-2">
+              <p className="text-[11px] font-semibold tracking-[0.2em] text-primary-dark/70 uppercase sm:text-xs">
                 Inspection evidence platform
               </p>
-              <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-5xl sm:leading-[1.12]">
+              <h1 className="mt-4 text-[2.35rem] font-bold tracking-tight text-balance text-primary-dark sm:text-5xl sm:leading-[1.05] lg:text-[3.25rem] lg:leading-[1.04]">
                 Stronger files
                 <br />
-                for roofing claims
+                <span className="font-serif text-[0.95em] font-normal italic text-primary">
+                  for roofing claims
+                </span>
               </h1>
-              <p className="mt-5 text-lg leading-7 text-muted-foreground">
-                Capture the roof, verify the storm,
-                <br className="hidden sm:inline" />{" "}
-                and send a branded report.
+              <p className="mt-5 max-w-md text-base leading-7 text-[#5a6b64] sm:mt-6 sm:text-lg sm:leading-8">
+                Capture the roof, verify the storm, and send a branded report
+                carriers can actually use.
               </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button size="lg" className="h-11 px-6" render={<Link href="/signup" />}>
+              <div className="mt-8 flex flex-col gap-3 sm:mt-9 sm:flex-row sm:items-center">
+                <Button
+                  size="lg"
+                  className="h-12 rounded-xl bg-primary-dark px-7 hover:bg-primary-dark/90"
+                  render={<Link href="/signup" />}
+                >
                   Start free trial
                   <ArrowRightIcon data-icon="inline-end" />
                 </Button>
-                <Button size="lg" variant="outline" className="h-11 px-6" render={<Link href="/login" />}>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-12 rounded-xl border-primary-dark/70 bg-white/40 px-7 text-primary-dark hover:bg-white/70"
+                  render={<Link href="/login" />}
+                >
                   Log in
                 </Button>
               </div>
-              <ul className="mt-10 flex flex-col gap-3 text-sm text-muted-foreground">
-                {["GPS on every photo", "Storm date check", "Branded PDF export"].map((item) => (
-                  <li key={item} className="flex items-center gap-2">
-                    <CheckCircle2Icon className="size-4 shrink-0 text-success" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
             </div>
 
-            <div className="flex justify-center md:justify-end">
-              <div className="hero-float relative h-[300px] w-[300px] shrink-0 sm:h-[360px] sm:w-[360px] lg:h-[420px] lg:w-[420px]">
-                <svg
-                  viewBox="0 0 420 420"
-                  className="hero-orbit pointer-events-none absolute inset-0 h-full w-full text-primary"
-                  aria-hidden
-                >
-                  <defs>
-                    <path
-                      id="hero-claim-path"
-                      d="M 210,210 m -188,0 a 188,188 0 1,1 376,0 a 188,188 0 1,1 -376,0"
-                    />
-                  </defs>
-                  <circle
-                    cx="210"
-                    cy="210"
-                    r="204"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeOpacity="0.55"
-                    strokeWidth="1.5"
-                  />
-                  <text
-                    fill="currentColor"
-                    fontSize="13"
-                    fontWeight="600"
-                    letterSpacing="2.4"
-                    style={{ fontFamily: "var(--font-sans)" }}
-                  >
-                    <textPath href="#hero-claim-path">
-                      Carrier-ready evidence for the insurance claim  ·  Carrier-ready evidence for the insurance claim  ·
-                    </textPath>
-                  </text>
-                  <circle
-                    cx="210"
-                    cy="210"
-                    r="172"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeOpacity="0.7"
-                    strokeWidth="1.5"
-                    strokeDasharray="6 14"
-                  />
-                  <circle cx="210" cy="38" r="5" fill="var(--primary)" />
-                </svg>
-                <div className="absolute inset-[36px] overflow-hidden rounded-full border bg-card shadow-sm sm:inset-[42px]">
-                  <img
-                    src="/images/hero-roof.jpg"
-                    alt="Residential roof ready for inspection"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              </div>
+            <div className="relative z-10 -mt-8 flex min-w-0 items-start justify-center sm:-mt-10 md:-mt-14 md:justify-end lg:-mr-6 lg:-mt-16 xl:-mr-10 xl:-mt-20">
+              <HeroVisual className="w-full" />
             </div>
           </div>
         </section>
 
-        <section className="relative overflow-hidden py-16 md:py-24">
-          <div className="absolute top-0 right-0 h-full w-1/2 bg-gradient-to-l from-primary/8 to-transparent" />
-          <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
-            <div className="max-w-xl">
-              <span className="inline-flex rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
-                Why RoofClaim
-              </span>
-              <h2 className="mt-5 text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
-                One workspace for the roof, the office, and the{" "}
-                <span className="text-primary">carrier file</span>
+        <section className="relative overflow-hidden py-20 md:py-28">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_40%,color-mix(in_oklab,var(--primary)_8%,transparent),transparent_55%)]"
+          />
+          <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2 lg:gap-16">
+            <ConnectHubVisual className="order-2 lg:order-1" />
+
+            <div className="order-1 max-w-xl lg:order-2 lg:justify-self-end">
+              <p className="text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+                You probably don&apos;t need more software
+              </p>
+              <h2 className="mt-4 text-3xl font-bold tracking-tight text-balance sm:text-4xl lg:text-[2.65rem] lg:leading-[1.15]">
+                We connect what already works and build only what&apos;s missing.
               </h2>
-              <ul className="mt-8 flex flex-col gap-4">
-                {whyPoints.map((point) => (
-                  <li key={point} className="flex items-start gap-3">
-                    <CheckCircle2Icon className="mt-0.5 size-6 shrink-0 text-primary" />
-                    <span>{point}</span>
+              <ul className="mt-10 flex flex-col gap-7">
+                {connectPoints.map((point) => (
+                  <li key={point.title} className="flex gap-3.5">
+                    <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                      <CheckCircle2Icon className="size-3.5" strokeWidth={2.5} />
+                    </span>
+                    <div>
+                      <p className="font-semibold text-foreground">{point.title}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                        {point.text}
+                      </p>
+                    </div>
                   </li>
                 ))}
               </ul>
-              <Button className="mt-8" render={<Link href="/#how-it-works" />}>
+              <Button className="mt-10 rounded-full" render={<Link href="/#how-it-works" />}>
                 See how it works
                 <ArrowRightIcon data-icon="inline-end" />
               </Button>
-            </div>
-            <div className="overflow-hidden rounded-3xl">
-              <Image
-                src="/images/section-storm.png"
-                alt="Storm-damaged residential roof"
-                width={1100}
-                height={820}
-                className="aspect-[4/3] w-full object-cover"
-              />
             </div>
           </div>
         </section>
