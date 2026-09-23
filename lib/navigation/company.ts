@@ -1,8 +1,14 @@
 import {
   LayoutDashboardIcon,
   ClipboardListIcon,
+  FileTextIcon,
+  BarChart3Icon,
   UsersIcon,
+  Building2Icon,
   CreditCardIcon,
+  PaletteIcon,
+  BookOpenIcon,
+  LanguagesIcon,
 } from "lucide-react"
 
 import { ROUTES } from "@/lib/constants/routes"
@@ -10,12 +16,9 @@ import type { NavGroup, NavItem } from "@/lib/navigation/types"
 import type { UserRole } from "@/types/role"
 
 /**
- * Company top-bar nav.
+ * Company top-bar nav (Wise Studio-style secondary row).
  * Groups with a single item whose title matches the group label render as a
  * direct tab (e.g. Dashboard). All other groups render as dropdowns.
- *
- * Visible items kept in sync with the trimmed company nav set:
- * Dashboard, Jobs, Staff, Subscription.
  */
 export const companyNavGroups: NavGroup[] = [
   {
@@ -34,12 +37,28 @@ export const companyNavGroups: NavGroup[] = [
     label: "Team",
     items: [
       { title: "Staff", href: ROUTES.company.staff, icon: UsersIcon },
+      { title: "Organization", href: ROUTES.company.organization, icon: Building2Icon },
     ],
   },
   {
     label: "Configurations",
     items: [
       { title: "Subscription", href: ROUTES.company.billing, icon: CreditCardIcon },
+      { title: "Branding", href: ROUTES.company.branding, icon: PaletteIcon },
+      { title: "Codes & standards", href: ROUTES.company.codes, icon: BookOpenIcon },
+    ],
+  },
+  {
+    label: "Reports & Analytics",
+    items: [
+      { title: "Reports", href: ROUTES.company.reports, icon: FileTextIcon },
+      { title: "Analytics", href: ROUTES.company.analytics, icon: BarChart3Icon },
+    ],
+  },
+  {
+    label: "Settings",
+    items: [
+      { title: "Report language", href: ROUTES.company.templates, icon: LanguagesIcon },
     ],
   },
 ]
@@ -51,6 +70,8 @@ export const companyNav: NavItem[] = companyNavGroups.flatMap((group) => group.i
 const OFFICE_STAFF_HREFS = new Set<string>([
   ROUTES.company.dashboard,
   ROUTES.company.jobs,
+  ROUTES.company.reports,
+  ROUTES.company.analytics,
 ])
 
 export function companyNavForUserRole(userRole?: UserRole | null): NavItem[] {

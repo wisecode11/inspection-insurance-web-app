@@ -46,6 +46,7 @@
   --color-primary-dark: var(--color-primary-dark);
   --color-primary-tint: var(--color-primary-tint);
   --color-primary-tint-strong: var(--color-primary-tint-strong);
+  --color-primary-light: var(--color-primary-light);
   --color-bg-canvas: var(--color-bg-canvas);
   --color-bg-outer: var(--color-bg-outer);
   --color-text-heading: var(--color-text-heading);
@@ -75,19 +76,21 @@
 :root {
   color-scheme: light;
 
-  /* ── RoofClaim teal theme (#133A42) ── */
-  --color-primary: #133a42;
-  --color-primary-dark: #0c282e;
-  --color-primary-tint: #e6eef0;
-  --color-primary-tint-strong: #c9d9dd;
-  --color-bg-canvas: #eef2f3;
-  --color-bg-outer: #e2ebed;
+  /* ── Enterprise ops green (Wise Studio reference) ── */
+  --color-primary: #0a4b37;
+  --color-primary-dark: #063728;
+  --color-primary-light: #0f5c43;
+  --color-primary-tint: #e8f5ef;
+  --color-primary-tint-strong: #c6e8d6;
+  --color-bg-canvas: #f6f8f7;
+  --color-bg-outer: #eef1ef;
   --color-surface: #ffffff;
-  --color-border: #e2e8ea;
-  --color-text-heading: #0f2a30;
-  --color-text-body: #4a5f65;
-  --color-text-muted: #7a9096;
-  --color-accent-cta: #1a4f5a;
+  --color-border: #e6e9e7;
+  --color-text-heading: #101828;
+  --color-text-body: #667085;
+  --color-text-muted: #667085;
+  --color-accent-cta: #0f8f5a;
+  --color-mint: #8ce0b0;
 
   /* ── shadcn semantic mapping ── */
   --background: var(--color-bg-canvas);
@@ -100,11 +103,11 @@
   --primary-foreground: #ffffff;
   --secondary: var(--color-primary-tint);
   --secondary-foreground: var(--color-primary-dark);
-  --muted: var(--color-primary-tint);
+  --muted: #f2f4f3;
   --muted-foreground: var(--color-text-muted);
-  --accent: var(--color-primary-tint-strong);
+  --accent: var(--color-primary-tint);
   --accent-foreground: var(--color-primary-dark);
-  --destructive: #dc2626;
+  --destructive: #f04438;
   --destructive-foreground: #ffffff;
   --border: var(--color-border);
   --input: var(--color-border);
@@ -113,33 +116,33 @@
   --surface: var(--color-surface);
   --brand: var(--color-primary);
   --brand-foreground: #ffffff;
-  --cta: var(--color-primary);
+  --cta: #0f8f5a;
   --cta-foreground: #ffffff;
   --terracotta: var(--color-primary);
   --terracotta-foreground: #ffffff;
-  --success: #16a34a;
+  --success: #12b76a;
   --success-foreground: #ffffff;
-  --warning: #d97706;
+  --warning: #f79009;
   --warning-foreground: #ffffff;
-  --danger: #dc2626;
+  --danger: #f04438;
   --danger-foreground: #ffffff;
 
-  --chart-1: #133a42;
-  --chart-2: #1a4f5a;
-  --chart-3: #2a6a78;
-  --chart-4: #4a8a96;
-  --chart-5: #9bc4cc;
+  --chart-1: #063728;
+  --chart-2: #8ce0b0;
+  --chart-3: #0a4b37;
+  --chart-4: #0f8f5a;
+  --chart-5: #c6e8d6;
 
-  /* Subtle rounding — not pills, just soft corners */
-  --radius: 0.5rem;
-  --radius-control: 0.375rem;
-  --button-radius: 0.375rem;
+  /* Premium SaaS rounding */
+  --radius: 1rem;
+  --radius-control: 0.75rem;
+  --button-radius: 0.75rem;
 
-  --sidebar: #133a42;
+  --sidebar: #063728;
   --sidebar-foreground: #ffffff;
   --sidebar-primary: #ffffff;
-  --sidebar-primary-foreground: #133a42;
-  --sidebar-accent: rgba(255, 255, 255, 0.12);
+  --sidebar-primary-foreground: #063728;
+  --sidebar-accent: rgba(255, 255, 255, 0.08);
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgba(255, 255, 255, 0.08);
   --sidebar-ring: rgba(255, 255, 255, 0.4);
