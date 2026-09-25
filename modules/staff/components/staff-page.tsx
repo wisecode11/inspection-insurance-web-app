@@ -342,6 +342,7 @@ export default function StaffPage() {
         rowKey={(row) => row.id}
         emptyTitle="No inspectors yet"
         emptyDescription="Create an inspector to get started."
+        emptyIcon3d="users"
       />
 
       <FormDrawer

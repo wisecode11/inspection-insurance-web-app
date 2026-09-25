@@ -102,6 +102,7 @@ export default function CompanyDashboardPage() {
           label="Total Jobs"
           value={formatNumber(overview.totalJobs)}
           icon={BriefcaseIcon}
+          icon3d="briefcase"
           trend={overview.totalJobs > 0 ? "↑ +14.2% vs last week" : undefined}
           delay={0.05}
         />
@@ -109,6 +110,7 @@ export default function CompanyDashboardPage() {
           label="Active Jobs"
           value={formatNumber(overview.activeJobs)}
           icon={ClipboardListIcon}
+          icon3d="clipboard"
           caption={
             overview.activeJobs > 0
               ? `${finishingSoon} finishing soon · ${running} running`
@@ -122,6 +124,7 @@ export default function CompanyDashboardPage() {
           label="Completed Jobs"
           value={formatNumber(overview.completedJobs)}
           icon={CheckCircle2Icon}
+          icon3d="check"
           badge={
             overview.completedJobs > 0 ? (
               <span className="inline-flex items-center rounded-full bg-[#E8F5EF] px-2.5 py-0.5 text-xs font-semibold text-[#027A48]">
@@ -136,6 +139,7 @@ export default function CompanyDashboardPage() {
           label="Pending Reviews"
           value={formatNumber(overview.pendingReviews)}
           icon={MessageSquareWarningIcon}
+          icon3d="alert"
           badge={
             urgentReviews > 0 ? (
               <span className="inline-flex items-center rounded-full bg-[#FEF3F2] px-2.5 py-0.5 text-xs font-semibold text-[#F04438]">
@@ -162,6 +166,7 @@ export default function CompanyDashboardPage() {
           label="Reports Submitted"
           value={formatNumber(overview.reportsSubmitted)}
           icon={FileTextIcon}
+          icon3d="file"
           trend={overview.reportsSubmitted > 0 ? "↗ +18% vs monthly target" : undefined}
           caption={
             overview.reportsSubmitted > 0 ? "Compliance 100%" : "No reports submitted yet"
@@ -172,6 +177,7 @@ export default function CompanyDashboardPage() {
           label="Active Inspectors"
           value={formatNumber(overview.activeInspectors)}
           icon={UsersIcon}
+          icon3d="users"
           caption={
             overview.totalInspectors > 0
               ? `${onlinePct}% Online`

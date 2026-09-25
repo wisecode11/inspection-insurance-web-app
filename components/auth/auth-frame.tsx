@@ -44,7 +44,7 @@ export function AuthFrame({
         </div>
       </div>
 
-      <div className="relative flex flex-col bg-background">
+      <div className="relative flex flex-col bg-white">
         <div className="flex items-center justify-between px-6 py-5 lg:justify-end">
           <span className="lg:hidden">
             <BrandMark href="/" />
@@ -52,7 +52,14 @@ export function AuthFrame({
           <ThemeToggle />
         </div>
         <div className="flex flex-1 items-center justify-center px-6 py-8">
-          <div className={cn("w-full", wide ? "max-w-4xl" : "max-w-[420px]")}>
+          <div
+            className={cn(
+              "w-full",
+              wide
+                ? "max-w-4xl rounded-2xl border border-border/70 bg-card p-6 shadow-[0_28px_60px_-28px_rgba(6,55,40,0.35)] sm:p-8"
+                : "beam-edge-card max-w-[420px] rounded-2xl border border-border/70 bg-card p-6 shadow-[0_28px_60px_-28px_rgba(6,55,40,0.35),0_2px_8px_rgba(16,24,40,0.05)] sm:p-8",
+            )}
+          >
             <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
             <p className="mt-1 text-sm text-muted-foreground">{description}</p>
             <div className="mt-8">{children}</div>

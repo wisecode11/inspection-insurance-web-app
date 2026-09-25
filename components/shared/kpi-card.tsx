@@ -1,6 +1,7 @@
 import { TrendingUpIcon, TrendingDownIcon, type LucideIcon } from "lucide-react"
 
 import { StatCard } from "@/components/shared/stat-card"
+import type { Icon3DKey } from "@/components/shared/icon-3d"
 import { cn } from "@/lib/utils"
 
 /** KpiCard — metric with optional delta trend (platform/analytics dashboards). */
@@ -8,6 +9,7 @@ export function KpiCard({
   label,
   value,
   icon,
+  icon3d,
   delta,
   deltaLabel,
   helper,
@@ -15,6 +17,7 @@ export function KpiCard({
   label: string
   value: string
   icon: LucideIcon
+  icon3d?: Icon3DKey
   delta?: number
   deltaLabel?: string
   helper?: string
@@ -23,7 +26,7 @@ export function KpiCard({
 
   return (
     <div className="flex flex-col gap-2">
-      <StatCard label={label} value={value} icon={icon} emptyHint={helper} />
+      <StatCard label={label} value={value} icon={icon} icon3d={icon3d} emptyHint={helper} />
       {delta !== undefined && (
         <div className="flex items-center gap-2 px-1">
           <span

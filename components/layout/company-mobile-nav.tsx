@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { MenuIcon } from "lucide-react"
 
 import { BrandMark } from "@/components/brand-mark"
+import { Icon3D, type Icon3DKey } from "@/components/shared/icon-3d"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -23,6 +24,25 @@ import { cn } from "@/lib/utils"
 
 function pathMatches(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/")
+}
+
+function NavIcon({
+  icon: Icon,
+  icon3d,
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  icon3d?: Icon3DKey
+}) {
+  if (icon3d) {
+    return (
+      <Icon3D
+        name={icon3d}
+        size={24}
+        className="shrink-0 drop-shadow-[0_4px_8px_rgba(16,24,40,0.12)]"
+      />
+    )
+  }
+  return <Icon className="size-4 shrink-0" />
 }
 
 /** Hamburger + sheet nav for company admin on small screens. */
@@ -83,7 +103,7 @@ export function CompanyMobileNav({
                         : "text-foreground hover:bg-card",
                     )}
                   >
-                    <item.icon className="size-4 shrink-0" />
+                    <NavIcon icon={item.icon} icon3d={item.icon3d} />
                     {group.label}
                   </Link>
                 )
@@ -108,7 +128,7 @@ export function CompanyMobileNav({
                             : "text-foreground hover:bg-card",
                         )}
                       >
-                        <item.icon className="size-4 shrink-0" />
+                        <NavIcon icon={item.icon} icon3d={item.icon3d} />
                         {item.title}
                       </Link>
                     )

@@ -90,6 +90,7 @@ export function DashboardActivityFeed({
           <div className="p-6">
             <EmptyState
               icon={ClipboardListIcon}
+              icon3d="clipboard"
               title="No activity yet"
               description="When your team updates jobs or submits reports, updates will appear here."
               action={

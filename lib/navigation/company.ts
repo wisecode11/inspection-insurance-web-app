@@ -24,41 +24,91 @@ export const companyNavGroups: NavGroup[] = [
   {
     label: "Dashboard",
     items: [
-      { title: "Dashboard", href: ROUTES.company.dashboard, icon: LayoutDashboardIcon },
+      {
+        title: "Dashboard",
+        href: ROUTES.company.dashboard,
+        icon: LayoutDashboardIcon,
+        icon3d: "dashboard",
+      },
     ],
   },
   {
     label: "Operations",
     items: [
-      { title: "Jobs", href: ROUTES.company.jobs, icon: ClipboardListIcon },
+      {
+        title: "Jobs",
+        href: ROUTES.company.jobs,
+        icon: ClipboardListIcon,
+        icon3d: "clipboard",
+      },
     ],
   },
   {
     label: "Team",
     items: [
-      { title: "Staff", href: ROUTES.company.staff, icon: UsersIcon },
-      { title: "Organization", href: ROUTES.company.organization, icon: Building2Icon },
+      {
+        title: "Staff",
+        href: ROUTES.company.staff,
+        icon: UsersIcon,
+        icon3d: "users",
+      },
+      {
+        title: "Organization",
+        href: ROUTES.company.organization,
+        icon: Building2Icon,
+        icon3d: "briefcase",
+      },
     ],
   },
   {
     label: "Configurations",
     items: [
-      { title: "Subscription", href: ROUTES.company.billing, icon: CreditCardIcon },
-      { title: "Branding", href: ROUTES.company.branding, icon: PaletteIcon },
-      { title: "Codes & standards", href: ROUTES.company.codes, icon: BookOpenIcon },
+      {
+        title: "Subscription",
+        href: ROUTES.company.billing,
+        icon: CreditCardIcon,
+        icon3d: "file",
+      },
+      {
+        title: "Branding",
+        href: ROUTES.company.branding,
+        icon: PaletteIcon,
+        icon3d: "palette",
+      },
+      {
+        title: "Codes & standards",
+        href: ROUTES.company.codes,
+        icon: BookOpenIcon,
+        icon3d: "clipboard",
+      },
     ],
   },
   {
     label: "Reports & Analytics",
     items: [
-      { title: "Reports", href: ROUTES.company.reports, icon: FileTextIcon },
-      { title: "Analytics", href: ROUTES.company.analytics, icon: BarChart3Icon },
+      {
+        title: "Reports",
+        href: ROUTES.company.reports,
+        icon: FileTextIcon,
+        icon3d: "file",
+      },
+      {
+        title: "Analytics",
+        href: ROUTES.company.analytics,
+        icon: BarChart3Icon,
+        icon3d: "dashboard",
+      },
     ],
   },
   {
     label: "Settings",
     items: [
-      { title: "Report language", href: ROUTES.company.templates, icon: LanguagesIcon },
+      {
+        title: "Report language",
+        href: ROUTES.company.templates,
+        icon: LanguagesIcon,
+        icon3d: "file",
+      },
     ],
   },
 ]

@@ -1,40 +1,79 @@
 "use client"
 
-import {
-  CameraIcon,
-  CloudSunIcon,
-  FileTextIcon,
-  MapPinIcon,
-  SquareCheckIcon,
-  UsersIcon,
-} from "lucide-react"
 import * as React from "react"
 
+import { Icon3D, type Icon3DKey } from "@/components/marketing/icon-3d"
 import { cn } from "@/lib/utils"
 
-const nodes = [
-  { id: "photos", label: "Field photos", icon: CameraIcon, x: 18, y: 12 },
-  { id: "gps", label: "GPS stamps", icon: MapPinIcon, x: 50, y: 4 },
-  { id: "storm", label: "Storm check", icon: CloudSunIcon, x: 82, y: 12 },
-  { id: "staff", label: "Office staff", icon: UsersIcon, x: 10, y: 52 },
-  { id: "squares", label: "Test squares", icon: SquareCheckIcon, x: 90, y: 52 },
-  { id: "pdf", label: "Carrier PDF", icon: FileTextIcon, x: 50, y: 88 },
-] as const
+const nodes: {
+  id: string
+  label: string
+  icon3d: Icon3DKey
+  x: number
+  y: number
+}[] = [
+  { id: "photos", label: "Field photos", icon3d: "camera", x: 18, y: 12 },
+  { id: "gps", label: "GPS stamps", icon3d: "zap", x: 50, y: 4 },
+  { id: "storm", label: "Storm check", icon3d: "weather", x: 82, y: 12 },
+  { id: "staff", label: "Office staff", icon3d: "users", x: 10, y: 52 },
+  { id: "squares", label: "Test squares", icon3d: "clipboard", x: 90, y: 52 },
+  { id: "pdf", label: "Carrier PDF", icon3d: "file", x: 50, y: 88 },
+]
 
 const HUB = { x: 50, y: 48 }
 
+const EMERGE_MS = 1000
+const STAGGER_MS = 110
+const EASE = "cubic-bezier(0.22, 1, 0.36, 1)"
+
 export function ConnectHubVisual({ className }: { className?: string }) {
+  const ref = React.useRef<HTMLDivElement>(null)
   const [active, setActive] = React.useState(0)
+  const [shown, setShown] = React.useState(false)
+  const [settled, setSettled] = React.useState(false)
 
   React.useEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setShown(true)
+      setSettled(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShown(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.35 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  React.useEffect(() => {
+    if (!shown || settled) return
+    const id = window.setTimeout(
+      () => setSettled(true),
+      EMERGE_MS + STAGGER_MS * nodes.length + 100,
+    )
+    return () => window.clearTimeout(id)
+  }, [shown, settled])
+
+  React.useEffect(() => {
+    if (!settled) return
     const timer = window.setInterval(() => {
       setActive((i) => (i + 1) % nodes.length)
     }, 2400)
     return () => window.clearInterval(timer)
-  }, [])
+  }, [settled])
 
   return (
-    <div className={cn("relative mx-auto w-full max-w-xl", className)}>
+    <div ref={ref} className={cn("relative mx-auto w-full max-w-xl", className)}>
       <div className="connect-hub relative aspect-[1.05/1] w-full sm:aspect-square">
         <svg
           className="pointer-events-none absolute inset-0 h-full w-full"
@@ -49,15 +88,38 @@ export function ConnectHubVisual({ className }: { className?: string }) {
               y1={HUB.y}
               x2={node.x}
               y2={node.y}
+              pathLength={1}
+              strokeDasharray={1}
+              strokeDashoffset={shown ? 0 : 1}
               className={cn(
-                "stroke-primary/25 transition-[stroke] duration-500",
-                i === active && "stroke-primary/55",
+                "stroke-primary/12 motion-reduce:transition-none",
+                settled && i === active && "stroke-primary/30",
               )}
-              strokeWidth="0.35"
-              strokeDasharray="1.2 1.1"
-              vectorEffect="non-scaling-stroke"
+              strokeWidth="0.3"
+              style={{
+                transition: `stroke-dashoffset ${EMERGE_MS}ms ${EASE} ${i * STAGGER_MS}ms, stroke 500ms`,
+              }}
             />
           ))}
+
+          {settled &&
+            nodes.map((node, i) => (
+              <line
+                key={`beam-${node.id}`}
+                x1={node.x}
+                y1={node.y}
+                x2={HUB.x}
+                y2={HUB.y}
+                pathLength={1}
+                strokeDasharray="0.12 1.88"
+                strokeDashoffset={0.12}
+                strokeLinecap="round"
+                stroke="#4ade9a"
+                strokeWidth="0.8"
+                className="connect-hub-beam"
+                style={{ animationDelay: `${i * 0.45}s` }}
+              />
+            ))}
         </svg>
 
         <div
@@ -75,40 +137,47 @@ export function ConnectHubVisual({ className }: { className?: string }) {
         </div>
 
         {nodes.map((node, i) => {
-          const Icon = node.icon
-          const isActive = i === active
+          const isActive = settled && i === active
+          const delay = `${i * STAGGER_MS}ms`
           return (
             <div
               key={node.id}
-              className="absolute z-20 -translate-x-1/2 -translate-y-1/2"
+              className="absolute -translate-x-1/2 -translate-y-1/2 motion-reduce:transition-none"
               style={{
-                left: `${node.x}%`,
-                top: `${node.y}%`,
-                zIndex: isActive ? 30 : 20,
+                left: `${shown ? node.x : HUB.x}%`,
+                top: `${shown ? node.y : HUB.y}%`,
+                zIndex: settled ? (isActive ? 30 : 20) : 5,
+                transition: `left ${EMERGE_MS}ms ${EASE} ${delay}, top ${EMERGE_MS}ms ${EASE} ${delay}`,
               }}
             >
               <div
-                className={cn(
-                  "connect-hub-float flex items-center gap-2 rounded-xl border bg-surface px-2.5 py-2 shadow-[0_10px_28px_-16px_rgba(27,67,50,0.4)] transition-[box-shadow,border-color,ring] duration-500 sm:px-3",
-                  isActive
-                    ? "border-primary/35 shadow-[0_14px_32px_-14px_rgba(19,58,66,0.45)] ring-2 ring-primary/15"
-                    : "border-border/70",
-                )}
-                style={{ animationDelay: `${i * 0.35}s` }}
+                className="motion-reduce:transition-none"
+                style={{
+                  opacity: shown ? 1 : 0,
+                  transform: shown ? "scale(1)" : "scale(0.4)",
+                  transition: `opacity 600ms ease-out ${delay}, transform ${EMERGE_MS}ms ${EASE} ${delay}`,
+                }}
               >
-                <span
+                <div
                   className={cn(
-                    "flex size-7 shrink-0 items-center justify-center rounded-lg transition-colors duration-500",
+                    "connect-hub-float flex items-center gap-2 rounded-xl border bg-surface px-2.5 py-1.5 shadow-[0_10px_28px_-16px_rgba(27,67,50,0.4)] transition-[box-shadow,border-color,ring] duration-500 sm:px-3 sm:py-2",
                     isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-primary-tint text-primary",
+                      ? "border-primary/35 shadow-[0_14px_32px_-14px_rgba(19,58,66,0.45)] ring-2 ring-primary/15"
+                      : "border-border/70",
                   )}
+                  style={{ animationDelay: `${i * 0.35}s` }}
                 >
-                  <Icon className="size-3.5" />
-                </span>
-                <span className="hidden text-xs font-semibold whitespace-nowrap text-foreground sm:inline">
-                  {node.label}
-                </span>
+                  <span className="flex size-8 shrink-0 items-center justify-center sm:size-9">
+                    <Icon3D
+                      name={node.icon3d}
+                      size={34}
+                      className="drop-shadow-[0_6px_10px_rgba(16,24,40,0.16)]"
+                    />
+                  </span>
+                  <span className="hidden text-xs font-semibold whitespace-nowrap text-foreground sm:inline">
+                    {node.label}
+                  </span>
+                </div>
               </div>
             </div>
           )

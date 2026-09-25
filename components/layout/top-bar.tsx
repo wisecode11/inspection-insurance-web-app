@@ -9,7 +9,6 @@ import {
   MoonIcon,
   PlusIcon,
   SearchIcon,
-  ShieldIcon,
   SunIcon,
   UserRoundIcon,
 } from "lucide-react"
@@ -20,6 +19,7 @@ import * as React from "react"
 import { CompanyMobileNav } from "@/components/layout/company-mobile-nav"
 import { NotificationBell } from "@/components/layout/notification-bell"
 import { TopNav } from "@/components/layout/top-nav"
+import { Icon3D } from "@/components/shared/icon-3d"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { SidebarTrigger } from "@/components/ui/sidebar"
@@ -78,8 +78,8 @@ export function TopBar({ role }: { role: Role }) {
             <div className="flex shrink-0 items-center gap-2">
               <CompanyMobileNav variant="onPrimary" />
               <Link href={ROUTES.company.dashboard} className="flex items-center gap-2.5">
-                <span className="flex size-9 items-center justify-center rounded-[10px] bg-[#0F5C43] ring-1 ring-white/10">
-                  <ShieldIcon className="size-4 text-white" />
+                <span className="flex size-9 items-center justify-center">
+                  <Icon3D name="shield" size={32} className="drop-shadow-none" />
                 </span>
                 <span className="hidden min-w-0 flex-col leading-tight sm:flex">
                   <span className="text-[15px] font-semibold tracking-tight text-white">

@@ -419,6 +419,138 @@
   color: var(--brand);
 }
 
+@property --beam-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes beam-edge-spin {
+  to {
+    --beam-angle: 360deg;
+  }
+}
+
+/* Animated light beam that travels around a rounded button's border. */
+.beam-edge {
+  position: relative;
+  isolation: isolate;
+}
+
+.beam-edge::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  padding: 2px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--beam-angle),
+    transparent 0%,
+    transparent 62%,
+    color-mix(in oklab, #4ade9a 0%, transparent) 66%,
+    #4ade9a 86%,
+    #d9fbe9 94%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  animation: beam-edge-spin 2.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beam-edge::before {
+    animation: none;
+  }
+}
+
+/* Beam that circles the inside edge of the phone screen. */
+.beam-edge-screen {
+  isolation: isolate;
+}
+
+.beam-edge-screen::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  padding: 6px;
+  border-radius: inherit;
+  pointer-events: none;
+  background: conic-gradient(
+    from var(--beam-angle),
+    transparent 0%,
+    transparent 55%,
+    rgba(18, 183, 106, 0.25) 66%,
+    #12b76a 84%,
+    #4ade9a 94%,
+    #d9fbe9 98%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+  filter: blur(3px);
+  animation: beam-edge-spin 3.2s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beam-edge-screen::before {
+    animation: none;
+  }
+}
+
+/* Phone feature cards: hidden until the phone is in view, then cascade in. */
+.feature-phone-item {
+  opacity: 0;
+}
+
+[data-shown="true"] > .feature-phone-item {
+  animation: feature-phone-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes feature-phone-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feature-phone-item {
+    opacity: 1;
+  }
+
+  [data-shown="true"] > .feature-phone-item {
+    animation: none;
+  }
+}
+
+@keyframes char-blur-in {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
 @keyframes hero-orbit {
   from {
     transform: rotate(0deg);
@@ -564,6 +696,42 @@
   100% {
     transform: scale(2.4);
     opacity: 0;
+  }
+}
+
+/* Roof journey: faint graph-paper backdrop behind the house illustration */
+.roof-journey-grid {
+  background-image:
+    linear-gradient(rgba(140, 224, 176, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(140, 224, 176, 0.12) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* A photo/scan sweep across the roof during the "Capture" beat */
+.roof-journey-scan {
+  position: absolute;
+  inset-inline: 0;
+  top: -8%;
+  height: 26%;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(140, 224, 176, 0.35),
+    transparent
+  );
+  animation: hero-scan-line 3.2s ease-in-out infinite;
+}
+
+.roof-journey-pin {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: hero-pin-pulse 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .roof-journey-scan,
+  .roof-journey-pin {
+    animation: none;
   }
 }
 
@@ -821,6 +989,39 @@
   }
 }
 
+/* Light beam travelling along a connector line (pathLength = 1). */
+.connect-hub-beam {
+  animation: connect-hub-beam 2.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  filter: drop-shadow(0 0 1.2px #4ade9a);
+}
+
+@keyframes connect-hub-beam {
+  0% {
+    stroke-dashoffset: 0.12;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -1;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .connect-hub-beam {
+    display: none;
+  }
+
+  .connect-hub * {
+    transition: none !important;
+  }
+}
+
 .font-serif {
   font-family: var(--font-serif);
 }
@@ -835,3 +1036,238 @@
   }
 }
 
+
+/* Login / auth card: a bolder beam with a glow that travels with it. */
+.beam-edge-card {
+  position: relative;
+  isolation: isolate;
+}
+
+.beam-edge-card::before,
+.beam-edge-card::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  z-index: -1;
+  border-radius: calc(1rem + 3px);
+  pointer-events: none;
+  animation: beam-edge-spin 7.5s linear infinite;
+}
+
+/* Two parallel beams: lead + trail 50% behind on the same ring */
+.beam-edge-card::before {
+  padding: 3px;
+  background: conic-gradient(
+    from var(--beam-angle),
+    transparent 0%,
+    transparent 41%,
+    rgba(18, 183, 106, 0.14) 44%,
+    rgba(18, 183, 106, 0.42) 46%,
+    rgba(15, 143, 90, 0.5) 47.5%,
+    rgba(74, 222, 154, 0.35) 49%,
+    transparent 50%,
+    transparent 91%,
+    rgba(18, 183, 106, 0.18) 94%,
+    rgba(18, 183, 106, 0.55) 96%,
+    rgba(15, 143, 90, 0.65) 97.5%,
+    rgba(74, 222, 154, 0.45) 99%,
+    transparent 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+}
+
+/* Glow follows both beams */
+.beam-edge-card::after {
+  box-shadow: 0 0 14px 2px rgba(18, 183, 106, 0.28);
+  -webkit-mask-image: conic-gradient(
+    from var(--beam-angle),
+    transparent 0%,
+    transparent 43%,
+    #000 47.5%,
+    transparent 50%,
+    transparent 93%,
+    #000 97.5%,
+    transparent 100%
+  );
+  mask-image: conic-gradient(
+    from var(--beam-angle),
+    transparent 0%,
+    transparent 43%,
+    #000 47.5%,
+    transparent 50%,
+    transparent 93%,
+    #000 97.5%,
+    transparent 100%
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .beam-edge-card::before,
+  .beam-edge-card::after {
+    animation: none;
+  }
+}
+
+/* User-guide progress: shared shiny beam fill (top connectors + card bar). */
+.guide-beam-track {
+  position: relative;
+  overflow: hidden;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+}
+
+.guide-beam-fill {
+  position: relative;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    rgba(15, 143, 90, 0.45) 0%,
+    #0f8f5a 22%,
+    #4ade9a 48%,
+    #12b76a 72%,
+    rgba(15, 143, 90, 0.45) 100%
+  );
+  background-size: 220% 100%;
+  box-shadow:
+    0 0 10px rgba(18, 183, 106, 0.55),
+    0 0 2px rgba(74, 222, 154, 0.9);
+  animation: guide-beam-shine 1.6s linear infinite;
+}
+
+.guide-beam-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 35%,
+    rgba(255, 255, 255, 0.75) 50%,
+    rgba(255, 255, 255, 0) 65%,
+    transparent 100%
+  );
+  background-size: 220% 100%;
+  animation: guide-beam-shine 1.6s linear infinite;
+  pointer-events: none;
+}
+
+.guide-beam-fill[data-paused="true"],
+.guide-beam-fill[data-paused="true"]::after {
+  animation-play-state: paused;
+}
+
+@keyframes guide-beam-shine {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guide-beam-fill,
+  .guide-beam-fill::after {
+    animation: none;
+  }
+}
+
+/*
+ * Roof-journey photo frame: muted pad + glowing L-corners
+ * (top-left half + bottom-right half only).
+ */
+.journey-border-beam {
+  position: relative;
+  padding: 0.7rem;
+  background: color-mix(in oklab, var(--muted) 88%, white);
+  isolation: isolate;
+}
+
+.journey-border-beam::before,
+.journey-border-beam::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  width: 42%;
+  height: 42%;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Top-left: glow along top + left edges */
+.journey-border-beam::before {
+  top: 0;
+  left: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(18, 183, 106, 0.95) 0%,
+      rgba(74, 222, 154, 0.75) 45%,
+      transparent 100%
+    )
+      top / 100% 2.5px no-repeat,
+    linear-gradient(
+      180deg,
+      rgba(18, 183, 106, 0.95) 0%,
+      rgba(74, 222, 154, 0.75) 45%,
+      transparent 100%
+    )
+      left / 2.5px 100% no-repeat;
+  filter: drop-shadow(0 0 6px rgba(18, 183, 106, 0.75))
+    drop-shadow(0 0 14px rgba(52, 211, 153, 0.45));
+  animation: journey-corner-pulse 2.8s ease-in-out infinite;
+}
+
+/* Bottom-right: glow along bottom + right edges */
+.journey-border-beam::after {
+  right: 0;
+  bottom: 0;
+  background:
+    linear-gradient(
+      270deg,
+      rgba(18, 183, 106, 0.95) 0%,
+      rgba(74, 222, 154, 0.75) 45%,
+      transparent 100%
+    )
+      bottom / 100% 2.5px no-repeat,
+    linear-gradient(
+      0deg,
+      rgba(18, 183, 106, 0.95) 0%,
+      rgba(74, 222, 154, 0.75) 45%,
+      transparent 100%
+    )
+      right / 2.5px 100% no-repeat;
+  filter: drop-shadow(0 0 6px rgba(18, 183, 106, 0.75))
+    drop-shadow(0 0 14px rgba(52, 211, 153, 0.45));
+  animation: journey-corner-pulse 2.8s ease-in-out infinite 1.4s;
+}
+
+@keyframes journey-corner-pulse {
+  0%,
+  100% {
+    opacity: 0.7;
+    filter: drop-shadow(0 0 4px rgba(18, 183, 106, 0.55))
+      drop-shadow(0 0 10px rgba(52, 211, 153, 0.3));
+  }
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 8px rgba(18, 183, 106, 0.9))
+      drop-shadow(0 0 18px rgba(52, 211, 153, 0.55));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-border-beam::before,
+  .journey-border-beam::after {
+    animation: none;
+    opacity: 0.9;
+  }
+}

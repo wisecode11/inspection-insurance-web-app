@@ -137,6 +137,7 @@ export default function CodesPage() {
         searchKeys={["state", "code", "title", "body"]}
         emptyTitle="No citations yet"
         emptyDescription="Add company-specific code citations, or rely on the platform library."
+        emptyIcon3d="clipboard"
       />
 
       <FormDrawer

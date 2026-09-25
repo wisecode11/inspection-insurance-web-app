@@ -327,6 +327,7 @@ export default function ReportsPage() {
         emptyDescription="Reports appear here only after an inspector submits their work from the field."
         onRowClick={(row) => setSelected(row)}
         emptyIcon={FileTextIcon}
+        emptyIcon3d="file"
         toolbar={
           <Select value={status} onValueChange={(value) => setStatus((value as StatusFilter) || "all")}>
             <SelectTrigger>

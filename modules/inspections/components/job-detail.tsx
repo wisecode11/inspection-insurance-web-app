@@ -2,12 +2,13 @@
 
 import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeftIcon, CameraIcon, FileTextIcon } from "lucide-react"
+import { ArrowLeftIcon, FileTextIcon } from "lucide-react"
 import { toast } from "@/lib/toast"
 
 import { PageHeader } from "@/components/shared/page-header"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { ErrorState, LoadingSkeleton } from "@/components/shared/resource-state"
+import { Icon3D } from "@/components/shared/icon-3d"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
@@ -92,8 +93,8 @@ export default function JobDetailPage() {
     return (
       <Empty className="border py-20">
         <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <CameraIcon />
+          <EmptyMedia variant="icon" className="size-14 rounded-xl bg-transparent shadow-none">
+            <Icon3D name="camera" size={48} className="drop-shadow-[0_8px_14px_rgba(16,24,40,0.14)]" />
           </EmptyMedia>
           <EmptyTitle>Job not found</EmptyTitle>
           <EmptyDescription>That job id is not in this company workspace.</EmptyDescription>

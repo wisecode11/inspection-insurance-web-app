@@ -4,7 +4,6 @@ import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
 import {
   ArrowLeftIcon,
-  CameraIcon,
   FileDownIcon,
   MapPinIcon,
   Share2Icon,
@@ -15,6 +14,7 @@ import { PageHeader } from "@/components/shared/page-header"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { StormBadge } from "@/components/shared/storm-badge"
 import { ErrorState, LoadingState } from "@/components/shared/resource-state"
+import { Icon3D } from "@/components/shared/icon-3d"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
@@ -58,8 +58,8 @@ export default function InspectionDetailPage() {
     return (
       <Empty className="border py-20">
         <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <CameraIcon />
+          <EmptyMedia variant="icon" className="size-14 rounded-xl bg-transparent shadow-none">
+            <Icon3D name="camera" size={48} className="drop-shadow-[0_8px_14px_rgba(16,24,40,0.14)]" />
           </EmptyMedia>
           <EmptyTitle>Report not found</EmptyTitle>
           <EmptyDescription>That inspection id is not in this company workspace.</EmptyDescription>
@@ -130,7 +130,7 @@ export default function InspectionDetailPage() {
                     index % 3 === 2 && "bg-primary-tint/40",
                   )}
                 >
-                  <CameraIcon className="size-8 text-muted-foreground/70" />
+                  <Icon3D name="camera" size={40} className="drop-shadow-none opacity-80" />
                   <span className="absolute top-2 left-2 rounded-md bg-background/90 px-1.5 py-0.5 text-[10px] font-medium">
                     {photo.slope}
                   </span>

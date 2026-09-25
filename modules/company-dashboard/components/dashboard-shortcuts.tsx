@@ -1,31 +1,31 @@
 import Link from "next/link"
-import {
-  ArrowRightIcon,
-  CreditCardIcon,
-  FileStackIcon,
-  ScrollTextIcon,
-} from "lucide-react"
+import { ArrowRightIcon } from "lucide-react"
 
+import { Icon3D, type Icon3DKey } from "@/components/shared/icon-3d"
 import { ROUTES } from "@/lib/constants/routes"
 import { cn } from "@/lib/utils"
 
-const shortcuts = [
+const shortcuts: {
+  title: string
+  href: string
+  icon3d: Icon3DKey
+}[] = [
   {
     title: "Create job",
     href: ROUTES.company.jobs,
-    icon: FileStackIcon,
+    icon3d: "clipboard",
   },
   {
     title: "Codes & standards",
     href: ROUTES.company.codes,
-    icon: ScrollTextIcon,
+    icon3d: "file",
   },
   {
     title: "Subscription",
     href: ROUTES.company.billing,
-    icon: CreditCardIcon,
+    icon3d: "shield",
   },
-] as const
+]
 
 /** Dark “Operational Kit” shortcut panel. */
 export function DashboardShortcuts({ className }: { className?: string }) {
@@ -49,8 +49,8 @@ export function DashboardShortcuts({ className }: { className?: string }) {
               href={item.href}
               className="group flex items-center gap-3 rounded-lg bg-white/8 px-3.5 py-3 ring-1 ring-white/10 transition-colors hover:bg-white/14"
             >
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-white/10">
-                <item.icon className="size-4" aria-hidden />
+              <span className="flex size-9 shrink-0 items-center justify-center">
+                <Icon3D name={item.icon3d} size={32} className="drop-shadow-none" />
               </span>
               <span className="flex-1 text-sm font-medium">{item.title}</span>
               <ArrowRightIcon className="size-4 text-white/45 transition-transform group-hover:translate-x-0.5 group-hover:text-white/80" />

@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { motion } from "framer-motion"
 
+import { Icon3D, type Icon3DKey } from "@/components/shared/icon-3d"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -45,6 +46,15 @@ const GROUP_ICONS: Record<string, LucideIcon> = {
   Settings: SettingsIcon,
 }
 
+const GROUP_ICONS_3D: Record<string, Icon3DKey> = {
+  Dashboard: "dashboard",
+  Operations: "briefcase",
+  Team: "users",
+  Configurations: "shield",
+  "Reports & Analytics": "file",
+  Settings: "file",
+}
+
 const itemBase =
   "relative inline-flex h-9 items-center gap-2 rounded-[10px] px-3 text-[13px] font-medium transition-colors"
 
@@ -60,11 +70,20 @@ export function TopNav({ badgeCount = 0 }: { badgeCount?: number }) {
         const hrefs = group.items.map((item) => item.href)
         const active = groupIsActive(pathname, hrefs)
         const Icon = GROUP_ICONS[group.label] ?? group.items[0]?.icon
+        const icon3d = GROUP_ICONS_3D[group.label] ?? group.items[0]?.icon3d
         const showBadge = group.label === "Operations" && badgeCount > 0
 
         const label = (
           <>
-            {Icon ? <Icon className="size-3.5 shrink-0 opacity-90" aria-hidden /> : null}
+            {icon3d ? (
+              <Icon3D
+                name={icon3d}
+                size={18}
+                className="shrink-0 drop-shadow-none opacity-95"
+              />
+            ) : Icon ? (
+              <Icon className="size-3.5 shrink-0 opacity-90" aria-hidden />
+            ) : null}
             <span>{group.label}</span>
             {showBadge ? (
               <span className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#12B76A] px-1 text-[10px] font-bold text-white">
@@ -137,7 +156,15 @@ export function TopNav({ badgeCount = 0 }: { badgeCount?: number }) {
                     )}
                     render={<Link href={item.href} />}
                   >
-                    <item.icon className="size-4 text-[#0A4B37]" />
+                    {item.icon3d ? (
+                      <Icon3D
+                        name={item.icon3d}
+                        size={22}
+                        className="shrink-0 drop-shadow-[0_4px_8px_rgba(16,24,40,0.12)]"
+                      />
+                    ) : (
+                      <item.icon className="size-4 text-[#0A4B37]" />
+                    )}
                     {item.title}
                   </DropdownMenuItem>
                 )

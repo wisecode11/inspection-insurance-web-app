@@ -511,6 +511,7 @@ export default function JobsPage() {
         searchKeys={["jobNumber", "title", "addressLine", "city", "inspector", "customerName"]}
         emptyTitle="No jobs yet"
         emptyDescription="Create a job with property, homeowner, and insurance details."
+        emptyIcon3d="camera"
         onRowClick={(row) => router.push(ROUTES.company.job(row.id))}
         toolbar={
           <Select

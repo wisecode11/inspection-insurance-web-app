@@ -2,8 +2,8 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ShieldIcon } from "lucide-react"
 
+import { Icon3D } from "@/components/shared/icon-3d"
 import { companyIconRailForUserRole } from "@/lib/navigation/company"
 import { getStoredUser } from "@/lib/auth/user-storage"
 import { ROUTES } from "@/lib/constants/routes"
@@ -33,9 +33,9 @@ export function CompanyIconRail() {
       <Link
         href={ROUTES.company.dashboard}
         aria-label="RoofClaim home"
-        className="mb-1 flex size-11 items-center justify-center rounded-full bg-white/15 text-white shadow-sm ring-1 ring-white/20 transition-colors hover:bg-white/25"
+        className="mb-1 flex size-11 items-center justify-center rounded-full transition-colors hover:bg-white/10"
       >
-        <ShieldIcon className="size-5" />
+        <Icon3D name="shield" size={32} className="drop-shadow-none" />
       </Link>
 
       <nav className="flex flex-1 flex-col items-center gap-2 overflow-y-auto px-2 py-1">
@@ -55,7 +55,15 @@ export function CompanyIconRail() {
                   : "text-white/75 hover:bg-white/15 hover:text-white",
               )}
             >
-              <item.icon className="size-[18px]" />
+              {item.icon3d ? (
+                <Icon3D
+                  name={item.icon3d}
+                  size={26}
+                  className={cn("drop-shadow-none", !active && "opacity-90")}
+                />
+              ) : (
+                <item.icon className="size-[18px]" />
+              )}
             </Link>
           )
         })}

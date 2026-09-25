@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react"
 
+import { Icon3D, type Icon3DKey } from "@/components/shared/icon-3d"
 import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
 
@@ -14,6 +15,7 @@ export function StatCard({
   label,
   value,
   icon: Icon,
+  icon3d,
   className,
   highlight,
   emptyHint,
@@ -22,6 +24,7 @@ export function StatCard({
   label: string
   value: string
   icon: LucideIcon
+  icon3d?: Icon3DKey
   className?: string
   highlight?: boolean
   emptyHint?: string
@@ -45,9 +48,15 @@ export function StatCard({
         />
         <div className="mb-4 flex items-center justify-between gap-3">
           <span className="text-xs font-medium text-primary-dark/70 sm:text-sm">{label}</span>
-          <span className={statIconChipClass}>
-            <Icon className="size-4" aria-hidden />
-          </span>
+          {icon3d ? (
+            <span className="flex size-10 shrink-0 items-center justify-center">
+              <Icon3D name={icon3d} size={36} className="drop-shadow-[0_6px_12px_rgba(16,24,40,0.14)]" />
+            </span>
+          ) : (
+            <span className={statIconChipClass}>
+              <Icon className="size-4" aria-hidden />
+            </span>
+          )}
         </div>
         <p
           className={cn(

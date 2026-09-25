@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
 
+import { Icon3D, type Icon3DKey } from "@/components/shared/icon-3d"
 import { cn } from "@/lib/utils"
 
 /** Decorative sparkline for metric cards. */
@@ -29,6 +30,7 @@ export function GlassMetricCard({
   label,
   value,
   icon: Icon,
+  icon3d,
   emptyHint,
   caption,
   trend,
@@ -39,6 +41,7 @@ export function GlassMetricCard({
   label: string
   value: string
   icon: LucideIcon
+  icon3d?: Icon3DKey
   emptyHint?: string
   caption?: string
   trend?: string
@@ -58,19 +61,28 @@ export function GlassMetricCard({
     >
       <div className="flex items-start justify-between gap-3">
         <span className="text-[13px] font-medium text-muted-foreground">{label}</span>
-        <span
-          className={cn(
-            "relative flex size-9 shrink-0 items-center justify-center rounded-lg",
-            accent === "warning"
-              ? "bg-red-50 text-red-600"
-              : "bg-primary-tint text-primary",
-          )}
-        >
-          <Icon className="size-4" aria-hidden />
-          {accent === "warning" ? (
-            <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-red-500 ring-2 ring-white" />
-          ) : null}
-        </span>
+        {icon3d ? (
+          <span className="relative flex size-9 shrink-0 items-center justify-center">
+            <Icon3D name={icon3d} size={32} className="drop-shadow-[0_4px_8px_rgba(16,24,40,0.12)]" />
+            {accent === "warning" ? (
+              <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-red-500 ring-2 ring-white" />
+            ) : null}
+          </span>
+        ) : (
+          <span
+            className={cn(
+              "relative flex size-9 shrink-0 items-center justify-center rounded-lg",
+              accent === "warning"
+                ? "bg-red-50 text-red-600"
+                : "bg-primary-tint text-primary",
+            )}
+          >
+            <Icon className="size-4" aria-hidden />
+            {accent === "warning" ? (
+              <span className="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-red-500 ring-2 ring-white" />
+            ) : null}
+          </span>
+        )}
       </div>
 
       <div className="flex items-end justify-between gap-3">

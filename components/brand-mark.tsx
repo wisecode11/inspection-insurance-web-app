@@ -1,6 +1,6 @@
 import Link from "next/link"
-import { ShieldIcon } from "lucide-react"
 
+import { Icon3D } from "@/components/shared/icon-3d"
 import { cn } from "@/lib/utils"
 
 export function BrandMark({
@@ -18,10 +18,6 @@ export function BrandMark({
 }) {
   const isSidebarDark = variant === "sidebar" || onDark
 
-  const iconClass = isSidebarDark
-    ? "bg-white/15 text-white"
-    : "bg-primary text-primary-foreground"
-
   const titleClass = isSidebarDark
     ? "text-lg font-bold tracking-tight text-white"
     : "text-sm font-semibold tracking-tight text-foreground"
@@ -32,13 +28,8 @@ export function BrandMark({
 
   const content = (
     <>
-      <span
-        className={cn(
-          "flex size-10 shrink-0 items-center justify-center rounded-md",
-          iconClass,
-        )}
-      >
-        <ShieldIcon className="size-5" />
+      <span className="flex size-10 shrink-0 items-center justify-center">
+        <Icon3D name="shield" size={36} className="drop-shadow-none" />
       </span>
       <span className="flex min-w-0 flex-col">
         <span className={titleClass}>RoofClaim</span>

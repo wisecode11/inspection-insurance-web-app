@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Icon3D, type Icon3DKey } from "@/components/shared/icon-3d"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 
 export type Column<T> = {
@@ -42,6 +43,7 @@ type DataTableProps<T> = {
   rowKey?: (row: T) => string
   toolbar?: React.ReactNode
   emptyIcon?: React.ComponentType<{ className?: string }>
+  emptyIcon3d?: Icon3DKey
   emptyTitle?: string
   emptyDescription?: string
 }
@@ -63,6 +65,7 @@ export function DataTable<T>({
   rowKey = defaultRowKey,
   toolbar,
   emptyIcon: EmptyIcon = SearchIcon,
+  emptyIcon3d,
   emptyTitle = "No results found",
   emptyDescription = "Try adjusting your search or filters.",
 }: DataTableProps<T>) {
@@ -182,9 +185,19 @@ export function DataTable<T>({
                 <TableCell colSpan={columns.length} className="p-0">
                   <Empty className="py-12">
                     <EmptyHeader>
-                      <EmptyMedia variant="icon">
-                        <EmptyIcon className="size-5" />
-                      </EmptyMedia>
+                      {emptyIcon3d ? (
+                        <EmptyMedia variant="icon" className="size-14 rounded-xl bg-transparent shadow-none">
+                          <Icon3D
+                            name={emptyIcon3d}
+                            size={48}
+                            className="drop-shadow-[0_8px_14px_rgba(16,24,40,0.14)]"
+                          />
+                        </EmptyMedia>
+                      ) : (
+                        <EmptyMedia variant="icon">
+                          <EmptyIcon className="size-5" />
+                        </EmptyMedia>
+                      )}
                       <EmptyTitle>{emptyTitle}</EmptyTitle>
                       <EmptyDescription>{emptyDescription}</EmptyDescription>
                     </EmptyHeader>

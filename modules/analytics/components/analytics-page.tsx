@@ -94,22 +94,30 @@ export default function AnalyticsPage() {
       <section className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Job analytics</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <KpiCard label="Total jobs" value={String(jobs.total)} icon={ClipboardListIcon} />
+          <KpiCard
+            label="Total jobs"
+            value={String(jobs.total)}
+            icon={ClipboardListIcon}
+            icon3d="clipboard"
+          />
           <KpiCard
             label="Avg completion time"
             value={jobs.avgCompletionLabel}
             icon={ClockIcon}
+            icon3d="zap"
             helper="Start → complete"
           />
           <KpiCard
             label="Completed (6 mo)"
             value={String(jobs.monthly.reduce((sum, row) => sum + row.completed, 0))}
             icon={CheckCircle2Icon}
+            icon3d="check"
           />
           <KpiCard
             label="Statuses tracked"
             value={String(jobs.byStatus.length)}
             icon={ClipboardListIcon}
+            icon3d="dashboard"
             helper="Distinct job statuses"
           />
         </div>
@@ -160,6 +168,7 @@ export default function AnalyticsPage() {
               pageSize={10}
               emptyTitle="No inspectors"
               emptyDescription="Add inspectors on the Staff page to see productivity ranking."
+              emptyIcon3d="users"
             />
           </CardContent>
         </Card>
@@ -172,16 +181,19 @@ export default function AnalyticsPage() {
             label="Reports approved"
             value={String(reports.approved)}
             icon={FileCheckIcon}
+            icon3d="check"
           />
           <KpiCard
             label="Reports rejected"
             value={String(reports.rejected)}
             icon={FileXIcon}
+            icon3d="alert"
           />
           <KpiCard
             label="Avg review time"
             value={reports.avgReviewLabel}
             icon={TimerIcon}
+            icon3d="zap"
             helper="Submitted → reviewed"
           />
         </div>

@@ -111,7 +111,7 @@ export function SiteHeader() {
                 </Button>
                 <Button
                   size="sm"
-                  className="hidden rounded-full px-5 sm:inline-flex"
+                  className="beam-edge hidden rounded-full px-5 sm:inline-flex"
                   onClick={signOut}
                 >
                   Sign out
@@ -127,7 +127,7 @@ export function SiteHeader() {
                 </Link>
                 <Button
                   size="sm"
-                  className="hidden rounded-full px-5 sm:inline-flex"
+                  className="beam-edge hidden rounded-full px-5 sm:inline-flex"
                   render={<Link href="/signup" />}
                 >
                   Start free trial

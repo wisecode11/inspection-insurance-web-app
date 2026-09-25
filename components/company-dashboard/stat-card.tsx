@@ -4,6 +4,7 @@ import type { LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
 import { motion } from "framer-motion"
 
+import { Icon3D, type Icon3DKey } from "@/components/shared/icon-3d"
 import { cn } from "@/lib/utils"
 
 function Sparkline({ className }: { className?: string }) {
@@ -23,6 +24,7 @@ export function StatCard({
   label,
   value,
   icon: Icon,
+  icon3d,
   trend,
   caption,
   badge,
@@ -34,6 +36,7 @@ export function StatCard({
   label: string
   value: string
   icon?: LucideIcon
+  icon3d?: Icon3DKey
   trend?: string
   caption?: string
   badge?: ReactNode
@@ -55,7 +58,11 @@ export function StatCard({
     >
       <div className="flex items-start justify-between gap-3">
         <span className="text-[13px] font-medium text-[#667085]">{label}</span>
-        {Icon ? (
+        {icon3d ? (
+          <span className="flex size-10 shrink-0 items-center justify-center">
+            <Icon3D name={icon3d} size={36} className="drop-shadow-[0_6px_12px_rgba(16,24,40,0.14)]" />
+          </span>
+        ) : Icon ? (
           <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#E8F5EF] text-[#0A4B37]">
             <Icon className="size-4" aria-hidden />
           </span>
