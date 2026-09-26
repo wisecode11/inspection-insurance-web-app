@@ -3,10 +3,10 @@
 import * as React from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Loader2Icon } from "lucide-react"
+import { AlertCircleIcon, Loader2Icon } from "lucide-react"
 
 import { AuthFrame } from "@/components/auth/auth-frame"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -56,7 +56,10 @@ export function LoginForm() {
             id="email"
             type="email"
             value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            onChange={(event) => {
+              setEmail(event.target.value)
+              if (error) setError("")
+            }}
             autoComplete="email"
             required
           />
@@ -66,12 +69,17 @@ export function LoginForm() {
           <PasswordField
             id="password"
             value={password}
-            onChange={setPassword}
+            onChange={(next) => {
+              setPassword(next)
+              if (error) setError("")
+            }}
             autoComplete="current-password"
           />
         </div>
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="border-destructive/30 bg-destructive/5 px-3 py-2.5">
+            <AlertCircleIcon />
+            <AlertTitle>Couldn&apos;t sign you in</AlertTitle>
             <AlertDescription>
               {error}
               {/no account found|create an account/i.test(error) ? (

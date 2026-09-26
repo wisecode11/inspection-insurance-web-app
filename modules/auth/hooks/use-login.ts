@@ -2,12 +2,31 @@
 
 import * as React from "react"
 
-import { getErrorMessage } from "@/lib/api/errors"
+import { ApiError, getErrorMessage } from "@/lib/api/errors"
 import { persistSession } from "@/lib/auth/session"
 import { pathAfterLogin } from "@/lib/auth/next-path"
 import { authService } from "@/modules/auth/services/auth.service"
 import type { LoginInput } from "@/modules/auth/types/auth.types"
 import type { Role } from "@/types/role"
+
+/** Turns a failed sign-in into a message a user can act on. */
+function loginErrorMessage(error: unknown) {
+  const status = error instanceof ApiError ? error.status : undefined
+  const message = getErrorMessage(error)
+
+  if (status === 401) return "Incorrect email or password. Please check your details and try again."
+  if (status === 403) {
+    return /not active/i.test(message)
+      ? "Your account is not active. Please contact your company admin or support."
+      : message
+  }
+  if (status === 429) return "Too many sign-in attempts. Please wait a moment and try again."
+  // The server rejects short passwords before checking them; to the user that's just a wrong password.
+  if (status === 400 && /password/i.test(message)) {
+    return "Incorrect email or password. Please check your details and try again."
+  }
+  return message
+}
 
 export function useLogin() {
   const [error, setError] = React.useState("")
@@ -21,7 +40,7 @@ export function useLogin() {
       await persistSession(payload)
       window.location.assign(pathAfterLogin(payload.user, role, payload.company))
     } catch (caught) {
-      setError(getErrorMessage(caught))
+      setError(loginErrorMessage(caught))
       setLoading(false)
     }
   }
@@ -38,6 +57,7 @@ export function useLogin() {
       await persistSession(payload)
       window.location.assign(pathAfterLogin(payload.user, role, payload.company))
     } catch (caught) {
+      // Google 401s mean a mismatched/invalid Google account, not a wrong password.
       setError(getErrorMessage(caught))
       setLoading(false)
     }

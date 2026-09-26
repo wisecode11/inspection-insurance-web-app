@@ -30,7 +30,7 @@ function AvatarGroup({
   const shown = Math.min(Math.max(count, 0), 3)
   if (shown === 0) return null
   const tones = [
-    "bg-[#063728] text-white",
+    "bg-gradient-to-br from-[#A5B4FC] to-[#C4B5FD] text-white",
     "bg-[#0A4B37] text-white",
     "bg-[#8CE0B0] text-[#063728]",
   ]
@@ -103,6 +103,7 @@ export default function CompanyDashboardPage() {
           value={formatNumber(overview.totalJobs)}
           icon={BriefcaseIcon}
           icon3d="briefcase"
+          tone="lime"
           trend={overview.totalJobs > 0 ? "↑ +14.2% vs last week" : undefined}
           delay={0.05}
         />
@@ -111,6 +112,7 @@ export default function CompanyDashboardPage() {
           value={formatNumber(overview.activeJobs)}
           icon={ClipboardListIcon}
           icon3d="clipboard"
+          tone="green"
           caption={
             overview.activeJobs > 0
               ? `${finishingSoon} finishing soon · ${running} running`
@@ -125,9 +127,10 @@ export default function CompanyDashboardPage() {
           value={formatNumber(overview.completedJobs)}
           icon={CheckCircle2Icon}
           icon3d="check"
+          tone="emerald"
           badge={
             overview.completedJobs > 0 ? (
-              <span className="inline-flex items-center rounded-full bg-[#E8F5EF] px-2.5 py-0.5 text-xs font-semibold text-[#027A48]">
+              <span className="inline-flex items-center rounded-full bg-[#D6F3E0] px-2.5 py-0.5 text-xs font-semibold text-[#1E7B45]">
                 {passRate}% Pass Rate
               </span>
             ) : undefined
@@ -140,9 +143,10 @@ export default function CompanyDashboardPage() {
           value={formatNumber(overview.pendingReviews)}
           icon={MessageSquareWarningIcon}
           icon3d="alert"
+          tone="orange"
           badge={
             urgentReviews > 0 ? (
-              <span className="inline-flex items-center rounded-full bg-[#FEF3F2] px-2.5 py-0.5 text-xs font-semibold text-[#F04438]">
+              <span className="inline-flex items-center rounded-full bg-[#FCD9D6] px-2.5 py-0.5 text-xs font-semibold text-[#B42318]">
                 {urgentReviews} urgent
               </span>
             ) : undefined
@@ -151,7 +155,7 @@ export default function CompanyDashboardPage() {
             overview.pendingReviews > 0 ? (
               <Link
                 href={ROUTES.company.reports}
-                className="text-xs font-semibold text-[#0A4B37] hover:underline"
+                className="text-xs font-semibold text-[#101828] hover:underline"
               >
                 Review →
               </Link>
@@ -167,6 +171,8 @@ export default function CompanyDashboardPage() {
           value={formatNumber(overview.reportsSubmitted)}
           icon={FileTextIcon}
           icon3d="file"
+          tone="teal"
+          trendStyle="text"
           trend={overview.reportsSubmitted > 0 ? "↗ +18% vs monthly target" : undefined}
           caption={
             overview.reportsSubmitted > 0 ? "Compliance 100%" : "No reports submitted yet"
@@ -178,6 +184,7 @@ export default function CompanyDashboardPage() {
           value={formatNumber(overview.activeInspectors)}
           icon={UsersIcon}
           icon3d="users"
+          tone="slate"
           caption={
             overview.totalInspectors > 0
               ? `${onlinePct}% Online`

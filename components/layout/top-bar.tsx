@@ -68,7 +68,7 @@ export function TopBar({ role }: { role: Role }) {
   }
 
   if (isCompany) {
-    const opsBadge = unreadCount > 0 ? unreadCount : 12
+    const opsBadge = unreadCount > 0 ? unreadCount : 0
 
     return (
       <header className="sticky top-0 z-40 shrink-0 bg-[#063728] text-white">
