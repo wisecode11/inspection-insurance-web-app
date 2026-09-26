@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { MenuIcon } from "lucide-react"
 import * as React from "react"
 
@@ -16,19 +17,21 @@ import {
 } from "@/components/ui/sheet"
 import { roleDestinations } from "@/lib/auth/destinations"
 import { destroySession, getSessionRole } from "@/lib/auth/session"
+import { ROUTES } from "@/lib/constants/routes"
 import { cn } from "@/lib/utils"
 
 const links = [
-  { href: "/#features", hash: "features", label: "Product" },
-  { href: "/#how-it-works", hash: "how-it-works", label: "How it works" },
-  { href: "/#pricing", hash: "pricing", label: "Pricing" },
-  { href: "/#portals", hash: "portals", label: "Portals" },
+  { href: ROUTES.marketing.features, label: "Product" },
+  { href: ROUTES.marketing.mobileApp, label: "Mobile app" },
+  { href: ROUTES.marketing.howItWorks, label: "How it works" },
+  { href: ROUTES.marketing.pricing, label: "Pricing" },
+  { href: ROUTES.marketing.faq, label: "FAQ" },
 ] as const
 
 export function SiteHeader() {
   const [open, setOpen] = React.useState(false)
   const [role, setRole] = React.useState<ReturnType<typeof getSessionRole>>(null)
-  const [activeHash, setActiveHash] = React.useState<string>("features")
+  const pathname = usePathname()
   const [scrolled, setScrolled] = React.useState(false)
 
   React.useEffect(() => {
@@ -36,19 +39,8 @@ export function SiteHeader() {
   }, [])
 
   React.useEffect(() => {
-    const sectionIds = links.map((l) => l.hash)
-
     function onScroll() {
       setScrolled(window.scrollY > 8)
-
-      let current = sectionIds[0]
-      for (const id of sectionIds) {
-        const el = document.getElementById(id)
-        if (!el) continue
-        const top = el.getBoundingClientRect().top
-        if (top <= 140) current = id
-      }
-      setActiveHash(current)
     }
 
     onScroll()
@@ -75,11 +67,11 @@ export function SiteHeader() {
           <BrandMark className="shrink-0 [&_span:first-child]:size-9 [&_span:first-child]:rounded-full [&_span:first-child_svg]:size-4 [&_.text-sm]:text-base [&_.text-sm]:font-bold" />
 
           <nav
-            className="hidden items-center rounded-full bg-muted/80 p-1 ring-1 ring-border/60 md:flex"
+            className="hidden items-center rounded-full bg-muted/80 p-1 ring-1 ring-border/60 lg:flex"
             aria-label="Primary"
           >
             {links.map((link) => {
-              const isActive = activeHash === link.hash
+              const isActive = pathname === link.href
               return (
                 <Link
                   key={link.href}
@@ -138,7 +130,7 @@ export function SiteHeader() {
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger
                 render={
-                  <Button variant="ghost" size="icon-sm" className="rounded-full md:hidden" />
+                  <Button variant="ghost" size="icon-sm" className="rounded-full lg:hidden" />
                 }
               >
                 <MenuIcon />
@@ -156,7 +148,7 @@ export function SiteHeader() {
                       onClick={() => setOpen(false)}
                       className={cn(
                         "rounded-full px-3 py-2 text-sm transition-colors",
-                        activeHash === link.hash
+                        pathname === link.href
                           ? "bg-primary-tint font-medium text-primary-dark"
                           : "hover:bg-muted",
                       )}
@@ -213,14 +205,17 @@ export function SiteFooter() {
         <div>
           <p className="text-xs font-medium tracking-wider text-white/50 uppercase">Product</p>
           <ul className="mt-3 flex flex-col gap-2 text-sm text-white/70">
-            <li><Link href="/#features" className="hover:text-white">Features</Link></li>
-            <li><Link href="/#how-it-works" className="hover:text-white">How it works</Link></li>
-            <li><Link href="/#pricing" className="hover:text-white">Pricing</Link></li>
+            <li><Link href={ROUTES.marketing.features} className="hover:text-white">Features</Link></li>
+            <li><Link href={ROUTES.marketing.mobileApp} className="hover:text-white">Mobile app</Link></li>
+            <li><Link href={ROUTES.marketing.howItWorks} className="hover:text-white">How it works</Link></li>
+            <li><Link href={ROUTES.marketing.pricing} className="hover:text-white">Pricing</Link></li>
+            <li><Link href={ROUTES.marketing.faq} className="hover:text-white">FAQ</Link></li>
           </ul>
         </div>
         <div>
           <p className="text-xs font-medium tracking-wider text-white/50 uppercase">Portals</p>
           <ul className="mt-3 flex flex-col gap-2 text-sm text-white/70">
+            <li><Link href={ROUTES.marketing.portals} className="hover:text-white">Overview</Link></li>
             <li><Link href="/login?role=company" className="hover:text-white">Company admin</Link></li>
             <li><Link href="/login?role=platform" className="hover:text-white">Platform admin</Link></li>
           </ul>

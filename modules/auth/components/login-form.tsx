@@ -38,20 +38,23 @@ export function LoginForm() {
   return (
     <AuthFrame
       title="Welcome back"
-      description="Sign in to your company workspace."
+      description="Sign in to your company workspace and pick up where the crew left off."
       role="company"
+      eyebrow="Secure company sign-in"
       footer={
-        <p className="mt-6 text-sm text-muted-foreground">
+        <p className="mt-7 text-center text-sm text-muted-foreground">
           New company admin?{" "}
-          <Link href="/signup" className="font-medium text-primary hover:text-primary-dark hover:underline">
+          <Link href="/signup" className="font-semibold text-primary hover:text-primary-dark hover:underline">
             Create an account
           </Link>
         </p>
       }
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="email">Email</Label>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="email" className="text-[13px] font-medium">
+            Work email
+          </Label>
           <Input
             id="email"
             type="email"
@@ -61,11 +64,17 @@ export function LoginForm() {
               if (error) setError("")
             }}
             autoComplete="email"
+            placeholder="you@company.com"
             required
+            className="h-11 rounded-xl border-border/80 bg-white px-3.5 text-[15px] shadow-sm transition-[box-shadow,border-color] focus-visible:border-primary/40 focus-visible:ring-primary/20"
           />
         </div>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="password">Password</Label>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="password" className="text-[13px] font-medium">
+              Password
+            </Label>
+          </div>
           <PasswordField
             id="password"
             value={password}
@@ -74,6 +83,8 @@ export function LoginForm() {
               if (error) setError("")
             }}
             autoComplete="current-password"
+            placeholder="Enter your password"
+            className="h-11 rounded-xl border-border/80 bg-white px-3.5 text-[15px] shadow-sm transition-[box-shadow,border-color] focus-visible:border-primary/40 focus-visible:ring-primary/20"
           />
         </div>
         {error && (
@@ -95,17 +106,17 @@ export function LoginForm() {
         )}
         <Button
           type="submit"
-          className="h-10 w-full"
+          className="mt-1 h-11 w-full rounded-xl text-[15px] font-semibold shadow-[0_12px_28px_-12px_rgba(10,75,55,0.65)]"
           disabled={loading}
         >
           {loading && <Loader2Icon data-icon="inline-start" className="animate-spin" />}
-          Sign in
+          Sign in to workspace
         </Button>
         {showGoogle ? (
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               <span className="h-px flex-1 bg-border" />
-              or
+              or continue with
               <span className="h-px flex-1 bg-border" />
             </div>
             <GoogleSignInButton

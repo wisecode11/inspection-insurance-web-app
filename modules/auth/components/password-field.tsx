@@ -4,6 +4,7 @@ import * as React from "react"
 import { EyeIcon, EyeOffIcon } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 
 export function PasswordField({
   id,
@@ -11,12 +12,14 @@ export function PasswordField({
   onChange,
   placeholder,
   autoComplete,
+  className,
 }: {
   id: string
   value: string
   onChange: (value: string) => void
   placeholder?: string
   autoComplete?: string
+  className?: string
 }) {
   const [visible, setVisible] = React.useState(false)
 
@@ -30,7 +33,7 @@ export function PasswordField({
         placeholder={placeholder}
         autoComplete={autoComplete}
         required
-        className="pr-9"
+        className={cn("pr-9", className)}
       />
       <button
         type="button"

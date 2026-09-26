@@ -2,6 +2,14 @@ export const ROUTES = {
   home: "/",
   login: "/login",
   signup: "/signup",
+  marketing: {
+    features: "/features",
+    mobileApp: "/mobile-app",
+    howItWorks: "/how-it-works",
+    pricing: "/pricing",
+    portals: "/portals",
+    faq: "/faq",
+  },
   superAdmin: {
     login: "/roofclaim/admin",
     users: "/roofclaim/admin/users",

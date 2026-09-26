@@ -56,18 +56,21 @@ export function SignupForm() {
       title="Create your company account"
       description="Then create your organization and choose a plan."
       role="company"
+      eyebrow="Start your company workspace"
       footer={
-        <p className="mt-6 text-sm text-muted-foreground">
+        <p className="mt-7 text-center text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/login" className="font-medium text-primary hover:text-primary-dark hover:underline">
+          <Link href="/login" className="font-semibold text-primary hover:text-primary-dark hover:underline">
             Sign in
           </Link>
         </p>
       }
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="fullName">Full name</Label>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="fullName" className="text-[13px] font-medium">
+            Full name
+          </Label>
           <Input
             id="fullName"
             value={fullName}
@@ -75,6 +78,7 @@ export function SignupForm() {
             autoComplete="name"
             placeholder="Jordan Blake"
             required
+            className="h-11 rounded-xl border-border/80 bg-white px-3.5 text-[15px] shadow-sm"
           />
         </div>
         <div className="flex flex-col gap-1.5">

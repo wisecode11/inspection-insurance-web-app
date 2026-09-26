@@ -1,38 +1,22 @@
 import Image from "next/image"
 import Link from "next/link"
-import type { LucideIcon } from "lucide-react"
-import {
-  ArrowRightIcon,
-  CameraIcon,
-  CheckCircle2Icon,
-  ClipboardListIcon,
-  CloudSunIcon,
-  FileTextIcon,
-  MapPinIcon,
-  PaletteIcon,
-  ShieldIcon,
-  SquareCheckIcon,
-  StarIcon,
-  UsersIcon,
-  ZapIcon,
-} from "lucide-react"
+import { ArrowRightIcon, CheckCircle2Icon, StarIcon } from "lucide-react"
 
 import { BackToTop } from "@/components/marketing/back-to-top"
 import { ConnectHubVisual } from "@/components/marketing/connect-hub-visual"
-import { FeaturePhone } from "@/components/marketing/feature-phone"
+import { DashboardShowcase } from "@/components/marketing/dashboard-showcase"
+import { FeaturesSection } from "@/components/marketing/features-section"
 import { HeroSparkles } from "@/components/marketing/hero-sparkles"
 import { HeroVisual } from "@/components/marketing/hero-visual"
-import { LaptopMockup } from "@/components/marketing/laptop-mockup"
+import { PortalsSection } from "@/components/marketing/portals-section"
+import { PricingSection } from "@/components/marketing/pricing-section"
 import { Reveal } from "@/components/marketing/reveal"
 import { RoofJourney } from "@/components/marketing/roof-journey"
 import { SiteFooter, SiteHeader } from "@/components/marketing/site-chrome"
 import { TypewriterText } from "@/components/marketing/typewriter-text"
 import { UserGuideSteps } from "@/components/marketing/user-guide-steps"
-import { PortalsSection } from "@/components/marketing/portals-section"
-import { Icon3D, type Icon3DKey } from "@/components/marketing/icon-3d"
-import { PricingExpandCards } from "@/components/marketing/pricing-expand-cards"
 import { Button } from "@/components/ui/button"
-import { plansMock as plans } from "@/modules/platform-billing/mocks/billing.mock"
+import { ROUTES } from "@/lib/constants/routes"
 import { cn } from "@/lib/utils"
 
 const heroPhrases = [
@@ -66,149 +50,11 @@ const connectPoints = [
   },
 ]
 
-const features = [
-  {
-    title: "Jobs & reports",
-    description: "Search inspections, open evidence, approve, and export.",
-    icon: ClipboardListIcon,
-    icon3d: "clipboard" as Icon3DKey,
-    iconBg: "bg-gradient-to-br from-primary to-primary/75",
-    tag: "Office",
-    gridClass: "lg:col-span-3 lg:row-span-2 lg:col-start-1 lg:row-start-1",
-    featured: true,
-  },
-  {
-    title: "Storm check",
-    description: "NOAA cross-check on the date of loss.",
-    icon: CloudSunIcon,
-    icon3d: "weather" as Icon3DKey,
-    iconBg: "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground",
-    tag: "Weather",
-    gridClass: "lg:col-start-4 lg:row-start-1",
-    compact: true,
-  },
-  {
-    title: "Test squares",
-    description: "Hail hits vs. the repair threshold.",
-    icon: SquareCheckIcon,
-    icon3d: "clipboard" as Icon3DKey,
-    iconBg: "bg-gradient-to-br from-success to-success/80",
-    tag: "Hail",
-    gridClass: "lg:col-start-5 lg:row-start-1",
-    compact: true,
-  },
-  {
-    title: "Photo evidence",
-    description: "GPS-stamped photos with slope context.",
-    icon: CameraIcon,
-    icon3d: "camera" as Icon3DKey,
-    iconBg: "bg-gradient-to-br from-primary to-primary/70",
-    tag: "Field",
-    gridClass: "lg:col-span-2 lg:col-start-4 lg:row-start-2",
-    compact: true,
-  },
-  {
-    title: "Damage tags",
-    description: "Hail, wind, and flashing by slope.",
-    icon: MapPinIcon,
-    icon3d: "zap" as Icon3DKey,
-    iconBg: "bg-gradient-to-br from-warning to-warning/80 text-warning-foreground",
-    tag: "Findings",
-    gridClass: "lg:col-start-1 lg:row-start-3",
-    compact: true,
-  },
-  {
-    title: "Staff",
-    description: "Invite inspectors. Disable access.",
-    icon: UsersIcon,
-    icon3d: "users" as Icon3DKey,
-    iconBg: "bg-gradient-to-br from-primary to-primary/90",
-    tag: "Team",
-    gridClass: "lg:col-start-2 lg:row-start-3",
-    compact: true,
-  },
-  {
-    title: "Branding",
-    description: "Logo and colors on the report header.",
-    icon: PaletteIcon,
-    icon3d: "palette" as Icon3DKey,
-    iconBg: "bg-gradient-to-br from-primary to-primary/85 text-primary-foreground",
-    tag: "Brand",
-    gridClass: "lg:col-start-3 lg:row-start-3",
-    compact: true,
-  },
-  {
-    title: "PDF export",
-    description: "Carrier-ready packet in one click.",
-    icon: FileTextIcon,
-    icon3d: "file" as Icon3DKey,
-    iconBg: "bg-gradient-to-br from-success to-success/85",
-    tag: "Share",
-    gridClass: "lg:col-start-4 lg:row-start-3",
-    compact: true,
-  },
-  {
-    title: "Platform",
-    description: "Tenants, billing, and support tools.",
-    icon: ShieldIcon,
-    icon3d: "platform" as Icon3DKey,
-    iconBg: "bg-gradient-to-br from-primary/90 to-primary",
-    tag: "SaaS",
-    gridClass: "lg:col-start-5 lg:row-start-3",
-    compact: true,
-  },
-] as const
-
-const phoneFeatures = features.slice(0, 5)
-const extraFeatures = features.slice(5)
-
-const featurePhrases = ["file the claim", "verify the storm", "send the report"]
-
 const stories = [
   { badge: "Fewer reshoots", badgeClass: "bg-success text-success-foreground", quote: "Adjusters stopped asking us to reshoot. GPS and timestamps are on every photo.", name: "Sam Rivera", role: "Summit Ridge Roofing", avatar: "SR" },
   { badge: "Storm flagged", badgeClass: "bg-warning text-warning-foreground", quote: "Mismatch flags keep a weak file from going out. That’s the whole product.", name: "Casey Nguyen", role: "Apex Storm Restoration", avatar: "CN" },
   { badge: "40+ inspectors", badgeClass: "bg-primary text-primary-foreground", quote: "Invites, status, and reports live in one workspace for the whole crew.", name: "Dana Cole", role: "Ironclad Exteriors", avatar: "DC" },
 ]
-
-function FeatureIcon({
-  icon: Icon,
-  icon3d,
-  className,
-  large,
-  compact,
-}: {
-  icon: LucideIcon
-  icon3d?: Icon3DKey
-  className?: string
-  large?: boolean
-  compact?: boolean
-}) {
-  if (icon3d) {
-    const px = large ? 56 : compact ? 36 : 48
-    return (
-      <span
-        className={cn(
-          "inline-flex shrink-0 items-center justify-center bg-transparent",
-          large ? "size-14" : compact ? "size-9" : "size-12",
-        )}
-      >
-        <Icon3D name={icon3d} size={px} className="drop-shadow-[0_8px_14px_rgba(16,24,40,0.14)]" />
-      </span>
-    )
-  }
-
-  return (
-    <div
-      className={cn(
-        "flex items-center justify-center rounded-xl text-white shadow-[0_10px_22px_-12px_rgba(6,55,40,0.55)]",
-        large ? "size-14 rounded-2xl" : compact ? "size-9" : "size-12",
-        className,
-      )}
-    >
-      <Icon className={large ? "size-7" : compact ? "size-4" : "size-6"} />
-    </div>
-  )
-}
 
 export default function HomePage() {
   return (
@@ -330,7 +176,7 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-              <Button className="mt-10 rounded-full" render={<Link href="/#how-it-works" />}>
+              <Button className="mt-10 rounded-full" render={<Link href={ROUTES.marketing.howItWorks} />}>
                 See how it works
                 <ArrowRightIcon data-icon="inline-end" />
               </Button>
@@ -338,96 +184,13 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="relative overflow-hidden py-16 md:py-24">
-          <div className="absolute top-0 right-0 h-full w-1/2 bg-gradient-to-l from-primary/10 to-transparent" />
-          <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
-            <Reveal className="max-w-xl">
-              <h2 className="text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
-                One dashboard for the entire{" "}
-                <span className="rounded-xl bg-primary px-3 py-0.5 text-white [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">
-                  claims operation
-                </span>
-              </h2>
-              <p className="mt-5 text-lg text-muted-foreground">
-                Company admins run jobs, staff, and branding. Platform admins run tenants and billing.
-              </p>
-              <Button className="mt-8" render={<Link href="/login?role=company" />}>
-                Open company portal
-                <ArrowRightIcon data-icon="inline-end" />
-              </Button>
-            </Reveal>
-            <Reveal delay={0.1}>
-              <LaptopMockup />
-            </Reveal>
-          </div>
-        </section>
+        <DashboardShowcase />
 
-        <section id="features" className="scroll-mt-20 bg-muted/30 py-20 md:py-28">
-          <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 min-[820px]:grid-cols-[1fr_auto] min-[820px]:gap-16">
-            <div className="min-w-0 justify-self-center min-[820px]:justify-self-start">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-medium text-primary">
-                <ZapIcon className="size-3.5" />
-                Company + platform toolkit
-              </div>
-              <h2 className="text-[clamp(2.2rem,4.6vw,2.9rem)] leading-[1.15] font-bold tracking-[-0.03em]">
-                Everything you need to
-                <span className="block min-h-[1.15em] whitespace-nowrap text-primary">
-                  <TypewriterText
-                    phrases={featurePhrases}
-                    colors={heroCursorColors}
-                  />
-                </span>
-              </h2>
-              <p className="mt-5 mb-9 max-w-[30rem] text-base leading-relaxed text-muted-foreground">
-                Photo evidence, storm checks, and carrier-ready reports for your
-                office and every inspector in the field.
-              </p>
-
-              <p className="text-[0.85rem] text-muted-foreground/80">Also included</p>
-              <ul className="mt-4 grid gap-x-8 gap-y-4 sm:grid-cols-2">
-                {extraFeatures.map((feature) => (
-                  <li key={feature.title} className="flex items-start gap-3">
-                    <FeatureIcon
-                      icon={feature.icon}
-                      icon3d={feature.icon3d}
-                      className={feature.iconBg}
-                      compact
-                    />
-                    <div>
-                      <p className="text-[0.85rem] leading-tight font-bold">{feature.title}</p>
-                      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-                        {feature.description}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <FeaturePhone
-              className="justify-self-center min-[820px]:justify-self-end"
-              items={phoneFeatures.map((feature) => ({
-                title: feature.title,
-                description: feature.description,
-                tag: feature.tag,
-                iconClassName: "bg-transparent shadow-none",
-                icon: <Icon3D name={feature.icon3d} size={26} className="drop-shadow-none" />,
-              }))}
-            />
-          </div>
-        </section>
+        <FeaturesSection />
 
         <UserGuideSteps />
 
-        <section id="pricing" className="scroll-mt-20 bg-muted/30 py-20 md:py-28">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
-            <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Simple, transparent pricing</h2>
-              <p className="mt-4 text-muted-foreground">Seat-based plans for roofing companies</p>
-            </div>
-            <PricingExpandCards plans={plans} />
-          </div>
-        </section>
+        <PricingSection />
 
         <section className="py-20 md:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
