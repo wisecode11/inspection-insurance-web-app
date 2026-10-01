@@ -29,12 +29,14 @@ const PARTICLE_COLORS: [number, number, number][] = [
   [244, 63, 94], // rose
   [234, 179, 8], // amber
   [99, 102, 241], // indigo
+  [180, 150, 70], // olive gold
+  [210, 175, 80], // soft gold
 ]
 
 /**
- * Hero glow + orange sparkles that already sit in an invisible lower
- * half-circle under the light bar, drifting slowly along that arc
- * (not falling from the top).
+ * Hero glow + sparkles. Particles drift across the center→phone arc
+ * (like the original spread), with a warm gold light bar matching the
+ * phone side glow.
  */
 export function HeroSparkles({ className }: { className?: string }) {
   const reduceMotion = useReducedMotion()
@@ -74,7 +76,6 @@ export function HeroSparkles({ className }: { className?: string }) {
     const makeParticle = (): Particle => ({
       // Lower half-circle: 0 → π (right → bottom → left)
       angle: Math.random() * Math.PI,
-      // Prefer mid ring; keep some near the arc edge
       radiusT: 0.28 + Math.random() * 0.72,
       speed: (Math.random() < 0.5 ? -1 : 1) * (0.00035 + Math.random() * 0.00055),
       wobble: 0.012 + Math.random() * 0.03,
@@ -96,7 +97,8 @@ export function HeroSparkles({ className }: { className?: string }) {
       const h = canvas.clientHeight
       ctx.clearRect(0, 0, w, h)
 
-      const cx = w * 0.5
+      // Centered arc so bubbles fill the gap between copy and phone
+      const cx = w * 0.52
       const cy = h * 0.08
       const maxR = Math.min(w * 0.34, h * 0.72)
 
@@ -107,7 +109,6 @@ export function HeroSparkles({ className }: { className?: string }) {
 
       for (const p of particles) {
         p.angle += p.speed
-        // Stay on the lower semicircle; wrap at edges
         if (p.angle < 0) p.angle += Math.PI
         if (p.angle > Math.PI) p.angle -= Math.PI
 
@@ -115,11 +116,9 @@ export function HeroSparkles({ className }: { className?: string }) {
         const radius =
           maxR * p.radiusT * (1 + Math.sin(p.phase) * p.wobble)
 
-        // Polar → cartesian; angle 0 at +x, π/2 at +y (down)
         const x = cx + Math.cos(p.angle) * radius
         const y = cy + Math.sin(p.angle) * radius
 
-        // Soft fade near the left/right tips of the half-circle
         const edge = Math.sin(p.angle)
         const a = p.alpha * (0.35 + 0.65 * edge)
         const [r, g, b] = p.color
@@ -160,6 +159,7 @@ export function HeroSparkles({ className }: { className?: string }) {
         className,
       )}
     >
+      {/* Top light bar — soft emerald green */}
       <div className="absolute top-[7%] left-1/2 h-px w-[min(72%,36rem)] -translate-x-1/2">
         <div className="absolute inset-x-0 top-1/2 h-[2px] -translate-y-1/2 rounded-full bg-[linear-gradient(90deg,transparent_0%,rgba(16,185,129,0.15)_18%,rgba(110,231,183,0.95)_48%,rgba(52,211,153,1)_50%,rgba(110,231,183,0.95)_52%,rgba(16,185,129,0.15)_82%,transparent_100%)]" />
         <div className="absolute top-1/2 left-1/2 h-8 w-[55%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(110,231,183,0.55)_0%,rgba(16,185,129,0.2)_40%,transparent_72%)] blur-md" />
@@ -171,7 +171,7 @@ export function HeroSparkles({ className }: { className?: string }) {
       {!reduceMotion ? (
         <canvas ref={canvasRef} className="absolute inset-0 size-full" />
       ) : (
-        <div className="absolute inset-x-[18%] top-[10%] h-[55%] rounded-[100%] bg-[radial-gradient(ellipse_at_50%_0%,rgba(234,88,12,0.12)_0%,transparent_60%)] opacity-70" />
+        <div className="absolute inset-x-[18%] top-[10%] h-[55%] rounded-[100%] bg-[radial-gradient(ellipse_at_50%_0%,rgba(16,185,129,0.12)_0%,transparent_60%)] opacity-70" />
       )}
     </div>
   )

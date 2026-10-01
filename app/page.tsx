@@ -63,13 +63,9 @@ export default function HomePage() {
 
       <main>
         <section className="relative overflow-x-clip bg-[radial-gradient(ellipse_at_70%_45%,#f4faf7_0%,#e8f3ed_48%,#dceee6_100%)]">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_50%,rgba(255,255,255,0.85),transparent_55%)]"
-          />
           <HeroSparkles />
 
-          <div className="relative z-20 mx-auto grid max-w-7xl items-center gap-4 px-4 pt-16 pb-6 sm:px-6 sm:pt-[4.5rem] md:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] md:gap-2 md:pb-8 xl:gap-0">
+          <div className="relative z-20 mx-auto grid max-w-7xl items-center gap-6 px-4 pt-16 pb-10 sm:px-6 sm:pt-[4.5rem] md:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] md:gap-3 md:pb-12 xl:gap-0">
             <div className="relative z-20 min-w-0 max-w-lg md:max-w-none md:pr-1 md:pt-2 lg:pr-2">
               <p className="text-[11px] font-semibold tracking-[0.2em] text-primary-dark/70 uppercase sm:text-xs">
                 Inspection evidence platform
@@ -138,8 +134,8 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="relative z-10 flex min-w-0 items-center justify-center md:justify-end">
-              <HeroVisual className="w-full max-w-[24rem] sm:max-w-[28rem] md:max-w-[27rem] lg:max-w-[30rem] xl:max-w-[34rem]" />
+            <div className="relative z-10 flex min-w-0 items-center justify-center md:justify-end md:pr-1 lg:pr-2 xl:pr-4">
+              <HeroVisual className="w-full max-w-[18rem] sm:max-w-[20rem] md:max-w-[22rem] lg:max-w-[24rem]" />
             </div>
           </div>
         </section>

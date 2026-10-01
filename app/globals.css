@@ -570,6 +570,18 @@
   }
 }
 
+@keyframes hero-phone-bubble {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: var(--bubble-opacity, 0.45);
+  }
+  50% {
+    transform: translate(var(--bubble-x, 4px), var(--bubble-y, -10px)) scale(1.08);
+    opacity: calc(var(--bubble-opacity, 0.45) * 1.35);
+  }
+}
+
 @keyframes hero-image-ken {
   from {
     transform: scale(1);

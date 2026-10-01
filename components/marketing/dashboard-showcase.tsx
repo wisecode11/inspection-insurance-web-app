@@ -1,7 +1,7 @@
+import Image from "next/image"
 import Link from "next/link"
 import { ArrowRightIcon } from "lucide-react"
 
-import { LaptopMockup } from "@/components/marketing/laptop-mockup"
 import { Reveal } from "@/components/marketing/reveal"
 import { Button } from "@/components/ui/button"
 
@@ -25,8 +25,26 @@ export function DashboardShowcase() {
           <ArrowRightIcon data-icon="inline-end" />
         </Button>
       </Reveal>
-      <Reveal delay={0.1}>
-        <LaptopMockup />
+      <Reveal delay={0.1} className="lg:justify-self-end">
+        <div className="relative ml-auto w-full max-w-[48rem] pb-6 lg:-mr-2 lg:translate-x-4 xl:translate-x-8">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute top-[6%] left-[6%] h-[80%] w-[88%] rounded-full bg-[radial-gradient(circle,color-mix(in_oklab,var(--primary)_26%,transparent),transparent_70%)] blur-3xl"
+          />
+          <Image
+            src="/laptop-view.png"
+            alt="RoofClaim admin overview dashboard on tablet and desktop"
+            width={1152}
+            height={864}
+            sizes="(max-width: 1024px) 92vw, 48rem"
+            className="relative z-10 ml-auto h-auto w-full select-none drop-shadow-[0_40px_70px_-34px_rgba(6,55,40,0.6)]"
+            priority={false}
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -bottom-0 left-1/2 h-5 w-[86%] -translate-x-1/2 rounded-[100%] bg-primary-dark/25 blur-xl"
+          />
+        </div>
       </Reveal>
     </div>
   </section>
