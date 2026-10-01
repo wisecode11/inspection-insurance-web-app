@@ -21,7 +21,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { CardGrid, ViewToggle, useListView } from "@/components/shared/grid-card"
 import { PasswordField } from "@/modules/auth/components/password-field"
+import { StaffCard } from "@/modules/staff/components/staff-card"
 import { staffService } from "@/modules/staff/services/staff.service"
 import { useStaff } from "@/modules/staff/hooks/use-staff"
 import type { InspectorHistoryItem, StaffMember } from "@/modules/staff/types/staff.types"
@@ -139,6 +141,7 @@ export default function StaffPage() {
   const [phone, setPhone] = React.useState("")
   const [password, setPassword] = React.useState("")
   const openedInspectorId = React.useRef<string | null>(null)
+  const [view, changeView] = useListView("staff:view")
 
   function resetForm() {
     setName("")
@@ -340,6 +343,37 @@ export default function StaffPage() {
         columns={columns}
         data={inspectors}
         rowKey={(row) => row.id}
+        searchPlaceholder="Search name, email, or status…"
+        searchKeys={["name", "email", "status"]}
+        pageSize={view === "grid" ? 12 : 8}
+        toolbar={<ViewToggle view={view} onChange={changeView} />}
+        renderGrid={
+          view === "grid"
+            ? (members) => (
+                <CardGrid>
+                  {members.map((member) => (
+                    <StaffCard
+                      key={member.id}
+                      member={member}
+                      statusVariant={statusVariant(member.status)}
+                      onOpen={isAdmin ? () => void openHistory(member) : undefined}
+                      actions={
+                        isAdmin ? (
+                          <StaffRowActions
+                            member={member}
+                            onEdit={openEdit}
+                            onHistory={openHistory}
+                            onResetPassword={resetPassword}
+                            onSetStatus={setStatus}
+                          />
+                        ) : undefined
+                      }
+                    />
+                  ))}
+                </CardGrid>
+              )
+            : undefined
+        }
         emptyTitle="No inspectors yet"
         emptyDescription="Create an inspector to get started."
         emptyIcon3d="users"
@@ -375,8 +409,8 @@ export default function StaffPage() {
             <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Password</Label>
-            <PasswordField value={password} onChange={setPassword} autoComplete="new-password" />
+            <Label htmlFor="staff-create-password">Password</Label>
+            <PasswordField id="staff-create-password" value={password} onChange={setPassword} autoComplete="new-password" />
           </div>
         </div>
       </FormDrawer>
@@ -410,8 +444,8 @@ export default function StaffPage() {
             <Input value={phone} onChange={(e) => setPhone(e.target.value)} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>New password (optional)</Label>
-            <PasswordField value={password} onChange={setPassword} autoComplete="new-password" />
+            <Label htmlFor="staff-edit-password">New password (optional)</Label>
+            <PasswordField id="staff-edit-password" value={password} onChange={setPassword} autoComplete="new-password" />
           </div>
         </div>
       </FormDrawer>

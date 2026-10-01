@@ -46,6 +46,8 @@ type DataTableProps<T> = {
   emptyIcon3d?: Icon3DKey
   emptyTitle?: string
   emptyDescription?: string
+  /** Render the current page as a custom layout (e.g. card grid) instead of table rows. */
+  renderGrid?: (rows: T[]) => React.ReactNode
 }
 
 function defaultRowKey<T>(row: T) {
@@ -68,6 +70,7 @@ export function DataTable<T>({
   emptyIcon3d,
   emptyTitle = "No results found",
   emptyDescription = "Try adjusting your search or filters.",
+  renderGrid,
 }: DataTableProps<T>) {
   const [query, setQuery] = React.useState("")
   const [sortKey, setSortKey] = React.useState<string | null>(null)
@@ -106,6 +109,28 @@ export function DataTable<T>({
   const currentPage = Math.min(page, pageCount - 1)
   const paged = sorted.slice(currentPage * pageSize, currentPage * pageSize + pageSize)
 
+  const emptyContent = (
+    <Empty className="py-12">
+      <EmptyHeader>
+        {emptyIcon3d ? (
+          <EmptyMedia variant="icon" className="size-14 rounded-xl bg-transparent shadow-none">
+            <Icon3D
+              name={emptyIcon3d}
+              size={48}
+              className="drop-shadow-[0_8px_14px_rgba(16,24,40,0.14)]"
+            />
+          </EmptyMedia>
+        ) : (
+          <EmptyMedia variant="icon">
+            <EmptyIcon className="size-5" />
+          </EmptyMedia>
+        )}
+        <EmptyTitle>{emptyTitle}</EmptyTitle>
+        <EmptyDescription>{emptyDescription}</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  )
+
   function toggleSort(key: string) {
     if (sortKey === key) {
       setSortDir((d) => (d === "asc" ? "desc" : "asc"))
@@ -141,6 +166,15 @@ export function DataTable<T>({
         </div>
       )}
 
+      {renderGrid ? (
+        paged.length === 0 ? (
+          <div className="rounded-[var(--radius)] bg-card shadow-[0_8px_28px_-16px_rgba(19,58,66,0.16)] ring-1 ring-primary/10">
+            {emptyContent}
+          </div>
+        ) : (
+          renderGrid(paged)
+        )
+      ) : (
       <div className="overflow-hidden rounded-[var(--radius)] bg-card shadow-[0_8px_28px_-16px_rgba(19,58,66,0.16)] ring-1 ring-primary/10">
         <Table>
           <TableHeader>
@@ -183,25 +217,7 @@ export function DataTable<T>({
             {paged.length === 0 ? (
               <TableRow className="hover:bg-transparent">
                 <TableCell colSpan={columns.length} className="p-0">
-                  <Empty className="py-12">
-                    <EmptyHeader>
-                      {emptyIcon3d ? (
-                        <EmptyMedia variant="icon" className="size-14 rounded-xl bg-transparent shadow-none">
-                          <Icon3D
-                            name={emptyIcon3d}
-                            size={48}
-                            className="drop-shadow-[0_8px_14px_rgba(16,24,40,0.14)]"
-                          />
-                        </EmptyMedia>
-                      ) : (
-                        <EmptyMedia variant="icon">
-                          <EmptyIcon className="size-5" />
-                        </EmptyMedia>
-                      )}
-                      <EmptyTitle>{emptyTitle}</EmptyTitle>
-                      <EmptyDescription>{emptyDescription}</EmptyDescription>
-                    </EmptyHeader>
-                  </Empty>
+                  {emptyContent}
                 </TableCell>
               </TableRow>
             ) : (
@@ -241,6 +257,7 @@ export function DataTable<T>({
           </TableBody>
         </Table>
       </div>
+      )}
 
       {sorted.length > pageSize && (
         <div className="flex items-center justify-between gap-4">

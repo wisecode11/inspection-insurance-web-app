@@ -43,6 +43,7 @@ export function BackToTop({ threshold = 420 }: { threshold?: number }) {
           className={cn(
             "fixed right-5 bottom-5 z-50 flex size-12 items-center justify-center rounded-full",
             "bg-primary text-primary-foreground shadow-[0_14px_32px_-12px_rgba(6,55,40,0.65)]",
+            "border border-white",
             "ring-1 ring-primary/20 transition-colors hover:bg-primary-dark",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2",
             "sm:right-7 sm:bottom-7",

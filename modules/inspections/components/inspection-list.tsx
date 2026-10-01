@@ -40,6 +40,8 @@ import {
 } from "@/components/ui/select"
 import { ROUTES } from "@/lib/constants/routes"
 import { getErrorMessage } from "@/lib/api/errors"
+import { CardGrid, ViewToggle, useListView } from "@/components/shared/grid-card"
+import { JobCard } from "@/modules/inspections/components/job-card"
 import { useJobs } from "@/modules/inspections/hooks/use-jobs"
 import { jobService } from "@/modules/inspections/services/job.service"
 import {
@@ -127,6 +129,7 @@ export default function JobsPage() {
   )
 
   const [status, setStatus] = React.useState<StatusFilter>("all")
+  const [view, changeView] = useListView("jobs:view")
   const [open, setOpen] = React.useState(false)
   const [bulkOpen, setBulkOpen] = React.useState(false)
   const [reassignOpen, setReassignOpen] = React.useState(false)
@@ -359,6 +362,49 @@ export default function JobsPage() {
   if (isLoading) return <LoadingSkeleton />
   if (error) return <ErrorState message={error} />
 
+  function renderActions(row: JobRow) {
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button variant="ghost" size="icon-sm" aria-label="Job actions">
+              <MoreHorizontalIcon />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Job actions</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => router.push(ROUTES.company.job(row.id))}>
+              View job
+            </DropdownMenuItem>
+            {canShowCancelJob(row) ? (
+              <DropdownMenuItem onClick={() => requestCancelJob(row)}>
+                Cancel job
+              </DropdownMenuItem>
+            ) : null}
+            {!row.assignedTo && canReassignJob(row.status) ? (
+              <DropdownMenuItem onClick={() => openReassign(row)}>
+                Reassign job
+              </DropdownMenuItem>
+            ) : null}
+            <DropdownMenuItem
+              onClick={() =>
+                router.push(`${ROUTES.company.reports}?jobId=${encodeURIComponent(row.id)}`)
+              }
+            >
+              Open reports
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={() => requestDeleteJob(row)}>
+              Delete job
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )
+  }
+
   const columns: Column<JobRow>[] = [
     {
       key: "select",
@@ -432,48 +478,7 @@ export default function JobsPage() {
     {
       key: "actions",
       header: "",
-      cell: (row) => (
-        <div onClick={stopRowClick}>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button variant="ghost" size="icon-sm" aria-label="Job actions">
-                  <MoreHorizontalIcon />
-                </Button>
-              }
-            />
-            <DropdownMenuContent align="end">
-              <DropdownMenuGroup>
-                <DropdownMenuLabel>Job actions</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => router.push(ROUTES.company.job(row.id))}>
-                  View job
-                </DropdownMenuItem>
-                {canShowCancelJob(row) ? (
-                  <DropdownMenuItem onClick={() => requestCancelJob(row)}>
-                    Cancel job
-                  </DropdownMenuItem>
-                ) : null}
-                {!row.assignedTo && canReassignJob(row.status) ? (
-                  <DropdownMenuItem onClick={() => openReassign(row)}>
-                    Reassign job
-                  </DropdownMenuItem>
-                ) : null}
-                <DropdownMenuItem
-                  onClick={() =>
-                    router.push(`${ROUTES.company.reports}?jobId=${encodeURIComponent(row.id)}`)
-                  }
-                >
-                  Open reports
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive" onClick={() => requestDeleteJob(row)}>
-                  Delete job
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      ),
+      cell: (row) => <div onClick={stopRowClick}>{renderActions(row)}</div>,
     },
   ]
 
@@ -513,7 +518,28 @@ export default function JobsPage() {
         emptyDescription="Create a job with property, homeowner, and insurance details."
         emptyIcon3d="camera"
         onRowClick={(row) => router.push(ROUTES.company.job(row.id))}
+        pageSize={view === "grid" ? 12 : 8}
+        renderGrid={
+          view === "grid"
+            ? (pageRows) => (
+                <CardGrid>
+                  {pageRows.map((row) => (
+                    <JobCard
+                      key={row.id}
+                      row={row}
+                      selected={selectedIds.includes(row.id)}
+                      onToggleSelect={() => toggleSelected(row.id)}
+                      onOpen={() => router.push(ROUTES.company.job(row.id))}
+                      actions={renderActions(row)}
+                    />
+                  ))}
+                </CardGrid>
+              )
+            : undefined
+        }
         toolbar={
+          <>
+          <ViewToggle view={view} onChange={changeView} />
           <Select
             value={status}
             onValueChange={(value) => setStatus((value as StatusFilter) || "all")}
@@ -530,6 +556,7 @@ export default function JobsPage() {
               ))}
             </SelectContent>
           </Select>
+          </>
         }
       />
 

@@ -24,6 +24,8 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { FormDrawer } from "@/components/shared/form-drawer"
+import { CardGrid, ViewToggle, useListView } from "@/components/shared/grid-card"
+import { ReportCard } from "@/modules/reports/components/report-card"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -99,6 +101,7 @@ export default function ReportsPage() {
   const [notes, setNotes] = React.useState("")
   const [busy, setBusy] = React.useState(false)
   const openedJobId = React.useRef<string | null>(null)
+  const [view, changeView] = useListView("reports:view")
 
   async function reload() {
     const rows = await companyReportService.list(status === "all" ? undefined : status)
@@ -178,6 +181,51 @@ export default function ReportsPage() {
   const canReview = selected
     ? ["submitted", "under_review"].includes(selected.status)
     : false
+
+  function renderActions(row: CompanyReport) {
+    const jobId = resolveJobId(row)
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={`Actions for ${row.title || "report"}`}
+            >
+              <MoreHorizontalIcon />
+            </Button>
+          }
+        />
+        <DropdownMenuContent align="end">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Report actions</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => setSelected(row)}>
+              Review report
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled={!row.pdfUrl} onClick={() => openPdf(row)}>
+              Download PDF
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem disabled={!jobId} onClick={() => openJob(row)}>
+              Open job
+            </DropdownMenuItem>
+            {row.inspectorId && OBJECT_ID_RE.test(row.inspectorId) ? (
+              <DropdownMenuItem
+                onClick={() =>
+                  router.push(
+                    `${ROUTES.company.staff}?inspectorId=${encodeURIComponent(row.inspectorId!)}`,
+                  )
+                }
+              >
+                View inspector
+              </DropdownMenuItem>
+            ) : null}
+          </DropdownMenuGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )
+  }
 
   const columns: Column<CompanyReport>[] = [
     {
@@ -260,52 +308,7 @@ export default function ReportsPage() {
       key: "actions",
       header: "",
       className: "w-[1%] whitespace-nowrap",
-      cell: (row) => {
-        const jobId = resolveJobId(row)
-        return (
-          <div onClick={stopRowNav}>
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={`Actions for ${row.title || "report"}`}
-                  >
-                    <MoreHorizontalIcon />
-                  </Button>
-                }
-              />
-              <DropdownMenuContent align="end">
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel>Report actions</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => setSelected(row)}>
-                    Review report
-                  </DropdownMenuItem>
-                  <DropdownMenuItem disabled={!row.pdfUrl} onClick={() => openPdf(row)}>
-                    Download PDF
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem disabled={!jobId} onClick={() => openJob(row)}>
-                    Open job
-                  </DropdownMenuItem>
-                  {row.inspectorId && OBJECT_ID_RE.test(row.inspectorId) ? (
-                    <DropdownMenuItem
-                      onClick={() =>
-                        router.push(
-                          `${ROUTES.company.staff}?inspectorId=${encodeURIComponent(row.inspectorId!)}`,
-                        )
-                      }
-                    >
-                      View inspector
-                    </DropdownMenuItem>
-                  ) : null}
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )
-      },
+      cell: (row) => <div onClick={stopRowNav}>{renderActions(row)}</div>,
     },
   ]
 
@@ -328,7 +331,26 @@ export default function ReportsPage() {
         onRowClick={(row) => setSelected(row)}
         emptyIcon={FileTextIcon}
         emptyIcon3d="file"
+        pageSize={view === "grid" ? 12 : 8}
+        renderGrid={
+          view === "grid"
+            ? (pageRows) => (
+                <CardGrid>
+                  {pageRows.map((row) => (
+                    <ReportCard
+                      key={row.id}
+                      report={row}
+                      onOpen={() => setSelected(row)}
+                      actions={renderActions(row)}
+                    />
+                  ))}
+                </CardGrid>
+              )
+            : undefined
+        }
         toolbar={
+          <>
+          <ViewToggle view={view} onChange={changeView} />
           <Select value={status} onValueChange={(value) => setStatus((value as StatusFilter) || "all")}>
             <SelectTrigger>
               <SelectValue />
@@ -342,6 +364,7 @@ export default function ReportsPage() {
               ))}
             </SelectContent>
           </Select>
+          </>
         }
       />
 
