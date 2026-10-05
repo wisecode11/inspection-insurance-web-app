@@ -13,7 +13,7 @@ export function DashboardShowcase() {
       <Reveal className="max-w-xl">
         <h2 className="text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
           One dashboard for the entire{" "}
-          <span className="rounded-xl bg-primary px-3 py-0.5 text-white [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">
+          <span className="rounded bg-primary px-3 py-0.5 text-white [-webkit-box-decoration-break:clone] [box-decoration-break:clone]">
             claims operation
           </span>
         </h2>
