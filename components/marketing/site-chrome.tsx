@@ -2,7 +2,17 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { MenuIcon } from "lucide-react"
+import {
+  ArrowRightIcon,
+  BoxIcon,
+  CircleHelpIcon,
+  CreditCardIcon,
+  MenuIcon,
+  SmartphoneIcon,
+  WorkflowIcon,
+  type LucideIcon,
+} from "lucide-react"
+import { motion, useReducedMotion, useScroll, useSpring } from "framer-motion"
 import * as React from "react"
 
 import { BrandMark } from "@/components/brand-mark"
@@ -20,29 +30,38 @@ import { destroySession, getSessionRole } from "@/lib/auth/session"
 import { ROUTES } from "@/lib/constants/routes"
 import { cn } from "@/lib/utils"
 
-const links = [
-  { href: ROUTES.marketing.features, label: "Product" },
-  { href: ROUTES.marketing.mobileApp, label: "Mobile app" },
-  { href: ROUTES.marketing.howItWorks, label: "How it works" },
-  { href: ROUTES.marketing.pricing, label: "Pricing" },
-  { href: ROUTES.marketing.faq, label: "FAQ" },
-] as const
+const links: { href: string; label: string; icon: LucideIcon; hint: string }[] = [
+  { href: ROUTES.marketing.features, label: "Product", icon: BoxIcon, hint: "Evidence, storm checks, reports" },
+  { href: ROUTES.marketing.mobileApp, label: "Mobile app", icon: SmartphoneIcon, hint: "The Inspector app for the field" },
+  { href: ROUTES.marketing.howItWorks, label: "How it works", icon: WorkflowIcon, hint: "From signup to carrier-ready file" },
+  { href: ROUTES.marketing.pricing, label: "Pricing", icon: CreditCardIcon, hint: "Seat-based plans" },
+  { href: ROUTES.marketing.faq, label: "FAQ", icon: CircleHelpIcon, hint: "Answers to common questions" },
+]
 
+const EASE = [0.22, 1, 0.36, 1] as const
+
+/**
+ * Marketing header. At the top of the page it is a full-width transparent bar;
+ * once the page scrolls it condenses into a floating glass pill with a reading
+ * progress hairline. The outer height never changes (4.25rem), so sticky
+ * sections that offset by the header stay aligned.
+ */
 export function SiteHeader() {
   const [open, setOpen] = React.useState(false)
   const [role, setRole] = React.useState<ReturnType<typeof getSessionRole>>(null)
-  const pathname = usePathname()
   const [scrolled, setScrolled] = React.useState(false)
+  const [hovered, setHovered] = React.useState<string | null>(null)
+  const pathname = usePathname()
+  const reduceMotion = useReducedMotion()
+  const { scrollYProgress } = useScroll()
+  const progress = useSpring(scrollYProgress, { stiffness: 200, damping: 30, restDelta: 0.001 })
 
   React.useEffect(() => {
     setRole(getSessionRole())
   }, [])
 
   React.useEffect(() => {
-    function onScroll() {
-      setScrolled(window.scrollY > 8)
-    }
-
+    const onScroll = () => setScrolled(window.scrollY > 24)
     onScroll()
     window.addEventListener("scroll", onScroll, { passive: true })
     return () => window.removeEventListener("scroll", onScroll)
@@ -55,20 +74,26 @@ export function SiteHeader() {
 
   return (
     <>
-      <header
-        className={cn(
-          "fixed inset-x-0 top-0 z-50 transition-[background-color,box-shadow,backdrop-filter] duration-300",
-          scrolled
-            ? "border-b border-border/60 bg-background/85 shadow-[0_8px_30px_-18px_rgba(26,46,40,0.28)] backdrop-blur-xl supports-backdrop-filter:bg-background/75"
-            : "bg-transparent",
-        )}
+      <motion.header
+        className="fixed inset-x-0 top-0 z-50 flex h-16 items-center px-3 sm:h-[4.25rem] sm:px-4"
+        initial={reduceMotion ? false : { y: -24, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: EASE }}
       >
-        <div className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between gap-4 px-4 sm:h-[4.25rem] sm:px-6">
+        <div
+          className={cn(
+            "relative mx-auto flex w-full items-center justify-between gap-4 border transition-[max-width,height,padding,border-radius,background-color,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            scrolled
+              ? "h-[3.75rem] max-w-[77rem] rounded-full border-border/60 bg-background/75 pr-2.5 pl-5 shadow-[0_18px_50px_-24px_rgba(6,55,40,0.45),inset_0_1px_0_rgba(255,255,255,0.6)] backdrop-blur-xl sm:pl-6 dark:shadow-[0_18px_50px_-24px_rgba(0,0,0,0.7)]"
+              : "h-full max-w-[80rem] rounded-none border-transparent bg-transparent px-1 sm:px-2",
+          )}
+        >
           <BrandMark className="shrink-0 [&_span:first-child]:size-9 [&_span:first-child]:rounded-full [&_span:first-child_svg]:size-4 [&_.text-sm]:text-base [&_.text-sm]:font-bold" />
 
           <nav
-            className="hidden items-center rounded-full bg-muted/80 p-1 ring-1 ring-border/60 lg:flex"
+            className="hidden items-center lg:flex"
             aria-label="Primary"
+            onMouseLeave={() => setHovered(null)}
           >
             {links.map((link) => {
               const isActive = pathname === link.href
@@ -76,14 +101,27 @@ export function SiteHeader() {
                 <Link
                   key={link.href}
                   href={link.href}
+                  onMouseEnter={() => setHovered(link.href)}
+                  onFocus={() => setHovered(link.href)}
                   className={cn(
-                    "rounded-full px-3.5 py-1.5 text-sm transition-all duration-200",
-                    isActive
-                      ? "bg-surface font-medium text-foreground shadow-sm ring-1 ring-border/50"
-                      : "text-muted-foreground hover:text-foreground",
+                    "relative rounded-full px-4 py-2 text-sm transition-colors duration-200",
+                    isActive ? "font-semibold text-foreground" : "text-muted-foreground hover:text-foreground",
                   )}
                 >
+                  {hovered === link.href && (
+                    <motion.span
+                      layoutId="nav-hover"
+                      className="absolute inset-0 -z-10 rounded-full bg-primary/[0.07] ring-1 ring-primary/10"
+                      transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                    />
+                  )}
                   {link.label}
+                  {isActive && (
+                    <motion.span
+                      layoutId="nav-active"
+                      className="absolute -bottom-0.5 left-1/2 size-1 -translate-x-1/2 rounded-full bg-[#12b76a] shadow-[0_0_8px_rgba(18,183,106,0.8)]"
+                    />
+                  )}
                 </Link>
               )
             })}
@@ -101,11 +139,7 @@ export function SiteHeader() {
                 >
                   Dashboard
                 </Button>
-                <Button
-                  size="sm"
-                  className="beam-edge hidden rounded-full px-5 sm:inline-flex"
-                  onClick={signOut}
-                >
+                <Button size="sm" className="beam-edge hidden rounded-full px-5 sm:inline-flex" onClick={signOut}>
                   Sign out
                 </Button>
               </>
@@ -113,80 +147,109 @@ export function SiteHeader() {
               <>
                 <Link
                   href="/login"
-                  className="hidden px-2 text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline"
+                  className="hidden rounded-full px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-primary/[0.06] hover:text-foreground sm:inline"
                 >
                   Log in
                 </Link>
                 <Button
                   size="sm"
-                  className="beam-edge hidden rounded-full px-5 sm:inline-flex"
+                  className="beam-edge group hidden h-9 rounded-full pr-4 pl-5 sm:inline-flex"
                   render={<Link href="/signup" />}
                 >
                   Start free trial
+                  <ArrowRightIcon
+                    data-icon="inline-end"
+                    className="transition-transform duration-300 group-hover:translate-x-0.5"
+                  />
                 </Button>
               </>
             )}
 
             <Sheet open={open} onOpenChange={setOpen}>
               <SheetTrigger
-                render={
-                  <Button variant="ghost" size="icon-sm" className="rounded-full lg:hidden" />
-                }
+                render={<Button variant="ghost" size="icon-sm" className="rounded-full ring-1 ring-border/60 lg:hidden" />}
               >
                 <MenuIcon />
                 <span className="sr-only">Open menu</span>
               </SheetTrigger>
-              <SheetContent side="right" className="w-72">
-                <SheetHeader>
-                  <SheetTitle>RoofClaim</SheetTitle>
+              <SheetContent side="right" className="w-[19rem] gap-0 p-0">
+                <SheetHeader className="border-b px-5 py-4">
+                  <SheetTitle className="text-base">Menu</SheetTitle>
                 </SheetHeader>
-                <nav className="flex flex-col gap-1 px-4">
-                  {links.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      onClick={() => setOpen(false)}
-                      className={cn(
-                        "rounded-full px-3 py-2 text-sm transition-colors",
-                        pathname === link.href
-                          ? "bg-primary-tint font-medium text-primary-dark"
-                          : "hover:bg-muted",
-                      )}
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
+                <nav className="flex flex-1 flex-col gap-1 p-3">
+                  {links.map((link, i) => {
+                    const isActive = pathname === link.href
+                    return (
+                      <motion.div
+                        key={link.href}
+                        initial={reduceMotion ? false : { opacity: 0, x: 16 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.4, ease: EASE, delay: 0.05 + i * 0.05 }}
+                      >
+                        <Link
+                          href={link.href}
+                          onClick={() => setOpen(false)}
+                          className={cn(
+                            "group flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors",
+                            isActive ? "bg-primary/[0.08]" : "hover:bg-muted",
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              "flex size-9 shrink-0 items-center justify-center rounded-xl transition-colors",
+                              isActive
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-primary/10 text-primary group-hover:bg-primary/15",
+                            )}
+                          >
+                            <link.icon className="size-4" />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-sm font-semibold text-foreground">{link.label}</span>
+                            <span className="block truncate text-xs text-muted-foreground">{link.hint}</span>
+                          </span>
+                        </Link>
+                      </motion.div>
+                    )
+                  })}
+                </nav>
+                <div className="flex flex-col gap-2 border-t p-4">
                   {role ? (
                     <>
-                      <Button
-                        className="mt-4 rounded-full"
-                        render={<Link href={roleDestinations[role]} />}
-                      >
+                      <Button className="h-11 rounded-full" render={<Link href={roleDestinations[role]} />}>
                         Dashboard
                       </Button>
-                      <Button variant="outline" className="rounded-full" onClick={signOut}>
+                      <Button variant="outline" className="h-11 rounded-full" onClick={signOut}>
                         Sign out
                       </Button>
                     </>
                   ) : (
                     <>
-                      <Button className="mt-4 rounded-full" render={<Link href="/login" />}>
-                        Log in
-                      </Button>
-                      <Button
-                        className="rounded-full"
-                        render={<Link href="/signup" />}
-                      >
+                      <Button className="group h-11 rounded-full bg-primary-dark" render={<Link href="/signup" />}>
                         Start free trial
+                        <ArrowRightIcon data-icon="inline-end" className="transition-transform group-hover:translate-x-0.5" />
+                      </Button>
+                      <Button variant="outline" className="h-11 rounded-full" render={<Link href="/login" />}>
+                        Log in
                       </Button>
                     </>
                   )}
-                </nav>
+                </div>
               </SheetContent>
             </Sheet>
           </div>
+
+          {/* Reading progress hairline along the bottom of the pill */}
+          <motion.span
+            aria-hidden
+            className={cn(
+              "pointer-events-none absolute right-6 -bottom-px left-6 h-[2px] origin-left rounded-full bg-gradient-to-r from-primary via-[#12b76a] to-[#6ae8b0] transition-opacity duration-500",
+              scrolled ? "opacity-100" : "opacity-0",
+            )}
+            style={{ scaleX: progress }}
+          />
         </div>
-      </header>
+      </motion.header>
       <div className="h-16 shrink-0 sm:h-[4.25rem]" aria-hidden />
     </>
   )

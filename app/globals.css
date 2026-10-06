@@ -3,6 +3,8 @@
 @import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
+/* Scroll-pinned scenes: wide, tall enough, and motion allowed. */
+@custom-variant pin (@media (min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference));
 
 @theme inline {
   --color-sidebar-ring: var(--sidebar-ring);
@@ -1281,5 +1283,362 @@
   .journey-border-beam::after {
     animation: none;
     opacity: 0.9;
+  }
+}
+
+/* Homepage entrance: staggered rise for hero copy (set --rise-delay inline). */
+.landing-rise {
+  animation: landing-fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) var(--rise-delay, 0s) both;
+}
+
+/* Slow shimmer sweeping across a gradient headline word. */
+.text-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    var(--primary) 0%,
+    #12b76a 35%,
+    #6ae8b0 50%,
+    #12b76a 65%,
+    var(--primary) 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: text-shimmer 6s ease-in-out infinite;
+}
+
+@keyframes text-shimmer {
+  0%,
+  100% {
+    background-position: 100% 0;
+  }
+  50% {
+    background-position: 0% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-rise,
+  .text-shimmer {
+    animation: none;
+  }
+}
+
+/* Infinite capability strip under the hero. Content is duplicated once. */
+.marquee-track {
+  animation: marquee 38s linear infinite;
+}
+
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none;
+  }
+}
+
+/* Homepage hero stage: phone float, breathing ground shadow, slow dashed ring. */
+.hero-phone-float {
+  animation: hero-phone-float 7s ease-in-out infinite;
+}
+
+.hero-shadow-breathe {
+  animation: hero-shadow-breathe 7s ease-in-out infinite;
+}
+
+.hero-ring-spin {
+  animation: hero-ring-spin 60s linear infinite;
+}
+
+@keyframes hero-phone-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes hero-shadow-breathe {
+  0%,
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+  50% {
+    opacity: 0.7;
+    scale: 0.88;
+  }
+}
+
+@keyframes hero-ring-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-phone-float,
+  .hero-shadow-breathe,
+  .hero-ring-spin {
+    animation: none;
+  }
+}
+
+/* Roof journey: active-step icon bob + glow, photo Ken Burns drift, rail shimmer. */
+.journey-icon-bob {
+  animation: journey-icon-bob 2.8s ease-in-out infinite;
+}
+
+.journey-icon-glow {
+  animation: journey-icon-glow 2.8s ease-in-out infinite;
+}
+
+.journey-kenburns {
+  animation: journey-kenburns 18s ease-in-out infinite alternate;
+}
+
+.journey-rail-fill {
+  position: relative;
+  overflow: hidden;
+}
+
+.journey-rail-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(106, 232, 176, 0.9), transparent);
+  transform: translateX(-100%);
+  animation: journey-rail-shimmer 2.4s ease-in-out infinite;
+}
+
+@keyframes journey-icon-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(-3deg);
+  }
+}
+
+@keyframes journey-icon-glow {
+  0%,
+  100% {
+    scale: 0.9;
+  }
+  50% {
+    scale: 1.15;
+  }
+}
+
+@keyframes journey-kenburns {
+  from {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  to {
+    transform: scale(1.07) translate3d(-1.5%, -1%, 0);
+  }
+}
+
+@keyframes journey-rail-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-icon-bob,
+  .journey-icon-glow,
+  .journey-kenburns,
+  .journey-rail-fill::after {
+    animation: none;
+  }
+}
+
+/* Workflow hub section: floating source cards, pulsing platform rings, drifting particles. */
+
+.wf-particle {
+  animation: wf-float 7s ease-in-out infinite;
+}
+
+.wf-ring {
+  animation: wf-ring 3.2s ease-in-out infinite;
+}
+
+.wf-check {
+  animation: wf-check 2.4s ease-in-out infinite;
+}
+
+@keyframes wf-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -6px;
+  }
+}
+
+@keyframes wf-ring {
+  0%,
+  100% {
+    opacity: 0.55;
+    scale: 1;
+  }
+  50% {
+    opacity: 1;
+    scale: 1.04;
+  }
+}
+
+@keyframes wf-check {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0.8cqw rgba(18, 183, 106, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 1.6cqw rgba(18, 183, 106, 0.05);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .wf-particle,
+  .wf-ring,
+  .wf-check {
+    animation: none;
+  }
+}
+
+/* Workflow hub connectors: a short glowing beam travels card → hub. */
+.wf-beam {
+  stroke-dasharray: 0.16 1.2;
+  stroke-dashoffset: 0.16;
+  opacity: 0;
+  filter: drop-shadow(0 0 2px rgba(106, 232, 176, 0.9));
+  animation: wf-beam 2.4s cubic-bezier(0.45, 0, 0.55, 1) infinite both;
+}
+
+@keyframes wf-beam {
+  0% {
+    stroke-dashoffset: 0.16;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  90%,
+  100% {
+    stroke-dashoffset: -1;
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wf-beam {
+    animation: none;
+    display: none;
+  }
+}
+
+/* Workflow hub: the hovered card's beam runs faster and brighter. */
+.wf-beam-active {
+  stroke-width: 2.4;
+  animation-duration: 1.2s;
+  animation-delay: 0s !important;
+}
+
+/* ── Auth experience: aurora mesh + sweeping light beams ── */
+.auth-aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  will-change: transform;
+  animation: auth-aurora-drift var(--auth-dur, 22s) ease-in-out infinite alternate;
+  animation-delay: var(--auth-delay, 0s);
+}
+
+@keyframes auth-aurora-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(var(--auth-dx, 8%), var(--auth-dy, -6%), 0) scale(1.15) rotate(25deg);
+  }
+  100% {
+    transform: translate3d(calc(var(--auth-dx, 8%) * -0.6), calc(var(--auth-dy, -6%) * -0.8), 0) scale(0.92)
+      rotate(-15deg);
+  }
+}
+
+.auth-beam {
+  position: absolute;
+  top: -20%;
+  height: 140%;
+  width: 18%;
+  transform: rotate(18deg);
+  background: linear-gradient(90deg, transparent, rgba(140, 224, 176, 0.09), transparent);
+  animation: auth-beam-sweep var(--auth-dur, 14s) cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation-delay: var(--auth-delay, 0s);
+}
+
+@keyframes auth-beam-sweep {
+  0% {
+    left: -30%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  60% {
+    opacity: 1;
+  }
+  80%,
+  100% {
+    left: 120%;
+    opacity: 0;
+  }
+}
+
+.auth-input-shake {
+  animation: auth-shake 380ms cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes auth-shake {
+  20%,
+  60% {
+    transform: translateX(-5px);
+  }
+  40%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-aurora-blob,
+  .auth-beam,
+  .auth-input-shake {
+    animation: none;
+  }
+  .auth-beam {
+    display: none;
   }
 }

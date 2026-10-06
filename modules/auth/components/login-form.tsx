@@ -3,130 +3,153 @@
 import * as React from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { AlertCircleIcon, Loader2Icon } from "lucide-react"
+import { AnimatePresence, motion } from "framer-motion"
+import { LockKeyholeIcon, MailIcon } from "lucide-react"
 
-import { AuthFrame } from "@/components/auth/auth-frame"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useAuthScene } from "@/components/auth/auth-scene-context"
 import { parseRole } from "@/lib/auth/role"
 import { env } from "@/lib/config/env"
+import {
+  AuthDivider,
+  AuthError,
+  AuthFormHeader,
+  EMAIL_RE,
+  FloatingField,
+  FloatingPassword,
+  GlowButton,
+  formItem,
+  formStagger,
+} from "@/modules/auth/components/auth-field"
 import { GoogleSignInButton } from "@/modules/auth/components/google-sign-in-button"
-import { PasswordField } from "@/modules/auth/components/password-field"
 import { useLogin } from "@/modules/auth/hooks/use-login"
 import type { Role } from "@/types/role"
 
+/** 0..1 — half for the email, half for the password; drives the network scene. */
+function credentialProgress(email: string, password: string) {
+  const emailScore = EMAIL_RE.test(email.trim()) ? 1 : email.includes("@") ? 0.5 : 0
+  return emailScore * 0.5 + Math.min(password.length / 8, 1) * 0.5
+}
+
+/** Company sign-in form body. Rendered inside the auth experience shell. */
 export function LoginForm() {
   const searchParams = useSearchParams()
   const { error, loading, submit, submitGoogle, setError } = useLogin()
   const [role, setRole] = React.useState<Role>(parseRole(searchParams.get("role")) ?? "company")
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
+  const [emailTouched, setEmailTouched] = React.useState(false)
+  const [attempt, setAttempt] = React.useState(0)
 
   const showGoogle = role === "company" && Boolean(env.googleClientId)
+  const sceneHandlers = useAuthScene({ progress: credentialProgress(email, password), loading, error })
 
   React.useEffect(() => {
     setRole(parseRole(searchParams.get("role")) ?? "company")
   }, [searchParams])
 
+  const emailValid = EMAIL_RE.test(email.trim())
+  const emailStatus = emailValid ? "valid" : (emailTouched && email) || attempt ? "invalid" : "idle"
+  const passwordStatus = attempt && !password ? "invalid" : "idle"
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
+    if (!emailValid || !password) {
+      setAttempt((n) => n + 1)
+      return
+    }
     await submit({ email: email.trim(), password }, "company")
   }
 
   return (
-    <AuthFrame
-      title="Welcome back"
-      description="Sign in to your company workspace and pick up where the crew left off."
-      role="company"
-      eyebrow="Secure company sign-in"
-      footer={
-        <p className="mt-7 text-center text-sm text-muted-foreground">
-          New company admin?{" "}
-          <Link href="/signup" className="font-semibold text-primary hover:text-primary-dark hover:underline">
-            Create an account
-          </Link>
-        </p>
-      }
+    <motion.form
+      noValidate
+      onSubmit={handleSubmit}
+      variants={formStagger}
+      initial="hidden"
+      animate="show"
+      className="flex flex-col"
+      {...sceneHandlers}
     >
-      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="email" className="text-[13px] font-medium">
-            Work email
-          </Label>
-          <Input
+      <AuthFormHeader
+        title="Welcome back"
+        description="Sign in to your company workspace and pick up every claim where your crew left off."
+      />
+      <div className="flex flex-col gap-4">
+        <motion.div variants={formItem}>
+          <FloatingField
             id="email"
+            label="Work email"
+            icon={MailIcon}
             type="email"
+            inputMode="email"
+            autoComplete="email"
             value={email}
+            status={emailStatus}
+            message={email ? "Enter a valid work email address." : "Your work email is required."}
+            shakeKey={attempt}
+            onBlur={() => setEmailTouched(true)}
             onChange={(event) => {
               setEmail(event.target.value)
               if (error) setError("")
             }}
-            autoComplete="email"
-            placeholder="you@company.com"
-            required
-            className="h-11 rounded-xl border-border/80 bg-white px-3.5 text-[15px] shadow-sm transition-[box-shadow,border-color] focus-visible:border-primary/40 focus-visible:ring-primary/20"
           />
-        </div>
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between gap-3">
-            <Label htmlFor="password" className="text-[13px] font-medium">
-              Password
-            </Label>
-          </div>
-          <PasswordField
+        </motion.div>
+        <motion.div variants={formItem}>
+          <FloatingPassword
             id="password"
+            label="Password"
+            icon={LockKeyholeIcon}
+            autoComplete="current-password"
             value={password}
-            onChange={(next) => {
-              setPassword(next)
+            status={passwordStatus}
+            message="Enter your password."
+            shakeKey={attempt}
+            onChange={(event) => {
+              setPassword(event.target.value)
               if (error) setError("")
             }}
-            autoComplete="current-password"
-            placeholder="Enter your password"
-            className="h-11 rounded-xl border-border/80 bg-white px-3.5 text-[15px] shadow-sm transition-[box-shadow,border-color] focus-visible:border-primary/40 focus-visible:ring-primary/20"
           />
-        </div>
-        {error && (
-          <Alert variant="destructive" className="border-destructive/30 bg-destructive/5 px-3 py-2.5">
-            <AlertCircleIcon />
-            <AlertTitle>Couldn&apos;t sign you in</AlertTitle>
-            <AlertDescription>
+        </motion.div>
+        <AnimatePresence>
+          {error && (
+            <AuthError title="Couldn't sign you in">
               {error}
               {/no account found|create an account/i.test(error) ? (
                 <>
                   {" "}
-                  <Link href="/signup" className="font-medium underline">
-                    Sign up
+                  <Link href="/signup" className="font-semibold underline underline-offset-2">
+                    Create an account
                   </Link>
                 </>
               ) : null}
-            </AlertDescription>
-          </Alert>
-        )}
-        <Button
-          type="submit"
-          className="mt-1 h-11 w-full rounded-xl text-[15px] font-semibold shadow-[0_12px_28px_-12px_rgba(10,75,55,0.65)]"
-          disabled={loading}
-        >
-          {loading && <Loader2Icon data-icon="inline-start" className="animate-spin" />}
-          Sign in to workspace
-        </Button>
+            </AuthError>
+          )}
+        </AnimatePresence>
+        <motion.div variants={formItem} className="pt-1">
+          <GlowButton loading={loading} loadingLabel="Signing you in…">
+            Sign in to workspace
+          </GlowButton>
+        </motion.div>
         {showGoogle ? (
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="h-px flex-1 bg-border" />
-              or continue with
-              <span className="h-px flex-1 bg-border" />
-            </div>
+          <motion.div variants={formItem} className="flex flex-col gap-4 pt-1">
+            <AuthDivider label="or continue with" />
             <GoogleSignInButton
               disabled={loading}
               onCredential={(idToken) => submitGoogle(idToken, role)}
               onError={setError}
             />
-          </div>
+          </motion.div>
         ) : null}
-      </form>
-    </AuthFrame>
+      </div>
+      <motion.p variants={formItem} className="mt-6 text-center text-sm text-muted-foreground">
+        New to RoofClaim?{" "}
+        <Link
+          href="/signup"
+          className="font-semibold text-[#0a4b37] underline-offset-4 transition-colors hover:text-[#0f8f5a] hover:underline dark:text-[#6ae8b0]"
+        >
+          Create an account
+        </Link>
+      </motion.p>
+    </motion.form>
   )
 }
