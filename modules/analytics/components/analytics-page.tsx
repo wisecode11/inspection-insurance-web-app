@@ -95,12 +95,14 @@ export default function AnalyticsPage() {
         <h2 className="text-sm font-medium text-muted-foreground">Job analytics</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <KpiCard
+            tilt
             label="Total jobs"
             value={String(jobs.total)}
             icon={ClipboardListIcon}
             icon3d="clipboard"
           />
           <KpiCard
+            tilt
             label="Avg completion time"
             value={jobs.avgCompletionLabel}
             icon={ClockIcon}
@@ -108,12 +110,14 @@ export default function AnalyticsPage() {
             helper="Start → complete"
           />
           <KpiCard
+            tilt
             label="Completed (6 mo)"
             value={String(jobs.monthly.reduce((sum, row) => sum + row.completed, 0))}
             icon={CheckCircle2Icon}
             icon3d="check"
           />
           <KpiCard
+            tilt
             label="Statuses tracked"
             value={String(jobs.byStatus.length)}
             icon={ClipboardListIcon}
@@ -178,18 +182,21 @@ export default function AnalyticsPage() {
         <h2 className="text-sm font-medium text-muted-foreground">Report analytics</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <KpiCard
+            tilt
             label="Reports approved"
             value={String(reports.approved)}
             icon={FileCheckIcon}
             icon3d="check"
           />
           <KpiCard
+            tilt
             label="Reports rejected"
             value={String(reports.rejected)}
             icon={FileXIcon}
             icon3d="alert"
           />
           <KpiCard
+            tilt
             label="Avg review time"
             value={reports.avgReviewLabel}
             icon={TimerIcon}

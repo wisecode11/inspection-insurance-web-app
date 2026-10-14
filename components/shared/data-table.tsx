@@ -48,6 +48,21 @@ type DataTableProps<T> = {
   emptyDescription?: string
   /** Render the current page as a custom layout (e.g. card grid) instead of table rows. */
   renderGrid?: (rows: T[]) => React.ReactNode
+  /** "panel": search + toolbar sit in one raised white bar, with numbered pagination. */
+  variant?: "default" | "panel"
+}
+
+/** Page indexes to show, with `null` for a gap: 0 … 4 5 6 … 11 */
+function pageWindow(current: number, count: number): (number | null)[] {
+  if (count <= 7) return Array.from({ length: count }, (_, i) => i)
+  const pages = new Set([0, count - 1, current - 1, current, current + 1])
+  const sorted = [...pages].filter((p) => p >= 0 && p < count).sort((a, b) => a - b)
+  const out: (number | null)[] = []
+  sorted.forEach((p, i) => {
+    if (i > 0 && p - sorted[i - 1] > 1) out.push(null)
+    out.push(p)
+  })
+  return out
 }
 
 function defaultRowKey<T>(row: T) {
@@ -71,7 +86,9 @@ export function DataTable<T>({
   emptyTitle = "No results found",
   emptyDescription = "Try adjusting your search or filters.",
   renderGrid,
+  variant = "default",
 }: DataTableProps<T>) {
+  const panel = variant === "panel"
   const [query, setQuery] = React.useState("")
   const [sortKey, setSortKey] = React.useState<string | null>(null)
   const [sortDir, setSortDir] = React.useState<"asc" | "desc">("asc")
@@ -141,12 +158,28 @@ export function DataTable<T>({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className={cn("flex flex-col", panel ? "gap-6" : "gap-3")}>
       {(searchable || toolbar) && (
-        <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-stretch sm:gap-3">
+        <div
+          className={cn(
+            "flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-stretch sm:gap-3",
+            panel &&
+              "relative z-10 rounded-2xl border border-[#E4EBE7] bg-white p-2 shadow-[0_1px_2px_rgba(14,27,22,0.04),0_16px_36px_-20px_rgba(6,36,27,0.35)] sm:items-center sm:gap-2 sm:pl-3",
+          )}
+        >
           {searchable ? (
-            <div className="relative min-w-0 w-full flex-1 sm:min-w-[14rem] sm:max-w-md">
-              <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <div
+              className={cn(
+                "relative min-w-0 w-full flex-1",
+                panel ? "sm:min-w-[14rem]" : "sm:min-w-[14rem] sm:max-w-md",
+              )}
+            >
+              <SearchIcon
+                className={cn(
+                  "pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2",
+                  panel ? "text-[#6B7A73]" : "text-muted-foreground",
+                )}
+              />
               <Input
                 value={query}
                 onChange={(e) => {
@@ -154,7 +187,11 @@ export function DataTable<T>({
                   setPage(0)
                 }}
                 placeholder={searchPlaceholder}
-                className="h-10 w-full bg-card pl-9"
+                className={cn(
+                  "h-10 w-full bg-card pl-9",
+                  panel &&
+                    "h-11 border-0 bg-transparent pl-10 text-[15px] shadow-none placeholder:text-[#7B8A83] focus-visible:ring-0",
+                )}
               />
             </div>
           ) : null}
@@ -168,14 +205,14 @@ export function DataTable<T>({
 
       {renderGrid ? (
         paged.length === 0 ? (
-          <div className="rounded-[var(--radius)] bg-card shadow-[0_8px_28px_-16px_rgba(19,58,66,0.16)] ring-1 ring-primary/10">
+          <div className="rounded-2xl border border-[#E4EBE7] bg-white shadow-[0_1px_2px_rgba(14,27,22,0.04),0_12px_32px_-22px_rgba(14,27,22,0.22)]">
             {emptyContent}
           </div>
         ) : (
           renderGrid(paged)
         )
       ) : (
-      <div className="overflow-hidden rounded-[var(--radius)] bg-card shadow-[0_8px_28px_-16px_rgba(19,58,66,0.16)] ring-1 ring-primary/10">
+      <div className="overflow-hidden rounded-md border border-[#E4EBE7] bg-white shadow-[0_1px_2px_rgba(14,27,22,0.04),0_12px_32px_-22px_rgba(14,27,22,0.22)]">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
@@ -194,7 +231,7 @@ export function DataTable<T>({
                       type="button"
                       onClick={() => toggleSort(col.key)}
                       className={cn(
-                        "inline-flex items-center gap-1 text-primary-foreground/90 transition-colors hover:text-primary-foreground",
+                        "inline-flex items-center gap-1 uppercase transition-colors hover:text-white",
                         col.align === "right" && "flex-row-reverse",
                       )}
                     >
@@ -202,7 +239,7 @@ export function DataTable<T>({
                       <ArrowUpDownIcon
                         className={cn(
                           "size-3",
-                          sortKey === col.key ? "text-primary-foreground" : "text-primary-foreground/55",
+                          sortKey === col.key ? "text-[#8CE0B0]" : "text-white/50",
                         )}
                       />
                     </button>
@@ -229,10 +266,7 @@ export function DataTable<T>({
                       : String((row as { id?: string }).id ?? index)
                   }
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
-                  className={cn(
-                    "transition-colors duration-200 hover:bg-primary-tint/80",
-                    onRowClick && "cursor-pointer",
-                  )}
+                  className={cn(onRowClick && "cursor-pointer hover:bg-[#EEF8F2]")}
                 >
                   {columns.map((col) => (
                     <TableCell
@@ -259,7 +293,61 @@ export function DataTable<T>({
       </div>
       )}
 
-      {sorted.length > pageSize && (
+      {sorted.length > pageSize && panel && (
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <p className="text-sm text-[#6B7A73]">
+            Showing{" "}
+            <b className="font-semibold text-[#0E1B16] tabular-nums">
+              {currentPage * pageSize + 1}–{Math.min((currentPage + 1) * pageSize, sorted.length)}
+            </b>{" "}
+            of <b className="font-semibold text-[#0E1B16] tabular-nums">{sorted.length}</b>
+          </p>
+          <nav aria-label="Pagination" className="flex items-center gap-1.5">
+            <button
+              type="button"
+              disabled={currentPage === 0}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-[#E4EBE7] bg-white px-3.5 text-sm font-semibold text-[#0E1B16] transition-colors hover:border-[#1FB86A] disabled:pointer-events-none disabled:bg-transparent disabled:text-[#A6B2AC]"
+            >
+              <ChevronLeftIcon className="size-4" />
+              Previous
+            </button>
+            {pageWindow(currentPage, pageCount).map((p, i) =>
+              p === null ? (
+                <span key={`gap-${i}`} className="px-1 text-sm text-[#8A9892]">
+                  …
+                </span>
+              ) : (
+                <button
+                  key={p}
+                  type="button"
+                  aria-current={p === currentPage ? "page" : undefined}
+                  onClick={() => setPage(p)}
+                  className={cn(
+                    "grid size-10 place-items-center rounded-xl text-sm font-semibold tabular-nums transition-colors",
+                    p === currentPage
+                      ? "bg-[#0A3326] text-white shadow-[0_6px_14px_-8px_rgba(6,36,27,0.7)]"
+                      : "text-[#3B4A44] hover:bg-white hover:text-[#0E1B16]",
+                  )}
+                >
+                  {p + 1}
+                </button>
+              ),
+            )}
+            <button
+              type="button"
+              disabled={currentPage >= pageCount - 1}
+              onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-[#E4EBE7] bg-white px-3.5 text-sm font-semibold text-[#0E1B16] transition-colors hover:border-[#1FB86A] disabled:pointer-events-none disabled:bg-transparent disabled:text-[#A6B2AC]"
+            >
+              Next
+              <ChevronRightIcon className="size-4" />
+            </button>
+          </nav>
+        </div>
+      )}
+
+      {sorted.length > pageSize && !panel && (
         <div className="flex items-center justify-between gap-4">
           <p className="text-xs text-muted-foreground">
             Showing {currentPage * pageSize + 1}–

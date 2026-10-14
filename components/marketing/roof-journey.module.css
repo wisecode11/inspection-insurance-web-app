@@ -1,0 +1,357 @@
+/* RoofJourney desktop "sticky stack": sticky copy on the left that cross-fades,
+   sticky poster cards on the right that slide over and scale down.
+   Scroll maths lives in roof-journey.tsx (StackJourney). */
+
+.wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 48px;
+}
+
+/* ---------- Left: sticky copy ---------- */
+.texts {
+  position: sticky;
+  top: 140px;
+  flex: none;
+  width: 420px;
+  height: 520px;
+}
+.text {
+  position: absolute;
+  inset: 0 auto auto 0;
+  max-width: 420px;
+  opacity: 0;
+  will-change: opacity;
+}
+.text > * {
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.text:not([data-current]) > * {
+  transform: translateY(18px);
+}
+.text[data-current] > :nth-child(2) { transition-delay: 0.05s; }
+.text[data-current] > :nth-child(3) { transition-delay: 0.1s; }
+.text[data-current] > :nth-child(4) { transition-delay: 0.15s; }
+
+.points {
+  display: grid;
+  gap: 12px;
+  margin: 26px 0 0;
+  padding: 22px 0 0;
+  list-style: none;
+  border-top: 1px dashed rgba(14, 27, 22, 0.14);
+}
+.points li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #3b4a44;
+}
+
+.label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 14px 5px 5px;
+  border-radius: 999px;
+  border: 1px solid rgba(31, 184, 106, 0.3);
+  background: rgba(31, 184, 106, 0.08);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #0f7a48;
+}
+.label b {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #16a34a;
+  color: #fff;
+  font-weight: 600;
+}
+.h {
+  margin: 24px 0 18px;
+  font-size: clamp(2rem, 2.8vw, 2.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  font-weight: 700;
+  color: var(--color-text-heading, #101828);
+}
+.p {
+  font-size: 1.06rem;
+  line-height: 1.75;
+  color: #5b6b64;
+}
+
+.progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.count {
+  min-width: 64px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  color: #8a9892;
+}
+.count b {
+  color: #0e1b16;
+  font-weight: 600;
+}
+.segs {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.segs i {
+  height: 3px;
+  border-radius: 3px;
+  background: rgba(14, 27, 22, 0.1);
+  overflow: hidden;
+}
+.segs b {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #16a34a, #4ade80);
+  transform-origin: left;
+  transform: scaleX(var(--p, 0));
+}
+
+/* ---------- Right: stacking poster cards ---------- */
+.cards {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  row-gap: 200px;
+  width: 560px;
+  flex: none;
+}
+
+.card {
+  --line: rgba(255, 255, 255, 0.12);
+  --soft: rgba(255, 255, 255, 0.66);
+  --em: #7cf0b2;
+  position: sticky;
+  top: 120px;
+  width: 560px;
+  height: 520px;
+  display: flex;
+  flex-direction: column;
+  padding: 26px 28px 28px;
+  border-radius: 24px;
+  overflow: hidden;
+  isolation: isolate;
+  color: #fff;
+  transform-origin: 50% 0;
+  will-change: transform;
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    0 -24px 60px -30px rgba(6, 36, 27, 0.55),
+    0 40px 80px -40px rgba(6, 36, 27, 0.6);
+}
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(var(--dot, rgba(255, 255, 255, 0.07)) 1px, transparent 1.3px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+}
+.card::after {
+  /* shine sweep as the card arrives on top */
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.14) 50%, transparent 65%);
+  transform: translateX(-120%);
+}
+.card[data-active]::after {
+  animation: shine 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
+}
+@keyframes shine {
+  to {
+    transform: translateX(120%);
+  }
+}
+
+.card1 {
+  margin-bottom: 30px;
+  background:
+    radial-gradient(70% 60% at 85% 90%, rgba(61, 211, 136, 0.32), transparent 70%),
+    linear-gradient(160deg, #0e4434, #06241b);
+  --line: rgba(124, 240, 178, 0.2);
+}
+.card2 {
+  margin-bottom: 15px;
+  top: 135px;
+  background:
+    radial-gradient(60% 50% at 90% 0%, rgba(74, 222, 128, 0.18), transparent 70%),
+    radial-gradient(60% 50% at 0% 100%, rgba(59, 130, 246, 0.16), transparent 70%),
+    linear-gradient(160deg, #0f1a17, #070c0a);
+  --line: rgba(74, 222, 128, 0.2);
+  --em: #4ade80;
+}
+.card3 {
+  top: 150px;
+  background:
+    radial-gradient(70% 60% at 100% 0%, rgba(31, 184, 106, 0.18), transparent 65%),
+    linear-gradient(160deg, #f4fbf7, #e2f3e9);
+  color: #0e1b16;
+  --line: rgba(14, 27, 22, 0.1);
+  --soft: rgba(14, 27, 22, 0.62);
+  --dot: rgba(14, 27, 22, 0.07);
+  --em: #16a34a;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tag {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+.logo {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(145deg, #3dd388, #16a34a);
+  color: #06241b;
+  box-shadow: 0 6px 16px -6px rgba(31, 184, 106, 0.7);
+}
+
+.big {
+  margin-top: 24px;
+}
+.big > * {
+  opacity: 0;
+  translate: 0 16px;
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    translate 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.card[data-active] .big > * {
+  opacity: 1;
+  translate: 0 0;
+}
+.card[data-active] .big > :nth-child(2) {
+  transition-delay: 0.12s;
+}
+.num {
+  font-size: 50px;
+  line-height: 0.98;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+.num em {
+  font-style: normal;
+  color: var(--em);
+}
+.line {
+  margin-top: 12px;
+  max-width: 420px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--soft);
+}
+
+/* photo panel — tilts toward the cursor */
+.vis {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin-top: 22px;
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.photo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 1px var(--line),
+    0 30px 60px -30px rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  scale: 0.95;
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s,
+    scale 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
+}
+.card[data-active] .photo {
+  opacity: 1;
+  scale: 1;
+}
+.chip {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 13px 8px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #0e1b16;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 14px 30px -10px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  translate: 0 10px;
+  scale: 0.9;
+  transition:
+    opacity 0.4s ease 0.9s,
+    translate 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.9s,
+    scale 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) 0.9s;
+}
+.card[data-active] .chip {
+  opacity: 1;
+  translate: 0 0;
+  scale: 1;
+}
+.tick {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #16a34a
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E")
+    center / 10px no-repeat;
+}
+
+@media (min-width: 1440px) {
+  .cards,
+  .card {
+    width: 600px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card *,
+  .card::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

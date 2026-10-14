@@ -29,5 +29,13 @@ export function useCompanyDashboard() {
     }
   }, [])
 
-  return { data, isLoading, error }
+  /** Refetch in place — keeps the current data on screen while loading. */
+  const reload = React.useCallback(async () => {
+    const payload = await companyDashboardService.overview()
+    setData(payload)
+    setError("")
+    return payload
+  }, [])
+
+  return { data, isLoading, error, reload }
 }

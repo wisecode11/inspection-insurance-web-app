@@ -1,6 +1,7 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Instrument_Serif, Inter } from 'next/font/google'
+import { ScrollProgress } from '@/components/shared/scroll-progress'
 import { ThemeProvider } from '@/components/theme-provider'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
@@ -49,6 +50,7 @@ export default function RootLayout({
         className={`${inter.variable} ${instrument.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
+        <ScrollProgress />
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

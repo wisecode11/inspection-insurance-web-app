@@ -433,6 +433,81 @@
   }
 }
 
+/* =========================================================
+   Scroll progress bar (components/shared/scroll-progress.tsx)
+   ========================================================= */
+
+/* Change the bar colours here. Same in light and dark mode. */
+:root {
+  --scroll-progress-from: #4ade80;
+  --scroll-progress-to: #16a34a;
+}
+
+.scroll-progress {
+  position: fixed;
+  top: env(safe-area-inset-top, 0px);
+  left: 0;
+  right: 0;
+  z-index: 200; /* above the sticky header (z-40) */
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(90deg, var(--scroll-progress-from), var(--scroll-progress-to));
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+/*
+ * Native scroll-driven animation.
+ * Admin pages scroll an inner container ([data-scroll-root], see app-shell.tsx),
+ * not the document, so `scroll(root)` alone would never move. Instead one named
+ * timeline is hoisted to <html> and attached to whichever element scrolls:
+ * the [data-scroll-root] container when the page has one, otherwise the document.
+ * The JS fallback uses the same condition, so exactly one of the two runs.
+ */
+@supports (animation-timeline: scroll()) and (timeline-scope: --a) {
+  html {
+    timeline-scope: --page-scroll;
+  }
+  html:not(:has([data-scroll-root])) {
+    scroll-timeline: --page-scroll block;
+  }
+  [data-scroll-root] {
+    scroll-timeline: --page-scroll block;
+  }
+  .scroll-progress {
+    animation: progressGrow linear both;
+    animation-timeline: --page-scroll;
+  }
+}
+
+@keyframes progressGrow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Header "New job" press ripple (see components/layout/new-job-button.tsx). */
+.nav-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.25;
+  transform: scale(0);
+  pointer-events: none;
+  animation: nav-ripple 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes nav-ripple {
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
 /* Animated light beam that travels around a rounded button's border. */
 .beam-edge {
   position: relative;

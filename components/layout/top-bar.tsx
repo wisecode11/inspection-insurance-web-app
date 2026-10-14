@@ -7,7 +7,6 @@ import {
   DownloadIcon,
   LogOutIcon,
   MoonIcon,
-  PlusIcon,
   SearchIcon,
   SunIcon,
   UserRoundIcon,
@@ -17,6 +16,7 @@ import { motion } from "framer-motion"
 import * as React from "react"
 
 import { CompanyMobileNav } from "@/components/layout/company-mobile-nav"
+import { NewJobButton } from "@/components/layout/new-job-button"
 import { NotificationBell } from "@/components/layout/notification-bell"
 import { TopNav } from "@/components/layout/top-nav"
 import { Icon3D } from "@/components/shared/icon-3d"
@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { destroySession } from "@/lib/auth/session"
 import { displayName, initials } from "@/lib/auth/portal"
-import { COMPANY_SHELL_MAX_CLASS } from "@/lib/constants/layout"
+import { COMPANY_SHELL_GUTTER_CLASS, COMPANY_SHELL_MAX_CLASS } from "@/lib/constants/layout"
 import { ROUTES } from "@/lib/constants/routes"
 import { roleMeta } from "@/lib/navigation"
 import { useSessionUser } from "@/modules/auth/hooks/use-session-user"
@@ -72,7 +72,7 @@ export function TopBar({ role }: { role: Role }) {
 
     return (
       <header className="sticky top-0 z-40 shrink-0 bg-[#063728] text-white">
-        <div className={cn("mx-auto w-full px-4 sm:px-6", COMPANY_SHELL_MAX_CLASS)}>
+        <div className={cn("mx-auto w-full", COMPANY_SHELL_GUTTER_CLASS, COMPANY_SHELL_MAX_CLASS)}>
           {/* Row 1 — 72px utility bar */}
           <div className="flex h-[72px] items-center gap-3 sm:gap-4">
             <div className="flex shrink-0 items-center gap-2">
@@ -123,15 +123,7 @@ export function TopBar({ role }: { role: Role }) {
                 <DownloadIcon data-icon="inline-start" className="size-3.5" />
                 Export report
               </Button>
-              <Button
-                size="sm"
-                className="hidden h-10 rounded-full bg-[#0F8F5A] px-[18px] text-white hover:bg-[#0d7a4d] sm:inline-flex"
-                nativeButton={false}
-                render={<Link href={ROUTES.company.jobs} />}
-              >
-                <PlusIcon data-icon="inline-start" className="size-3.5" />
-                New job
-              </Button>
+              <NewJobButton className="hidden sm:inline-flex" />
               <NotificationBell tone="onPrimary" />
               <DropdownMenu>
                 <DropdownMenuTrigger
@@ -207,7 +199,7 @@ export function TopBar({ role }: { role: Role }) {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 bg-[var(--color-bg-canvas)] px-4 py-4 sm:gap-6 sm:px-6 sm:pt-5 sm:pb-4">
+    <header className="sticky top-0 z-30 flex shrink-0 items-center justify-between gap-3 bg-[var(--color-bg-canvas)] px-4 py-4 sm:gap-6 sm:px-6 sm:pt-5 sm:pb-4 lg:px-10">
       <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         <SidebarTrigger className="size-10 shrink-0 text-muted-foreground hover:bg-card hover:text-foreground md:hidden" />
         <div className="relative w-full min-w-0 max-w-[calc(100vw-10rem)] sm:max-w-xs md:w-72 md:max-w-none md:flex-none">

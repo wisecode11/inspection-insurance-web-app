@@ -5,7 +5,8 @@ import { useSearchParams } from "next/navigation"
 import { MoreHorizontalIcon, UserPlusIcon } from "lucide-react"
 import { toast } from "@/lib/toast"
 
-import { PageHeader } from "@/components/shared/page-header"
+import { ListPageHero, heroPrimaryButtonClass } from "@/components/shared/list-page-hero"
+import { LIST_CARD_GRID_CLASS } from "@/components/shared/list-card"
 import { DataTable, type Column } from "@/components/shared/data-table"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { Button } from "@/components/ui/button"
@@ -21,7 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { CardGrid, ViewToggle, useListView } from "@/components/shared/grid-card"
+import { ViewToggle, useListView } from "@/components/shared/grid-card"
 import { PasswordField } from "@/modules/auth/components/password-field"
 import { StaffCard } from "@/modules/staff/components/staff-card"
 import { staffService } from "@/modules/staff/services/staff.service"
@@ -325,37 +326,36 @@ export default function StaffPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Company admin"
+      <ListPageHero
         title="Staff"
         description="Manage inspectors for your company — profiles, access, and work history. Assign or reassign jobs from the Jobs tab."
         actions={
           isAdmin ? (
-            <Button variant="default" onClick={openAdd}>
-              <UserPlusIcon data-icon="inline-start" />
+            <button type="button" onClick={openAdd} className={heroPrimaryButtonClass}>
+              <UserPlusIcon className="size-4" />
               Add inspector
-            </Button>
+            </button>
           ) : null
         }
       />
 
       <DataTable
+        variant="panel"
         columns={columns}
         data={inspectors}
         rowKey={(row) => row.id}
         searchPlaceholder="Search name, email, or status…"
         searchKeys={["name", "email", "status"]}
         pageSize={view === "grid" ? 12 : 8}
-        toolbar={<ViewToggle view={view} onChange={changeView} />}
+        toolbar={<ViewToggle view={view} onChange={changeView} variant="soft" />}
         renderGrid={
           view === "grid"
             ? (members) => (
-                <CardGrid>
+                <div className={LIST_CARD_GRID_CLASS}>
                   {members.map((member) => (
                     <StaffCard
                       key={member.id}
                       member={member}
-                      statusVariant={statusVariant(member.status)}
                       onOpen={isAdmin ? () => void openHistory(member) : undefined}
                       actions={
                         isAdmin ? (
@@ -370,7 +370,7 @@ export default function StaffPage() {
                       }
                     />
                   ))}
-                </CardGrid>
+                </div>
               )
             : undefined
         }

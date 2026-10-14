@@ -13,6 +13,7 @@ export function KpiCard({
   delta,
   deltaLabel,
   helper,
+  tilt,
 }: {
   label: string
   value: string
@@ -21,12 +22,14 @@ export function KpiCard({
   delta?: number
   deltaLabel?: string
   helper?: string
+  /** Dashboard-style 3D hover tilt. */
+  tilt?: boolean
 }) {
   const positive = (delta ?? 0) >= 0
 
   return (
     <div className="flex flex-col gap-2">
-      <StatCard label={label} value={value} icon={icon} icon3d={icon3d} emptyHint={helper} />
+      <StatCard label={label} value={value} icon={icon} icon3d={icon3d} emptyHint={helper} tilt={tilt} />
       {delta !== undefined && (
         <div className="flex items-center gap-2 px-1">
           <span

@@ -9,6 +9,7 @@ import {
   EyeIcon,
   FileDownIcon,
   FileTextIcon,
+  FilterIcon,
   MoreHorizontalIcon,
   Share2Icon,
   Undo2Icon,
@@ -16,7 +17,8 @@ import {
 } from "lucide-react"
 import { toast } from "@/lib/toast"
 
-import { PageHeader } from "@/components/shared/page-header"
+import { ListPageHero } from "@/components/shared/list-page-hero"
+import { LIST_CARD_GRID_CLASS, LIST_FILTER_TRIGGER_CLASS } from "@/components/shared/list-card"
 import { DataTable, type Column } from "@/components/shared/data-table"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { ErrorState, LoadingSkeleton } from "@/components/shared/resource-state"
@@ -24,7 +26,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { FormDrawer } from "@/components/shared/form-drawer"
-import { CardGrid, ViewToggle, useListView } from "@/components/shared/grid-card"
+import { ViewToggle, useListView } from "@/components/shared/grid-card"
 import { ReportCard } from "@/modules/reports/components/report-card"
 import {
   DropdownMenu,
@@ -314,13 +316,13 @@ export default function ReportsPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Company admin"
+      <ListPageHero
         title="Reports"
         description="Review inspector evidence packages — open the job or staff profile, download the PDF, then approve, reject, or request changes."
       />
 
       <DataTable
+        variant="panel"
         data={reports}
         columns={columns}
         rowKey={(row) => row.id}
@@ -335,7 +337,7 @@ export default function ReportsPage() {
         renderGrid={
           view === "grid"
             ? (pageRows) => (
-                <CardGrid>
+                <div className={LIST_CARD_GRID_CLASS}>
                   {pageRows.map((row) => (
                     <ReportCard
                       key={row.id}
@@ -344,16 +346,19 @@ export default function ReportsPage() {
                       actions={renderActions(row)}
                     />
                   ))}
-                </CardGrid>
+                </div>
               )
             : undefined
         }
         toolbar={
           <>
-          <ViewToggle view={view} onChange={changeView} />
+          <ViewToggle view={view} onChange={changeView} variant="soft" />
           <Select value={status} onValueChange={(value) => setStatus((value as StatusFilter) || "all")}>
-            <SelectTrigger>
-              <SelectValue />
+            <SelectTrigger className={LIST_FILTER_TRIGGER_CLASS}>
+              <span className="flex items-center gap-2">
+                <FilterIcon className="size-4 text-[#6B7A73]" aria-hidden />
+                <SelectValue />
+              </span>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All review statuses</SelectItem>

@@ -1,35 +1,28 @@
 "use client"
 
 import * as React from "react"
-import {
-  AlertTriangleIcon,
-  ChevronRightIcon,
-  ClockIcon,
-  FileCheck2Icon,
-  FileClockIcon,
-  MapPinIcon,
-} from "lucide-react"
+import { AlertTriangleIcon, ClockIcon, FileCheck2Icon, FileClockIcon, MapPinIcon } from "lucide-react"
 
+import { GridCardActions, initialsOf } from "@/components/shared/grid-card"
 import {
-  AvatarInitials,
-  GridCard,
-  GridCardActions,
-  GridCardFact,
-  GridCardFacts,
-} from "@/components/shared/grid-card"
-import { StatusBadge } from "@/components/shared/status-badge"
-import {
-  reportStatusLabel,
-  reportStatusVariant,
-  type CompanyReport,
-} from "@/modules/reports/types/report.types"
+  CodeChip,
+  FactBox,
+  LIST_TONES,
+  ListCard,
+  ListCardFooter,
+  SquareAvatar,
+  StatusPill,
+  TagChip,
+  type ListTone,
+} from "@/components/shared/list-card"
+import { reportStatusLabel, type CompanyReport } from "@/modules/reports/types/report.types"
 
-const accentByStatus: Record<string, string> = {
-  draft: "bg-muted-foreground/40",
-  submitted: "bg-primary",
-  under_review: "bg-warning",
-  approved: "bg-success",
-  rejected: "bg-danger",
+const toneByStatus: Record<string, ListTone> = {
+  draft: LIST_TONES.gray,
+  submitted: LIST_TONES.blue,
+  under_review: LIST_TONES.amber,
+  approved: LIST_TONES.green,
+  rejected: LIST_TONES.red,
 }
 
 function formatDate(value?: string | null) {
@@ -49,106 +42,71 @@ export function ReportCard({
   actions: React.ReactNode
 }) {
   const status = report.status || "draft"
+  const tone = toneByStatus[status] ?? LIST_TONES.gray
   const warnings = report.warnings?.length ?? 0
   const pdfReady = Boolean(report.pdfUrl)
+  const title = report.title || "Assessment report"
 
   return (
-    <GridCard
-      accent={accentByStatus[status] ?? "bg-primary"}
-      onOpen={onOpen}
-      label={report.title || "Assessment report"}
-    >
-      <header className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-          {report.jobNumber ? (
-            <span className="rounded-md bg-foreground/[0.05] px-1.5 py-0.5 font-mono text-[0.7rem] font-semibold tracking-wide text-muted-foreground">
-              {report.jobNumber}
-            </span>
-          ) : null}
-          <StatusBadge
-            status={reportStatusVariant(status)}
-            label={reportStatusLabel(status)}
-            className="rounded-full"
-          />
-          {report.version > 1 ? (
-            <span className="rounded-full bg-foreground/[0.05] px-2 py-0.5 text-xs font-medium text-muted-foreground">
-              v{report.version}
+    <ListCard accent={tone.bar} onOpen={onOpen} label={title}>
+      <header className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          {report.jobNumber ? <CodeChip>{report.jobNumber}</CodeChip> : null}
+          <StatusPill tone={tone}>{reportStatusLabel(status)}</StatusPill>
+          {report.version > 1 ? <TagChip>v{report.version}</TagChip> : null}
+          {warnings ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#FFF4E2] px-2.5 py-[3px] text-xs font-semibold text-[#C2700A]">
+              <AlertTriangleIcon className="size-3" aria-hidden />
+              {warnings}
             </span>
           ) : null}
         </div>
-        <GridCardActions>{actions}</GridCardActions>
+        <GridCardActions className="mt-0 -mr-1.5">{actions}</GridCardActions>
       </header>
 
-      <div className="flex flex-col gap-1.5">
-        <h3
-          className="line-clamp-1 text-base font-semibold tracking-tight"
-          title={report.title}
-        >
-          {report.title || "Assessment report"}
-        </h3>
-        {report.jobTitle ? (
-          <p className="truncate text-xs text-muted-foreground">{report.jobTitle}</p>
-        ) : null}
-        <p className="flex items-start gap-1.5 text-sm text-muted-foreground">
-          <MapPinIcon className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden />
-          <span className="line-clamp-2 min-w-0 break-words" title={report.propertyAddress}>
-            {report.propertyAddress || "No property address"}
-          </span>
-        </p>
-      </div>
-
-      <GridCardFacts>
-        <GridCardFact label="Customer" value={report.customerName || "—"} />
-        <GridCardFact label="Claim" value={report.claimNumber || "—"} />
-      </GridCardFacts>
-
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span
-          className={
-            pdfReady
-              ? "inline-flex items-center gap-1 rounded-full bg-success/12 px-2 py-0.5 text-xs font-medium text-success"
-              : "inline-flex items-center gap-1 rounded-full bg-foreground/[0.05] px-2 py-0.5 text-xs font-medium text-muted-foreground"
-          }
-        >
-          {pdfReady ? (
-            <FileCheck2Icon className="size-3" aria-hidden />
-          ) : (
-            <FileClockIcon className="size-3" aria-hidden />
-          )}
-          {pdfReady ? "PDF ready" : "PDF pending"}
+      <h3 className="mt-3 line-clamp-1 text-base font-bold tracking-[-0.02em] text-[#0E1B16]" title={title}>
+        {title}
+      </h3>
+      <p className="mt-1 flex min-h-[2.5rem] items-start gap-1.5 text-[13px] leading-[1.5] text-[#5B6B64]">
+        <MapPinIcon className="mt-[3px] size-3.5 shrink-0 text-[#8A9892]" aria-hidden />
+        <span className="line-clamp-2 min-w-0 break-words" title={report.propertyAddress}>
+          {report.propertyAddress || "No property address"}
         </span>
-        {warnings ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-warning/14 px-2 py-0.5 text-xs font-medium text-warning">
-            <AlertTriangleIcon className="size-3" aria-hidden />
-            {warnings} warning{warnings === 1 ? "" : "s"}
-          </span>
-        ) : null}
-      </div>
+      </p>
 
-      <footer className="mt-auto flex items-center justify-between gap-3 border-t border-border/70 pt-3">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <AvatarInitials name={report.inspectorName || "?"} />
+      <dl className="mt-3 grid grid-cols-2 gap-2">
+        <FactBox label="Customer" value={report.customerName || "—"} sub={report.jobTitle || undefined} />
+        <FactBox label="Claim" value={report.claimNumber || "—"} mono />
+      </dl>
+
+      <ListCardFooter>
+        <div className="flex min-w-0 items-center gap-3">
+          <SquareAvatar initials={initialsOf(report.inspectorName || "")} />
           <div className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate text-sm font-medium capitalize">
+            <span className="truncate text-sm font-semibold text-[#0E1B16] capitalize">
               {report.inspectorName || "Unknown"}
             </span>
-            <span className="text-xs text-muted-foreground">Inspector</span>
+            <span className="text-xs text-[#6B7A73]">Inspector</span>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2.5 text-[13px]">
           <span
-            className="inline-flex items-center gap-1 rounded-full bg-primary-tint/70 px-2.5 py-1 text-xs font-medium text-muted-foreground tabular-nums"
-            title="Submitted"
+            className={
+              pdfReady
+                ? "inline-flex items-center text-[#14965A]"
+                : "inline-flex items-center text-[#8A9892]"
+            }
+            title={pdfReady ? "PDF ready" : "PDF pending"}
           >
+            {pdfReady ? <FileCheck2Icon className="size-4" aria-hidden /> : <FileClockIcon className="size-4" aria-hidden />}
+            <span className="sr-only">{pdfReady ? "PDF ready" : "PDF pending"}</span>
+          </span>
+          <span className="inline-flex items-center gap-1.5 text-[#6B7A73] tabular-nums" title="Submitted">
             <ClockIcon className="size-3.5" aria-hidden />
             {formatDate(report.submittedAt || report.updatedAt)}
           </span>
-          <ChevronRightIcon
-            className="size-4 -translate-x-1 text-primary opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100"
-            aria-hidden
-          />
         </div>
-      </footer>
-    </GridCard>
+      </ListCardFooter>
+    </ListCard>
   )
 }

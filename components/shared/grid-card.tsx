@@ -39,12 +39,27 @@ const VIEW_OPTIONS = [
   { value: "table", label: "Table", icon: ListIcon },
 ] as const
 
-export function ViewToggle({ view, onChange }: { view: ListView; onChange: (view: ListView) => void }) {
+export function ViewToggle({
+  view,
+  onChange,
+  variant = "default",
+}: {
+  view: ListView
+  onChange: (view: ListView) => void
+  /** "soft": grey track with a raised white active segment. */
+  variant?: "default" | "soft"
+}) {
+  const soft = variant === "soft"
   return (
     <div
       role="group"
       aria-label="Display as"
-      className="inline-flex h-10 shrink-0 items-center gap-0.5 rounded-[var(--button-radius)] bg-card p-1 ring-1 ring-primary/15"
+      className={cn(
+        "inline-flex h-10 shrink-0 items-center gap-0.5 p-1",
+        soft
+          ? "rounded-xl bg-[#F1F4F2]"
+          : "rounded-[var(--button-radius)] bg-card ring-1 ring-primary/15",
+      )}
     >
       {VIEW_OPTIONS.map((option) => (
         <button
@@ -53,10 +68,15 @@ export function ViewToggle({ view, onChange }: { view: ListView; onChange: (view
           aria-pressed={view === option.value}
           onClick={() => onChange(option.value)}
           className={cn(
-            "inline-flex h-8 items-center gap-1.5 rounded-[calc(var(--button-radius)-2px)] px-3 text-sm font-medium transition-colors",
-            view === option.value
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:bg-primary-tint hover:text-primary-dark",
+            "inline-flex h-8 items-center gap-1.5 px-3 text-sm font-medium transition-colors",
+            soft ? "rounded-[9px]" : "rounded-[calc(var(--button-radius)-2px)]",
+            soft
+              ? view === option.value
+                ? "bg-white font-semibold text-[#0E1B16] shadow-[0_1px_2px_rgba(14,27,22,0.08),0_2px_6px_-2px_rgba(14,27,22,0.1)]"
+                : "text-[#6B7A73] hover:text-[#0E1B16]"
+              : view === option.value
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-primary-tint hover:text-primary-dark",
           )}
         >
           <option.icon className="size-4" aria-hidden />
