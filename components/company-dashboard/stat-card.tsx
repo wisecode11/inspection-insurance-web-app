@@ -89,7 +89,7 @@ export function StatCard({
     "--accent": accent,
     transform: tilt.transform,
     background: featured
-      ? `linear-gradient(160deg, color-mix(in srgb, ${accent} ${tone === "amber" ? 11 : 9}%, #fff), #fff 70%)`
+      ? `linear-gradient(160deg, color-mix(in srgb, ${accent} ${tone === "amber" ? 11 : 9}%, var(--card)), var(--card) 70%)`
       : undefined,
   } as CSSProperties
 
@@ -107,8 +107,8 @@ export function StatCard({
       {...tilt.bind}
       style={style}
       className={cn(
-        "group relative flex min-h-44 w-full flex-col overflow-hidden rounded-2xl border border-[rgba(6,55,40,0.10)] bg-white p-5 shadow-[0_1px_2px_rgba(6,55,40,0.06),0_1px_3px_rgba(6,55,40,0.05)] [transform-style:preserve-3d] transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(.2,.8,.2,1)] will-change-transform",
-        "hover:border-[color-mix(in_srgb,var(--accent)_35%,rgba(6,55,40,0.10))] hover:shadow-[0_8px_24px_-8px_rgba(6,55,40,0.18),0_2px_6px_rgba(6,55,40,0.06)]",
+        "group relative flex min-h-44 w-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-[0_1px_2px_rgba(6,55,40,0.06),0_1px_3px_rgba(6,55,40,0.05)] [transform-style:preserve-3d] transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(.2,.8,.2,1)] will-change-transform dark:shadow-[0_1px_2px_rgba(0,0,0,0.35)]",
+        "hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--border))] hover:shadow-[0_8px_24px_-8px_rgba(6,55,40,0.18),0_2px_6px_rgba(6,55,40,0.06)] dark:hover:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.55)]",
       )}
     >
       {/* accent bar */}
@@ -127,7 +127,7 @@ export function StatCard({
       />
 
       <div className="relative flex items-start justify-between gap-3">
-        <span className="text-[13.5px] font-semibold text-[#475467]">{label}</span>
+        <span className="text-[13.5px] font-semibold text-muted-foreground">{label}</span>
         <span
           className="grid size-10 place-items-center rounded-xl"
           style={{
@@ -140,12 +140,12 @@ export function StatCard({
         </span>
       </div>
 
-      <p className="relative mt-3.5 mb-2.5 text-[40px] leading-none font-extrabold tracking-[-0.03em] tabular-nums text-[#0B1712]">
+      <p className="relative mt-3.5 mb-2.5 text-[40px] leading-none font-extrabold tracking-[-0.03em] tabular-nums text-foreground">
         <CountUp value={value} />
       </p>
 
       <div className="relative mt-auto flex flex-wrap items-end justify-between gap-3">
-        <div className="flex flex-col gap-1.5 text-[13px] text-[#667085]">{meta}</div>
+        <div className="flex flex-col gap-1.5 text-[13px] text-muted-foreground">{meta}</div>
         {aside ?? (showSpark ? <Sparkline values={spark} color={accent} /> : null)}
       </div>
     </article>
@@ -166,7 +166,9 @@ export function Pill({
     <span
       className={cn(
         "inline-flex items-center gap-1 self-start rounded-full px-2.5 py-[3px] text-[12.5px] font-semibold",
-        tone === "green" ? "bg-[#DFF7EA] text-[#0F5D44]" : "bg-[#FEE2E2] text-[#DC2626]",
+        tone === "green"
+          ? "bg-[#DFF7EA] text-[#0F5D44] dark:bg-[#1FB86A]/18 dark:text-[#9BEBC0]"
+          : "bg-[#FEE2E2] text-[#DC2626] dark:bg-[#DC2626]/20 dark:text-[#FCA5A5]",
       )}
     >
       {Icon ? <Icon className="size-[13px]" aria-hidden /> : null}

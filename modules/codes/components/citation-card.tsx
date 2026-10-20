@@ -1,9 +1,16 @@
 "use client"
 
 import * as React from "react"
-import { BookOpenIcon, Building2Icon, GlobeIcon, LinkIcon } from "lucide-react"
+import { BookOpenIcon, LinkIcon } from "lucide-react"
 
-import { GridCard, GridCardActions } from "@/components/shared/grid-card"
+import { GridCardActions } from "@/components/shared/grid-card"
+import {
+  LIST_TONES,
+  ListCard,
+  ListCardFooter,
+  StatusPill,
+  TagChip,
+} from "@/components/shared/list-card"
 import { cn } from "@/lib/utils"
 
 export type CitationCardData = {
@@ -32,37 +39,42 @@ export function CitationCard({
   const sourceIsUrl = /^https?:\/\//i.test(citation.source ?? "")
 
   return (
-    <GridCard
-      accent={isCompany ? "bg-primary" : "bg-muted-foreground/40"}
+    <ListCard
+      accent={isCompany ? LIST_TONES.green.bar : LIST_TONES.gray.bar}
+      label={`${citation.code} ${citation.title}`}
       className={cn(!citation.isActive && "opacity-70")}
     >
       <header className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-tint text-primary">
+          <span className="grid size-10 shrink-0 place-items-center rounded-[10px] bg-[#0A3326] text-white">
             <BookOpenIcon className="size-5" aria-hidden />
           </span>
           <div className="flex min-w-0 flex-col">
-            <span className="truncate font-mono text-sm font-semibold tracking-tight text-foreground" title={citation.code}>
+            <span
+              className="truncate font-mono text-sm font-semibold tracking-tight text-foreground"
+              title={citation.code}
+            >
               {citation.code}
             </span>
             <span className="text-xs text-muted-foreground">Building code</span>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
-          <span className="rounded-lg bg-foreground/[0.05] px-2 py-1 font-mono text-xs font-bold tracking-wider text-foreground">
-            {citation.state || "—"}
-          </span>
-          {actions ? <GridCardActions className="mt-0">{actions}</GridCardActions> : null}
+        <div className="flex shrink-0 items-center gap-1.5">
+          <TagChip className="font-mono tracking-wider">{citation.state || "—"}</TagChip>
+          {actions ? <GridCardActions className="mt-0 -mr-1.5">{actions}</GridCardActions> : null}
         </div>
       </header>
 
-      <div className="flex flex-col gap-1.5">
-        <h3 className="line-clamp-2 text-base font-semibold tracking-tight" title={citation.title}>
+      <div className="mt-3 flex flex-col gap-1.5">
+        <h3
+          className="line-clamp-2 text-base font-bold tracking-[-0.02em] text-foreground"
+          title={citation.title}
+        >
           {citation.title}
         </h3>
         <p
           className={cn(
-            "text-sm leading-relaxed whitespace-pre-line text-muted-foreground",
+            "text-[13px] leading-relaxed whitespace-pre-line text-muted-foreground",
             !expanded && "line-clamp-3",
           )}
         >
@@ -72,30 +84,20 @@ export function CitationCard({
           <button
             type="button"
             onClick={() => setExpanded((value) => !value)}
-            className="w-fit text-xs font-semibold text-primary hover:underline"
+            className="w-fit text-xs font-semibold text-primary hover:underline dark:text-[#7ddeb0]"
           >
             {expanded ? "Show less" : "Read more"}
           </button>
         ) : null}
       </div>
 
-      <footer className="mt-auto flex items-center justify-between gap-3 border-t border-border/70 pt-3">
+      <ListCardFooter className="mt-auto">
         <div className="flex flex-wrap items-center gap-1.5">
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-              isCompany ? "bg-primary-tint text-primary" : "bg-foreground/[0.05] text-muted-foreground",
-            )}
-          >
-            {isCompany ? (
-              <Building2Icon className="size-3" aria-hidden />
-            ) : (
-              <GlobeIcon className="size-3" aria-hidden />
-            )}
+          <StatusPill tone={isCompany ? LIST_TONES.green : LIST_TONES.gray}>
             {isCompany ? "Company" : "Platform"}
-          </span>
+          </StatusPill>
           {!citation.isActive ? (
-            <span className="rounded-full bg-warning/14 px-2 py-0.5 text-xs font-medium text-warning">
+            <span className="rounded-full bg-warning/14 px-2.5 py-[3px] text-[12.5px] font-semibold text-warning">
               Inactive
             </span>
           ) : null}
@@ -106,7 +108,7 @@ export function CitationCard({
               href={citation.source}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-w-0 items-center gap-1 text-xs font-medium text-primary hover:underline"
+              className="inline-flex min-w-0 items-center gap-1 text-xs font-medium text-primary hover:underline dark:text-[#7ddeb0]"
             >
               <LinkIcon className="size-3 shrink-0" aria-hidden />
               <span className="truncate">Source</span>
@@ -117,7 +119,7 @@ export function CitationCard({
             </span>
           )
         ) : null}
-      </footer>
-    </GridCard>
+      </ListCardFooter>
+    </ListCard>
   )
 }

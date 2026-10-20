@@ -4,7 +4,7 @@ import * as React from "react"
 import { MoreHorizontalIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { toast } from "@/lib/toast"
 
-import { PageHeader } from "@/components/shared/page-header"
+import { ListPageHero, heroPrimaryButtonClass } from "@/components/shared/list-page-hero"
 import { DataTable, type Column } from "@/components/shared/data-table"
 import { ErrorState, LoadingSkeleton } from "@/components/shared/resource-state"
 import { Button } from "@/components/ui/button"
@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { FormDrawer } from "@/components/shared/form-drawer"
-import { CardGrid, ViewToggle, useListView } from "@/components/shared/grid-card"
+import { LIST_CARD_GRID_CLASS } from "@/components/shared/list-card"
+import { ViewToggle, useListView } from "@/components/shared/grid-card"
 import {
   Dialog,
   DialogContent,
@@ -229,32 +230,32 @@ export default function CodesPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Company admin"
+      <ListPageHero
         title="Codes & standards"
         description="Configure building-code citations used in inspection reports for your company."
         actions={
           canManage ? (
-            <Button variant="default" onClick={openCreate}>
-              <PlusIcon data-icon="inline-start" />
+            <button type="button" onClick={openCreate} className={heroPrimaryButtonClass}>
+              <PlusIcon className="size-4" />
               Add citation
-            </Button>
+            </button>
           ) : null
         }
       />
 
       <DataTable
+        variant="panel"
         data={data}
         columns={columns}
         rowKey={(row) => row.id}
         searchPlaceholder="Search codes…"
         searchKeys={["state", "code", "title", "body"]}
         pageSize={view === "grid" ? 12 : 8}
-        toolbar={<ViewToggle view={view} onChange={changeView} />}
+        toolbar={<ViewToggle view={view} onChange={changeView} variant="soft" />}
         renderGrid={
           view === "grid"
             ? (citations) => (
-                <CardGrid>
+                <div className={LIST_CARD_GRID_CLASS}>
                   {citations.map((citation) => (
                     <CitationCard
                       key={citation.id}
@@ -262,7 +263,7 @@ export default function CodesPage() {
                       actions={renderActions(citation)}
                     />
                   ))}
-                </CardGrid>
+                </div>
               )
             : undefined
         }

@@ -10,6 +10,7 @@ import {
   FileDownIcon,
   FileTextIcon,
   FilterIcon,
+  HistoryIcon,
   MoreHorizontalIcon,
   Share2Icon,
   Undo2Icon,
@@ -208,6 +209,10 @@ export default function ReportsPage() {
             <DropdownMenuItem disabled={!row.pdfUrl} onClick={() => openPdf(row)}>
               Download PDF
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push(ROUTES.company.report(row.id))}>
+              PDF history
+              {row.pdfHistoryCount ? ` (${row.pdfHistoryCount + 1})` : ""}
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem disabled={!jobId} onClick={() => openJob(row)}>
               Open job
@@ -356,7 +361,7 @@ export default function ReportsPage() {
           <Select value={status} onValueChange={(value) => setStatus((value as StatusFilter) || "all")}>
             <SelectTrigger className={LIST_FILTER_TRIGGER_CLASS}>
               <span className="flex items-center gap-2">
-                <FilterIcon className="size-4 text-[#6B7A73]" aria-hidden />
+                <FilterIcon className="size-4 text-muted-foreground" aria-hidden />
                 <SelectValue />
               </span>
             </SelectTrigger>
@@ -542,6 +547,19 @@ export default function ReportsPage() {
                 >
                   <FileDownIcon data-icon="inline-start" />
                   Download PDF
+                </Button>
+                <Button
+                  variant="outline"
+                  nativeButton={false}
+                  render={<Link href={ROUTES.company.report(selected.id)} />}
+                >
+                  <HistoryIcon data-icon="inline-start" />
+                  PDF history
+                  {selected.pdfHistoryCount ? (
+                    <span className="ml-1 rounded-md bg-primary-tint px-1.5 text-xs tabular-nums">
+                      {selected.pdfHistoryCount + 1}
+                    </span>
+                  ) : null}
                 </Button>
                 <Button
                   variant="outline"

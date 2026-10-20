@@ -4,7 +4,14 @@ import * as React from "react"
 import { usePathname } from "next/navigation"
 
 /** Routes where the bar is not rendered. */
-const HIDDEN_ON = new Set(["/"])
+const HIDDEN_ON = new Set([
+  "/",
+  "/features",
+  "/mobile-app",
+  "/how-it-works",
+  "/pricing",
+  "/faq",
+])
 
 /** Same check as the @supports block in globals.css — only one of CSS / JS drives the bar. */
 function supportsScrollTimeline() {
@@ -64,7 +71,7 @@ export function ScrollProgress() {
     }
   }, [pathname])
 
-  // Not shown on the marketing home page.
+  // Hidden on the home page and the marketing pages that don't use a top bar.
   if (HIDDEN_ON.has(pathname)) return null
 
   return <div ref={barRef} className="scroll-progress" aria-hidden="true" />

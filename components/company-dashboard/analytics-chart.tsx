@@ -52,20 +52,20 @@ function ThroughputTooltip({
   const row = payload?.[0]?.payload
   if (!active || !row) return null
   return (
-    <div className="min-w-[150px] rounded-xl border border-[rgba(6,55,40,0.18)] bg-white/75 px-3 py-2.5 text-[12.5px] shadow-[0_8px_24px_-8px_rgba(6,55,40,0.18),0_2px_6px_rgba(6,55,40,0.06)] backdrop-blur-md">
-      <b className="mb-1 block text-[13px] text-[#0B1712]">{row.day}</b>
+    <div className="min-w-[150px] rounded-xl border border-border bg-card/90 px-3 py-2.5 text-[12.5px] shadow-[0_8px_24px_-8px_rgba(6,55,40,0.18),0_2px_6px_rgba(6,55,40,0.06)] backdrop-blur-md dark:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.55)]">
+      <b className="mb-1 block text-[13px] text-foreground">{row.day}</b>
       {(
         [
           ["Automated", row.automated, COLORS.automated],
           ["Reviews", row.reviews, COLORS.reviews],
         ] as const
       ).map(([label, value, color]) => (
-        <div key={label} className="flex justify-between gap-4 text-[#475467]">
+        <div key={label} className="flex justify-between gap-4 text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <i className="inline-block size-2 rounded-[2px]" style={{ background: color }} />
             {label}
           </span>
-          <strong className="tabular-nums text-[#0B1712]">{value}</strong>
+          <strong className="tabular-nums text-foreground">{value}</strong>
         </div>
       ))}
     </div>
@@ -82,16 +82,16 @@ export function AnalyticsChart({ monthly }: { monthly?: MonthlyTrendPoint[] }) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "0px 0px -10% 0px" }}
       transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1] }}
-      className="flex h-full min-w-0 flex-col rounded-2xl border border-[rgba(6,55,40,0.10)] bg-white shadow-[0_1px_2px_rgba(6,55,40,0.06),0_1px_3px_rgba(6,55,40,0.05)]"
+      className="flex h-full min-w-0 flex-col rounded-2xl border border-border bg-card shadow-[0_1px_2px_rgba(6,55,40,0.06),0_1px_3px_rgba(6,55,40,0.05)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
     >
       <div className="flex flex-wrap items-start justify-between gap-4 px-[22px] pt-5">
         <div>
-          <h3 id="throughput-title" className="m-0 text-[17px] font-bold tracking-[-0.01em] text-[#0B1712]">
+          <h3 id="throughput-title" className="m-0 text-[17px] font-bold tracking-[-0.01em] text-foreground">
             Weekly Job &amp; Inspection Throughput
           </h3>
-          <p className="mt-0.5 text-[13.5px] text-[#667085]">Aggregate executions and verification logs.</p>
+          <p className="mt-0.5 text-[13.5px] text-muted-foreground">Aggregate executions and verification logs.</p>
         </div>
-        <div className="flex flex-wrap gap-4 text-[13px] text-[#475467]">
+        <div className="flex flex-wrap gap-4 text-[13px] text-muted-foreground">
           <span className="inline-flex items-center gap-[7px]">
             <i className="size-2.5 rounded-[3px]" style={{ background: COLORS.automated }} />
             Automated Jobs
@@ -111,13 +111,13 @@ export function AnalyticsChart({ monthly }: { monthly?: MonthlyTrendPoint[] }) {
             barGap={6}
             accessibilityLayer
           >
-            <CartesianGrid vertical={false} stroke="rgba(6,55,40,0.10)" strokeDasharray="3 4" />
+            <CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 4" />
             <XAxis
               dataKey="day"
               tickLine={false}
               axisLine={false}
               tickMargin={12}
-              tick={{ fill: "#667085", fontSize: 12 }}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
             />
             <YAxis
               width={30}
@@ -125,7 +125,7 @@ export function AnalyticsChart({ monthly }: { monthly?: MonthlyTrendPoint[] }) {
               axisLine={false}
               tickMargin={6}
               allowDecimals={false}
-              tick={{ fill: "#667085", fontSize: 12 }}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
             />
             <Tooltip
               content={<ThroughputTooltip />}
@@ -164,11 +164,11 @@ export function AnalyticsChart({ monthly }: { monthly?: MonthlyTrendPoint[] }) {
         </ChartContainer>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[rgba(6,55,40,0.10)] px-[22px] py-3.5 text-[13px] text-[#667085]">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-[22px] py-3.5 text-[13px] text-muted-foreground">
         <span>Peak system throughput mid-week during inspection windows</span>
         <Link
           href={ROUTES.company.analytics}
-          className="group inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-[#16A34A]"
+          className="group inline-flex items-center gap-1.5 text-[13.5px] font-semibold text-[#16A34A] dark:text-[#7ddeb0]"
         >
           View analytics
           <ArrowRightIcon className="size-3.5 transition-transform duration-200 group-hover:translate-x-[3px]" />

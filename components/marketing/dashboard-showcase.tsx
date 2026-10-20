@@ -166,7 +166,7 @@ export function DashboardShowcase() {
             <Button
               size="lg"
               variant="outline"
-              className="h-12 rounded-full border-primary-dark/20 bg-white/60 px-6 text-primary-dark hover:bg-white"
+              className="h-12 rounded-full border-primary-dark/20 bg-white/60 px-6 text-primary-dark hover:bg-white dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
               render={<Link href="/login?role=platform" />}
             >
               Platform admin login
@@ -250,7 +250,7 @@ function FloatingCard({
   const scale = useTransform(progress, stops, out ? [0.94, 1, 1, 0.97] : [0.94, 1])
   return (
     <motion.div style={{ opacity, y, scale }} className={`absolute z-10 ${className ?? ""}`}>
-      <div className="flex items-center gap-3 rounded-2xl border border-black/[0.04] bg-white/90 px-3.5 py-3 shadow-[0_24px_48px_-24px_rgba(6,55,40,0.4),0_2px_6px_rgba(6,55,40,0.05)] backdrop-blur">
+      <div className="flex items-center gap-3 rounded-2xl border border-black/[0.04] bg-white/90 px-3.5 py-3 shadow-[0_24px_48px_-24px_rgba(6,55,40,0.4),0_2px_6px_rgba(6,55,40,0.05)] backdrop-blur dark:border-white/10 dark:bg-[#13241c]/90 dark:shadow-[0_24px_48px_-24px_rgba(0,0,0,0.55)]">
         {children}
       </div>
     </motion.div>

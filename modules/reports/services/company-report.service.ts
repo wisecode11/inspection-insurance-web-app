@@ -1,7 +1,7 @@
 import { apiClient } from "@/lib/api/client"
 import { endpoints } from "@/lib/api/endpoints"
 import { unwrap } from "@/lib/api/unwrap"
-import type { CompanyReport } from "@/modules/reports/types/report.types"
+import type { CompanyReport, ReportPdfVersion } from "@/modules/reports/types/report.types"
 
 export type EvidenceShare = {
   id: string
@@ -55,6 +55,21 @@ export const companyReportService = {
   async share(id: string) {
     const response = await apiClient.post(endpoints.reports.shareById(id), {})
     return unwrap<{ share: EvidenceShare; report: CompanyReport }>(response.data)
+  },
+
+  /** All PDFs this report has held, newest first. */
+  async pdfVersions(id: string) {
+    const response = await apiClient.get(endpoints.reports.pdfVersions(id))
+    return unwrap<{ report: CompanyReport; versions: ReportPdfVersion[] }>(response.data)
+  },
+
+  /** One PDF version's bytes (authenticated request, so it works for older versions too). */
+  async pdfVersionBlob(id: string, version: number) {
+    const response = await apiClient.get<Blob>(endpoints.reports.pdfVersion(id, version), {
+      responseType: "blob",
+      timeout: 120000,
+    })
+    return response.data
   },
 
   async generateForJob(jobId: string, narrative?: string) {

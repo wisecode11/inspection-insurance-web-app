@@ -53,11 +53,11 @@ export function StaffCard({
         <div className="flex min-w-0 items-center gap-3">
           <SquareAvatar
             initials={initialsOf(member.name)}
-            className={cn("size-10 rounded-xl text-[13px]", inactive && "bg-[#8A9892]")}
+            className={cn("size-10 rounded-xl text-[13px]", inactive && "bg-muted-foreground")}
           />
           <div className="min-w-0">
             <h3
-              className="truncate text-base font-bold tracking-[-0.02em] text-[#0E1B16] capitalize"
+              className="truncate text-base font-bold tracking-[-0.02em] text-foreground capitalize"
               title={member.name}
             >
               {member.name}
@@ -73,17 +73,17 @@ export function StaffCard({
         {actions ? <GridCardActions className="mt-0 -mr-1.5">{actions}</GridCardActions> : null}
       </header>
 
-      <div className="mt-3 flex flex-col gap-1 text-[13px] text-[#5B6B64]">
+      <div className="mt-3 flex flex-col gap-1 text-[13px] text-muted-foreground">
         <a
           href={`mailto:${member.email}`}
           onClick={(event) => event.stopPropagation()}
-          className="flex min-w-0 items-center gap-1.5 hover:text-[#14965A]"
+          className="flex min-w-0 items-center gap-1.5 hover:text-primary dark:hover:text-[#7ddeb0]"
         >
-          <MailIcon className="size-3.5 shrink-0 text-[#8A9892]" aria-hidden />
+          <MailIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
           <span className="truncate">{member.email}</span>
         </a>
         <span className="flex items-center gap-1.5">
-          <PhoneIcon className="size-3.5 shrink-0 text-[#8A9892]" aria-hidden />
+          <PhoneIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
           {member.profile?.phone || "No phone"}
         </span>
       </div>
@@ -97,12 +97,12 @@ export function StaffCard({
       <ListCardFooter className="mt-auto">
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-[#6B7A73]">Completion rate</span>
-            <span className="font-semibold tabular-nums text-[#0E1B16]">
+            <span className="text-muted-foreground">Completion rate</span>
+            <span className="font-semibold tabular-nums text-foreground">
               {completion != null ? `${completion}%` : "—"}
             </span>
           </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-[#EEF2EF]">
+          <div className="h-1.5 overflow-hidden rounded-full bg-muted">
             <div
               className="h-full rounded-full bg-linear-to-r from-[#1FB86A] to-[#3DD388] transition-[width] duration-500"
               style={{ width: `${Math.min(100, Math.max(0, completion ?? 0))}%` }}

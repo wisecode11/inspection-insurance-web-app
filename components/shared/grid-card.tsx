@@ -57,7 +57,7 @@ export function ViewToggle({
       className={cn(
         "inline-flex h-10 shrink-0 items-center gap-0.5 p-1",
         soft
-          ? "rounded-xl bg-[#F1F4F2]"
+          ? "rounded-xl bg-muted"
           : "rounded-[var(--button-radius)] bg-card ring-1 ring-primary/15",
       )}
     >
@@ -72,8 +72,8 @@ export function ViewToggle({
             soft ? "rounded-[9px]" : "rounded-[calc(var(--button-radius)-2px)]",
             soft
               ? view === option.value
-                ? "bg-white font-semibold text-[#0E1B16] shadow-[0_1px_2px_rgba(14,27,22,0.08),0_2px_6px_-2px_rgba(14,27,22,0.1)]"
-                : "text-[#6B7A73] hover:text-[#0E1B16]"
+                ? "bg-card font-semibold text-foreground shadow-[0_1px_2px_rgba(14,27,22,0.08),0_2px_6px_-2px_rgba(14,27,22,0.1)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.35)]"
+                : "text-muted-foreground hover:text-foreground"
               : view === option.value
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:bg-primary-tint hover:text-primary-dark",

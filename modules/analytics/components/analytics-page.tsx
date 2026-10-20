@@ -9,7 +9,7 @@ import {
   TimerIcon,
 } from "lucide-react"
 
-import { PageHeader } from "@/components/shared/page-header"
+import { ListPageHero } from "@/components/shared/list-page-hero"
 import { DataTable, type Column } from "@/components/shared/data-table"
 import { KpiCard } from "@/components/shared/kpi-card"
 import {
@@ -85,14 +85,13 @@ export default function AnalyticsPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Company admin"
+      <ListPageHero
         title="Company analytics"
         description="Job, inspector, and report metrics for your company."
       />
 
-      <section className="space-y-3">
-        <h2 className="text-sm font-medium text-muted-foreground">Job analytics</h2>
+      <section className="relative z-10 space-y-3">
+        {/* <h2 className="text-sm font-medium text-muted-foreground">Job analytics</h2> */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <KpiCard
             tilt
@@ -153,7 +152,7 @@ export default function AnalyticsPage() {
         </div>
       </section>
 
-      <section className="mt-8 space-y-3">
+      <section className="relative z-10 mt-8 space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Inspector analytics</h2>
         <Card>
           <CardHeader>
@@ -178,7 +177,7 @@ export default function AnalyticsPage() {
         </Card>
       </section>
 
-      <section className="mt-8 space-y-3">
+      <section className="relative z-10 mt-8 space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Report analytics</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <KpiCard

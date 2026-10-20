@@ -88,7 +88,7 @@ function MenuItemIcon({ item }: { item: NavItem }) {
     <item.icon className="size-4 text-[#0A4B37]" />
   )
   const kind = ITEM_ICONS_THREE[item.href]
-  return kind ? <NavIcon3D kind={kind} size={22} tone="light" fallback={flat} /> : flat
+  return kind ? <NavIcon3D kind={kind} size={22} fallback={flat} /> : flat
 }
 
 /** Links sit above the sliding pill; colour shifts to white on hover/active. */
@@ -244,7 +244,7 @@ export function TopNav({ badgeCount = 0 }: { badgeCount?: number }) {
             <DropdownMenuContent
               align="start"
               sideOffset={12}
-              className="min-w-[14rem] rounded-xl border border-[#E6E9E7] bg-white p-1.5 shadow-[0_12px_40px_-12px_rgba(16,24,40,0.18)]"
+              className="min-w-[14rem] rounded-xl border border-border bg-popover p-1.5 shadow-[0_12px_40px_-12px_rgba(16,24,40,0.18)] dark:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.55)]"
             >
               {group.items.map((item) => {
                 const itemActive = pathMatches(pathname, item.href)
@@ -254,7 +254,7 @@ export function TopNav({ badgeCount = 0 }: { badgeCount?: number }) {
                     data-icon-host
                     className={cn(
                       "cursor-pointer gap-2.5 rounded-lg px-2.5 py-2.5 text-sm",
-                      itemActive && "bg-[#E8F5EF] font-medium text-[#063728]",
+                      itemActive && "bg-primary/10 font-medium text-primary dark:text-[#9BEBC0]",
                     )}
                     render={<Link href={item.href} />}
                   >

@@ -348,6 +348,39 @@
   }
 }
 
+:global(.dark) .points {
+  border-top-color: rgba(232, 246, 238, 0.14);
+}
+:global(.dark) .points li {
+  color: #c5d6cc;
+}
+:global(.dark) .label {
+  color: #7ddeb0;
+  border-color: rgba(125, 222, 176, 0.35);
+}
+:global(.dark) .p {
+  color: #b7c9bf;
+}
+:global(.dark) .count {
+  color: #8fa89c;
+}
+:global(.dark) .count b {
+  color: #f3faf6;
+}
+:global(.dark) .segs i {
+  background: rgba(232, 246, 238, 0.12);
+}
+:global(.dark) .card3 {
+  background:
+    radial-gradient(70% 60% at 100% 0%, rgba(31, 184, 106, 0.22), transparent 65%),
+    linear-gradient(160deg, #143028, #0c1c16);
+  color: #f3faf6;
+  --line: rgba(125, 222, 176, 0.2);
+  --soft: rgba(232, 246, 238, 0.72);
+  --dot: rgba(232, 246, 238, 0.07);
+  --em: #7ddeb0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card *,
   .card::after {

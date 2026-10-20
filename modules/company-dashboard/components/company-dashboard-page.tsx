@@ -54,7 +54,7 @@ function AvatarGroup({
       {names.map((name, i) => (
         <span
           key={i}
-          className={`grid size-8 place-items-center rounded-full text-[11px] font-bold tracking-[0.02em] ring-2 ring-white ${i > 0 ? "-ml-2" : ""} ${AVATAR_TONES[i % AVATAR_TONES.length]}`}
+          className={`grid size-8 place-items-center rounded-full text-[11px] font-bold tracking-[0.02em] ring-2 ring-card ${i > 0 ? "-ml-2" : ""} ${AVATAR_TONES[i % AVATAR_TONES.length]}`}
         >
           {name}
         </span>
@@ -140,8 +140,8 @@ export default function CompanyDashboardPage() {
         className="mt-7 mb-3.5 flex flex-wrap items-end justify-between gap-3"
       >
         <div>
-          <h2 className="m-0 text-2xl font-bold tracking-[-0.025em] text-[#0E1B16]">Key metrics</h2>
-          <p className="mt-0.5 text-sm text-[#6B7A73]">{rangeLabel}</p>
+          <h2 className="m-0 text-2xl font-bold tracking-[-0.025em] text-foreground">Key metrics</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">{rangeLabel}</p>
         </div>
         <DashboardRangeSelect value={range} onChange={setRange} />
       </motion.div>
@@ -209,7 +209,7 @@ export default function CompanyDashboardPage() {
             overview.pendingReviews > 0 ? (
               <Link
                 href={ROUTES.company.reports}
-                className="group/link inline-flex items-center gap-1 text-[13.5px] font-semibold text-[#D97706]"
+                className="group/link inline-flex items-center gap-1 text-[13.5px] font-semibold text-[#D97706] dark:text-[#FBBF24]"
               >
                 Review
                 <ArrowRightIcon className="size-3.5 transition-transform duration-200 group-hover/link:translate-x-[3px]" />
@@ -225,7 +225,7 @@ export default function CompanyDashboardPage() {
           meta={
             overview.reportsSubmitted > 0 ? (
               <>
-                <span className="font-semibold text-[#0F9488]">↗ +18% vs monthly target</span>
+                <span className="font-semibold text-[#0F9488] dark:text-[#5EEAD4]">↗ +18% vs monthly target</span>
                 <span>Compliance 100%</span>
               </>
             ) : (

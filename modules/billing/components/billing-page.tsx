@@ -47,10 +47,12 @@ function periodProgress(start: string | null | undefined, end: string | null | u
 }
 
 const PILL_TONES = {
-  green: "bg-[#E3F6EC] text-[#14965A] [&>i]:bg-[#1FB86A]",
-  amber: "bg-[#FFF4E2] text-[#C2700A] [&>i]:bg-[#D9820F]",
-  red: "bg-[#FDECEC] text-[#DC2626] [&>i]:bg-[#DC2626]",
-  gray: "bg-[#F1F4F2] text-[#6B7A73] [&>i]:bg-[#8A9892]",
+  green:
+    "bg-[#E3F6EC] text-[#14965A] [&>i]:bg-[#1FB86A] dark:bg-[#1FB86A]/18 dark:text-[#9BEBC0]",
+  amber:
+    "bg-[#FFF4E2] text-[#C2700A] [&>i]:bg-[#D9820F] dark:bg-[#D9820F]/18 dark:text-[#FBBF24]",
+  red: "bg-[#FDECEC] text-[#DC2626] [&>i]:bg-[#DC2626] dark:bg-[#DC2626]/20 dark:text-[#FCA5A5]",
+  gray: "bg-muted text-muted-foreground [&>i]:bg-muted-foreground",
 } as const
 
 function subscriptionTone(status: string): keyof typeof PILL_TONES {
@@ -91,10 +93,13 @@ function StatusPill({
 }
 
 const panelClass =
-  "rounded-3xl border border-[#E4EBE7] bg-white p-6 shadow-[0_1px_2px_rgba(14,27,22,0.04),0_12px_32px_-22px_rgba(14,27,22,0.22)] sm:p-7"
+  "rounded-3xl border border-border bg-card p-6 shadow-[0_1px_2px_rgba(14,27,22,0.04),0_12px_32px_-22px_rgba(14,27,22,0.22)] sm:p-7 dark:shadow-[0_1px_2px_rgba(0,0,0,0.35),0_12px_32px_-22px_rgba(0,0,0,0.55)]"
 
 const iconTileClass =
-  "grid size-10 shrink-0 place-items-center rounded-xl border border-[#DCEFE3] bg-[#F1FBF5] text-[#155A45]"
+  "grid size-10 shrink-0 place-items-center rounded-xl border border-primary/20 bg-primary/10 text-primary dark:border-[#1FB86A]/35 dark:bg-[#1FB86A]/15 dark:text-[#9BEBC0]"
+
+const emptyPanelClass =
+  "rounded-2xl border border-dashed border-border bg-muted/50 px-5 py-6 text-sm text-muted-foreground"
 
 function PanelHead({
   title,
@@ -108,8 +113,8 @@ function PanelHead({
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="min-w-0">
-        <h2 className="text-lg font-semibold tracking-[-0.01em] text-[#0E1B16]">{title}</h2>
-        <p className="mt-0.5 text-sm text-[#6B7A73]">{description}</p>
+        <h2 className="text-lg font-semibold tracking-[-0.01em] text-foreground">{title}</h2>
+        <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
       </div>
       <span className={iconTileClass} aria-hidden>
         <Icon className="size-[18px]" />
@@ -120,13 +125,13 @@ function PanelHead({
 
 function DateTile({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-3.5 rounded-2xl border border-[#E4EBE7] bg-white px-4 py-3.5">
-      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-[#F4F7F5] text-[#3B4A44]">
+    <div className="flex items-center gap-3.5 rounded-2xl border border-border bg-card px-4 py-3.5">
+      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
         <Icon className="size-[18px]" />
       </span>
       <div className="min-w-0">
-        <p className="text-[13px] text-[#6B7A73]">{label}</p>
-        <p className="mt-0.5 text-[17px] font-semibold tabular-nums text-[#0E1B16]">{value}</p>
+        <p className="text-[13px] text-muted-foreground">{label}</p>
+        <p className="mt-0.5 text-[17px] font-semibold tabular-nums text-foreground">{value}</p>
       </div>
     </div>
   )
@@ -210,14 +215,14 @@ export default function BillingPage() {
     <div className="flex flex-col gap-8">
       {/* Title */}
       <header>
-        <span className="inline-flex items-center gap-2 rounded-full border border-[#CDE8D6] bg-[#EDF8F1] px-3 py-1.5 text-[11px] font-bold tracking-[0.14em] text-[#155A45] uppercase">
+        <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-[11px] font-bold tracking-[0.14em] text-primary uppercase dark:border-[#1FB86A]/35 dark:bg-[#1FB86A]/15 dark:text-[#9BEBC0]">
           <span className="size-1.5 rounded-full bg-[#1FB86A]" />
           Company admin
         </span>
-        <h1 className="mt-3 text-[clamp(32px,3.4vw,46px)] leading-[1.05] font-bold tracking-[-0.035em] text-[#0E1B16]">
+        <h1 className="mt-3 text-[clamp(32px,3.4vw,46px)] leading-[1.05] font-bold tracking-[-0.035em] text-foreground">
           Subscription
         </h1>
-        <p className="mt-3 text-[15px] text-[#5B6B64] sm:text-base">
+        <p className="mt-3 text-[15px] text-muted-foreground sm:text-base">
           Your active plan, card on file, and invoices. Renewals run automatically via Stripe.
         </p>
       </header>
@@ -227,15 +232,18 @@ export default function BillingPage() {
         <section className={panelClass}>
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <h2 className="text-lg font-semibold tracking-[-0.01em] text-[#0E1B16]">Active subscription</h2>
-              <p className="mt-0.5 text-sm text-[#6B7A73]">Current plan synced from Stripe.</p>
+              <h2 className="text-lg font-semibold tracking-[-0.01em] text-foreground">Active subscription</h2>
+              <p className="mt-0.5 text-sm text-muted-foreground">Current plan synced from Stripe.</p>
             </div>
             <button
               type="button"
               onClick={() => void refresh()}
               aria-label="Refresh subscription"
               aria-busy={refreshing}
-              className={cn(iconTileClass, "transition-colors hover:border-[#1FB86A] hover:text-[#1FB86A]")}
+              className={cn(
+                iconTileClass,
+                "transition-colors hover:border-[#1FB86A] hover:text-[#1FB86A]",
+              )}
             >
               <RefreshCwIcon
                 className="size-[18px] transition-transform duration-600 ease-[cubic-bezier(.2,.8,.2,1)]"
@@ -245,12 +253,12 @@ export default function BillingPage() {
           </div>
 
           <div className="mt-5 flex flex-wrap items-center gap-3">
-            <p className="text-[clamp(36px,4vw,52px)] leading-none font-extrabold tracking-[-0.04em] text-[#155A45]">
+            <p className="text-[clamp(36px,4vw,52px)] leading-none font-extrabold tracking-[-0.04em] text-primary dark:text-[#9BEBC0]">
               {sub?.plan?.name || "No active plan"}
             </p>
             <StatusPill tone={subscriptionTone(status)}>{status.replaceAll("_", " ")}</StatusPill>
             {sub?.interval ? (
-              <span className="rounded-full bg-[#F1F4F2] px-3 py-1 text-[13px] font-semibold text-[#3B4A44] capitalize">
+              <span className="rounded-full bg-muted px-3 py-1 text-[13px] font-semibold text-foreground/80 capitalize">
                 {sub.interval}
               </span>
             ) : null}
@@ -260,8 +268,8 @@ export default function BillingPage() {
           {sub ? (
             <>
               {/* Billing period */}
-              <div className="mt-6 rounded-2xl border border-[#E4EBE7] bg-[#F7F9F8] px-5 pt-4 pb-5 sm:px-7">
-                <div className="flex items-center justify-between text-xs font-semibold tracking-[0.12em] text-[#6B7A73] uppercase">
+              <div className="mt-6 rounded-2xl border border-border bg-muted/50 px-5 pt-4 pb-5 sm:px-7">
+                <div className="flex items-center justify-between text-xs font-semibold tracking-[0.12em] text-muted-foreground uppercase">
                   Period
                   <ArrowRightIcon className="size-3.5" aria-hidden />
                 </div>
@@ -273,15 +281,15 @@ export default function BillingPage() {
                   aria-valuemin={0}
                   aria-valuemax={100}
                 >
-                  <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-[#DCE4DF]" />
+                  <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-border" />
                   <div
                     className="absolute top-1/2 left-0 h-1.5 -translate-y-1/2 rounded-full bg-linear-to-r from-[#3DD388] to-[#155A45] transition-[width] duration-700"
                     style={{ width: `${progress}%` }}
                   />
-                  <span className="absolute top-1/2 left-0 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-[#1FB86A] bg-white" />
-                  <span className="absolute top-1/2 right-0 size-5 translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-[#0A3326] bg-white" />
+                  <span className="absolute top-1/2 left-0 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-[#1FB86A] bg-card" />
+                  <span className="absolute top-1/2 right-0 size-5 translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-[#0A3326] bg-card dark:border-[#9BEBC0]" />
                 </div>
-                <div className="mt-3 flex items-center justify-between text-lg font-semibold tabular-nums text-[#0E1B16]">
+                <div className="mt-3 flex items-center justify-between text-lg font-semibold tabular-nums text-foreground">
                   <span>{formatDate(sub.currentPeriodStart)}</span>
                   <span>{formatDate(sub.currentPeriodEnd)}</span>
                 </div>
@@ -301,7 +309,7 @@ export default function BillingPage() {
               </div>
             </>
           ) : (
-            <p className="mt-6 rounded-2xl border border-dashed border-[#DCE4DF] bg-[#F7F9F8] px-5 py-6 text-sm text-[#6B7A73]">
+            <p className={cn("mt-6", emptyPanelClass)}>
               No active subscription yet. Choose a plan to start your trial.
             </p>
           )}
@@ -314,34 +322,34 @@ export default function BillingPage() {
             <div
               className={cn(
                 "mt-5 flex flex-wrap items-center gap-4 rounded-2xl border p-4",
-                hasCard ? "border-[#E4EBE7] bg-white" : "border-dashed border-[#D3DED8]",
+                hasCard ? "border-border bg-card" : "border-dashed border-border bg-muted/40",
               )}
               style={
                 hasCard
                   ? undefined
                   : {
-                      background:
-                        "repeating-linear-gradient(-45deg, #FAFBFA, #FAFBFA 10px, #F3F6F4 10px, #F3F6F4 20px)",
+                      backgroundImage:
+                        "repeating-linear-gradient(-45deg, transparent, transparent 10px, color-mix(in oklab, var(--muted) 80%, transparent) 10px, color-mix(in oklab, var(--muted) 80%, transparent) 20px)",
                     }
               }
             >
-              <span className="grid h-9 w-12 shrink-0 place-items-center rounded-lg border border-[#DCE4DF] bg-white text-[#6B7A73]">
+              <span className="grid h-9 w-12 shrink-0 place-items-center rounded-lg border border-border bg-card text-muted-foreground">
                 <CreditCardIcon className="size-[18px]" />
               </span>
               <div className="min-w-0 flex-1">
                 {hasCard ? (
                   <>
-                    <p className="truncate text-[15px] font-semibold text-[#0E1B16] capitalize">
+                    <p className="truncate text-[15px] font-semibold text-foreground capitalize">
                       {card?.brand} ···· {card?.last4}
                     </p>
                     {card?.expMonth && card?.expYear ? (
-                      <p className="text-[13px] text-[#6B7A73] tabular-nums">
+                      <p className="text-[13px] text-muted-foreground tabular-nums">
                         Expires {String(card.expMonth).padStart(2, "0")}/{card.expYear}
                       </p>
                     ) : null}
                   </>
                 ) : (
-                  <p className="text-[15px] font-semibold text-[#3B4A44]">No card on file yet</p>
+                  <p className="text-[15px] font-semibold text-foreground/80">No card on file yet</p>
                 )}
               </div>
               <button
@@ -360,9 +368,7 @@ export default function BillingPage() {
           <section className={panelClass}>
             <PanelHead title="Invoice history" description="Invoices from Stripe." icon={FileTextIcon} />
             {invoices.length === 0 ? (
-              <p className="mt-5 rounded-2xl border border-dashed border-[#DCE4DF] bg-[#F7F9F8] px-4 py-5 text-sm text-[#6B7A73]">
-                No invoices yet.
-              </p>
+              <p className={cn("mt-5 px-4 py-5", emptyPanelClass)}>No invoices yet.</p>
             ) : (
               <ul className="mt-5 flex flex-col gap-3">
                 {invoices.map((invoice) => {
@@ -370,25 +376,25 @@ export default function BillingPage() {
                   return (
                     <li
                       key={invoice.id}
-                      className="flex items-center gap-3.5 rounded-2xl border border-[#E4EBE7] bg-white px-4 py-3.5"
+                      className="flex items-center gap-3.5 rounded-2xl border border-border bg-card px-4 py-3.5"
                     >
-                      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-[#F1FBF5] text-[#155A45]">
+                      <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary dark:bg-[#1FB86A]/15 dark:text-[#9BEBC0]">
                         <FileTextIcon className="size-[18px]" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[15px] font-semibold text-[#0E1B16]">
+                        <p className="truncate text-[15px] font-semibold text-foreground">
                           {invoice.number || invoice.id}
                         </p>
                         <div className="mt-1 flex flex-wrap items-center gap-2">
                           <StatusPill tone={invoiceTone(invoice.status)} className="px-2 py-0.5 text-xs">
                             {invoice.status}
                           </StatusPill>
-                          <span className="text-[13px] text-[#6B7A73] tabular-nums">
+                          <span className="text-[13px] text-muted-foreground tabular-nums">
                             {formatDate(invoice.createdAt)}
                           </span>
                         </div>
                       </div>
-                      <p className="shrink-0 text-lg font-bold tabular-nums text-[#0E1B16]">
+                      <p className="shrink-0 text-lg font-bold tabular-nums text-foreground">
                         {formatMoney(invoice.total, invoice.currency)}
                       </p>
                       {downloadUrl ? (
@@ -398,13 +404,13 @@ export default function BillingPage() {
                           rel="noopener noreferrer"
                           download
                           aria-label={`Download invoice ${invoice.number || invoice.id}`}
-                          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-[#DCE4DF] px-2.5 text-[13px] font-semibold text-[#155A45] transition-colors hover:border-[#1FB86A] hover:bg-[#F1FBF5]"
+                          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-border px-2.5 text-[13px] font-semibold text-primary transition-colors hover:border-[#1FB86A] hover:bg-primary/10 dark:text-[#9BEBC0] dark:hover:bg-[#1FB86A]/15"
                         >
                           <DownloadIcon className="size-3.5" />
                           PDF
                         </a>
                       ) : (
-                        <span className="shrink-0 rounded-lg bg-[#F1F4F2] px-2.5 py-1 text-[13px] text-[#8A9892]">
+                        <span className="shrink-0 rounded-lg bg-muted px-2.5 py-1 text-[13px] text-muted-foreground">
                           No file
                         </span>
                       )}

@@ -60,7 +60,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "group/row border-b border-[#EEF2EF] bg-white transition-colors duration-150 hover:bg-[#F3FAF6] has-aria-expanded:bg-[#F3FAF6] data-[state=selected]:bg-[#E3F6EC]",
+        "group/row border-b border-border bg-card transition-colors duration-150 hover:bg-primary/5 has-aria-expanded:bg-primary/5 data-[state=selected]:bg-primary/10 dark:hover:bg-primary/10 dark:has-aria-expanded:bg-primary/10 dark:data-[state=selected]:bg-primary/15",
         className
       )}
       {...props}
@@ -86,7 +86,7 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
     <td
       data-slot="table-cell"
       className={cn(
-        "px-4 py-3 align-middle font-normal whitespace-nowrap text-[#3B4A44] transition-shadow duration-150 first:group-hover/row:shadow-[inset_3px_0_0_#1FB86A] [&:has([role=checkbox])]:pr-0",
+        "px-4 py-3 align-middle font-normal whitespace-nowrap text-foreground/80 transition-shadow duration-150 first:group-hover/row:shadow-[inset_3px_0_0_#1FB86A] [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}

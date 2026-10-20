@@ -164,7 +164,7 @@ export function DataTable<T>({
           className={cn(
             "flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-stretch sm:gap-3",
             panel &&
-              "relative z-10 rounded-2xl border border-[#E4EBE7] bg-white p-2 shadow-[0_1px_2px_rgba(14,27,22,0.04),0_16px_36px_-20px_rgba(6,36,27,0.35)] sm:items-center sm:gap-2 sm:pl-3",
+              "relative z-10 rounded-2xl border border-border bg-card p-2 shadow-[0_1px_2px_rgba(14,27,22,0.04),0_16px_36px_-20px_rgba(6,36,27,0.35)] sm:items-center sm:gap-2 sm:pl-3 dark:shadow-[0_1px_2px_rgba(0,0,0,0.35),0_16px_36px_-20px_rgba(0,0,0,0.55)]",
           )}
         >
           {searchable ? (
@@ -176,8 +176,7 @@ export function DataTable<T>({
             >
               <SearchIcon
                 className={cn(
-                  "pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2",
-                  panel ? "text-[#6B7A73]" : "text-muted-foreground",
+                  "pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground",
                 )}
               />
               <Input
@@ -190,7 +189,7 @@ export function DataTable<T>({
                 className={cn(
                   "h-10 w-full bg-card pl-9",
                   panel &&
-                    "h-11 border-0 bg-transparent pl-10 text-[15px] shadow-none placeholder:text-[#7B8A83] focus-visible:ring-0",
+                    "h-11 border-0 bg-transparent pl-10 text-[15px] shadow-none placeholder:text-muted-foreground focus-visible:ring-0",
                 )}
               />
             </div>
@@ -205,14 +204,14 @@ export function DataTable<T>({
 
       {renderGrid ? (
         paged.length === 0 ? (
-          <div className="rounded-2xl border border-[#E4EBE7] bg-white shadow-[0_1px_2px_rgba(14,27,22,0.04),0_12px_32px_-22px_rgba(14,27,22,0.22)]">
+          <div className="rounded-2xl border border-border bg-card shadow-[0_1px_2px_rgba(14,27,22,0.04),0_12px_32px_-22px_rgba(14,27,22,0.22)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
             {emptyContent}
           </div>
         ) : (
           renderGrid(paged)
         )
       ) : (
-      <div className="overflow-hidden rounded-md border border-[#E4EBE7] bg-white shadow-[0_1px_2px_rgba(14,27,22,0.04),0_12px_32px_-22px_rgba(14,27,22,0.22)]">
+      <div className="overflow-hidden rounded-md border border-border bg-card shadow-[0_1px_2px_rgba(14,27,22,0.04),0_12px_32px_-22px_rgba(14,27,22,0.22)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
@@ -266,7 +265,7 @@ export function DataTable<T>({
                       : String((row as { id?: string }).id ?? index)
                   }
                   onClick={onRowClick ? () => onRowClick(row) : undefined}
-                  className={cn(onRowClick && "cursor-pointer hover:bg-[#EEF8F2]")}
+                  className={cn(onRowClick && "cursor-pointer hover:bg-primary/5 dark:hover:bg-primary/10")}
                 >
                   {columns.map((col) => (
                     <TableCell
@@ -295,26 +294,26 @@ export function DataTable<T>({
 
       {sorted.length > pageSize && panel && (
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <p className="text-sm text-[#6B7A73]">
+          <p className="text-sm text-muted-foreground">
             Showing{" "}
-            <b className="font-semibold text-[#0E1B16] tabular-nums">
+            <b className="font-semibold text-foreground tabular-nums">
               {currentPage * pageSize + 1}–{Math.min((currentPage + 1) * pageSize, sorted.length)}
             </b>{" "}
-            of <b className="font-semibold text-[#0E1B16] tabular-nums">{sorted.length}</b>
+            of <b className="font-semibold text-foreground tabular-nums">{sorted.length}</b>
           </p>
           <nav aria-label="Pagination" className="flex items-center gap-1.5">
             <button
               type="button"
               disabled={currentPage === 0}
               onClick={() => setPage((p) => Math.max(0, p - 1))}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-[#E4EBE7] bg-white px-3.5 text-sm font-semibold text-[#0E1B16] transition-colors hover:border-[#1FB86A] disabled:pointer-events-none disabled:bg-transparent disabled:text-[#A6B2AC]"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 text-sm font-semibold text-foreground transition-colors hover:border-[#1FB86A] disabled:pointer-events-none disabled:bg-transparent disabled:text-muted-foreground/60"
             >
               <ChevronLeftIcon className="size-4" />
               Previous
             </button>
             {pageWindow(currentPage, pageCount).map((p, i) =>
               p === null ? (
-                <span key={`gap-${i}`} className="px-1 text-sm text-[#8A9892]">
+                <span key={`gap-${i}`} className="px-1 text-sm text-muted-foreground">
                   …
                 </span>
               ) : (
@@ -327,7 +326,7 @@ export function DataTable<T>({
                     "grid size-10 place-items-center rounded-xl text-sm font-semibold tabular-nums transition-colors",
                     p === currentPage
                       ? "bg-[#0A3326] text-white shadow-[0_6px_14px_-8px_rgba(6,36,27,0.7)]"
-                      : "text-[#3B4A44] hover:bg-white hover:text-[#0E1B16]",
+                      : "text-muted-foreground hover:bg-card hover:text-foreground",
                   )}
                 >
                   {p + 1}
@@ -338,7 +337,7 @@ export function DataTable<T>({
               type="button"
               disabled={currentPage >= pageCount - 1}
               onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
-              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-[#E4EBE7] bg-white px-3.5 text-sm font-semibold text-[#0E1B16] transition-colors hover:border-[#1FB86A] disabled:pointer-events-none disabled:bg-transparent disabled:text-[#A6B2AC]"
+              className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 text-sm font-semibold text-foreground transition-colors hover:border-[#1FB86A] disabled:pointer-events-none disabled:bg-transparent disabled:text-muted-foreground/60"
             >
               Next
               <ChevronRightIcon className="size-4" />

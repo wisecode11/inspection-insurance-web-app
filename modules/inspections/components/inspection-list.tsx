@@ -551,7 +551,7 @@ export default function JobsPage() {
           >
             <SelectTrigger className={LIST_FILTER_TRIGGER_CLASS}>
               <span className="flex items-center gap-2">
-                <FilterIcon className="size-4 text-[#6B7A73]" aria-hidden />
+                <FilterIcon className="size-4 text-muted-foreground" aria-hidden />
                 <SelectValue />
               </span>
             </SelectTrigger>

@@ -162,7 +162,7 @@ function StatusCard({
         initial={reduceMotion ? false : { opacity: 0, y: 14, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.7, ease: EASE, delay }}
-        className="flex items-center gap-3 rounded-2xl border border-black/[0.04] bg-white px-3.5 py-3 shadow-[0_24px_48px_-24px_rgba(6,55,40,0.4),0_2px_6px_rgba(6,55,40,0.05)]"
+        className="flex items-center gap-3 rounded-2xl border border-black/[0.04] bg-white px-3.5 py-3 shadow-[0_24px_48px_-24px_rgba(6,55,40,0.4),0_2px_6px_rgba(6,55,40,0.05)] dark:border-white/10 dark:bg-[#13241c] dark:shadow-[0_24px_48px_-24px_rgba(0,0,0,0.55)]"
       >
         {children}
       </motion.div>

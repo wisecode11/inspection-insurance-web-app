@@ -38,11 +38,11 @@ export function DashboardRangeSelect({
   return (
     <label className="relative inline-flex">
       <span className="sr-only">Dashboard date range</span>
-      <CalendarIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-[#6B7A73]" />
+      <CalendarIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground" />
       <select
         value={value}
         onChange={(event) => onChange(event.target.value as DashboardRange)}
-        className="h-10 cursor-pointer appearance-none rounded-xl border border-[#E4EBE7] bg-white pr-9 pl-10 text-sm font-semibold text-[#3B4A44] transition-colors hover:border-[#1FB86A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1FB86A]"
+        className="h-10 cursor-pointer appearance-none rounded-xl border border-border bg-card pr-9 pl-10 text-sm font-semibold text-foreground transition-colors hover:border-[#1FB86A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1FB86A]"
       >
         {DASHBOARD_RANGES.map((item) => (
           <option key={item.value} value={item.value}>
@@ -50,7 +50,7 @@ export function DashboardRangeSelect({
           </option>
         ))}
       </select>
-      <ChevronDownIcon className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-[#6B7A73]" />
+      <ChevronDownIcon className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted-foreground" />
     </label>
   )
 }
@@ -91,13 +91,13 @@ function ClaimReadinessCard({ reduceMotion }: { reduceMotion: boolean }) {
   return (
     <section
       aria-label="Example claim evidence workflow"
-      className="min-w-0 rounded-3xl border border-[#E4EBE7] bg-white p-5 shadow-[0_1px_2px_rgba(14,27,22,0.04),0_12px_32px_-16px_rgba(14,27,22,0.12)] sm:p-6"
+      className="min-w-0 rounded-3xl border border-border bg-card p-5 shadow-[0_1px_2px_rgba(14,27,22,0.04),0_12px_32px_-16px_rgba(14,27,22,0.12)] sm:p-6 dark:shadow-[0_1px_2px_rgba(0,0,0,0.35),0_12px_32px_-16px_rgba(0,0,0,0.45)]"
     >
       {/* Header: progress ring + job */}
-      <div className="flex items-center gap-4 border-b border-dashed border-[#E4EBE7] pb-[18px]">
+      <div className="flex items-center gap-4 border-b border-dashed border-border pb-[18px]">
         <div className="relative size-16 shrink-0">
           <svg viewBox="0 0 64 64" className="size-16 -rotate-90" aria-hidden="true">
-            <circle cx="32" cy="32" r={RING_R} fill="none" stroke="#EAF0EC" strokeWidth="6" />
+            <circle cx="32" cy="32" r={RING_R} fill="none" className="stroke-[#EAF0EC] dark:stroke-border" strokeWidth="6" />
             <motion.circle
               cx="32"
               cy="32"
@@ -112,17 +112,17 @@ function ClaimReadinessCard({ reduceMotion }: { reduceMotion: boolean }) {
               transition={reduceMotion ? { duration: 0 } : { duration: 0.45, ease: "easeOut" }}
             />
           </svg>
-          <b className="absolute inset-0 grid place-items-center text-[15px] font-bold tracking-[-0.3px] tabular-nums text-[#0E1B16]">
+          <b className="absolute inset-0 grid place-items-center text-[15px] font-bold tracking-[-0.3px] tabular-nums text-foreground">
             {progress}%
           </b>
         </div>
 
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-bold tracking-[0.11em] text-[#1FB86A] uppercase">Claim readiness</p>
-          <h2 className="mt-0.5 truncate text-lg font-bold tracking-[-0.3px] text-[#0E1B16]">
+          <h2 className="mt-0.5 truncate text-lg font-bold tracking-[-0.3px] text-foreground">
             Sample job · RC-1042
           </h2>
-          <p className="mt-0.5 text-[13px] text-[#6B7A73]">
+          <p className="mt-0.5 text-[13px] text-muted-foreground">
             {ready ? "All required evidence collected" : `${completed} of 4 evidence checks completed`}
           </p>
         </div>
@@ -133,7 +133,7 @@ function ClaimReadinessCard({ reduceMotion }: { reduceMotion: boolean }) {
             onClick={() => setPaused((value) => !value)}
             aria-label={paused ? "Resume workflow animation" : "Pause workflow animation"}
             aria-pressed={paused}
-            className="grid size-8 shrink-0 place-items-center self-start rounded-[10px] border border-[#E4EBE7] text-[#6B7A73] transition-colors hover:bg-[#F1FBF5] hover:text-[#1FB86A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1FB86A]"
+            className="grid size-8 shrink-0 place-items-center self-start rounded-[10px] border border-border text-muted-foreground transition-colors hover:bg-primary/10 hover:text-[#1FB86A] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1FB86A]"
           >
             {paused ? <PlayIcon className="size-3.5" /> : <PauseIcon className="size-3.5" />}
           </button>
@@ -152,7 +152,7 @@ function ClaimReadinessCard({ reduceMotion }: { reduceMotion: boolean }) {
               key={stage.title}
               className={cn(
                 "flex min-w-0 items-center gap-3.5 rounded-[14px] px-2.5 py-[11px] transition-colors duration-200",
-                isActive && "bg-[#F1FBF5]",
+                isActive && "bg-primary/8 dark:bg-primary/15",
               )}
             >
               <motion.span
@@ -164,25 +164,25 @@ function ClaimReadinessCard({ reduceMotion }: { reduceMotion: boolean }) {
                   isDone
                     ? "bg-[#1FB86A] text-white"
                     : isActive
-                      ? "border-[1.5px] border-[#1FB86A] bg-white text-[#1FB86A]"
-                      : "border-[1.5px] border-dashed border-[#C9D4CE] bg-[#F4F7F5] text-[#6B7A73]",
+                      ? "border-[1.5px] border-[#1FB86A] bg-card text-[#1FB86A]"
+                      : "border-[1.5px] border-dashed border-border bg-muted text-muted-foreground",
                 )}
               >
                 {isDone ? <CheckIcon className="size-[18px]" strokeWidth={2.2} /> : <Icon className="size-[18px]" strokeWidth={1.8} />}
               </motion.span>
 
               <div className="min-w-0 flex-1">
-                <h4 className="truncate text-sm font-semibold text-[#0E1B16]">{stage.title}</h4>
-                <p className="mt-0.5 truncate text-[12.5px] text-[#6B7A73]">{stage.description}</p>
+                <h4 className="truncate text-sm font-semibold text-foreground">{stage.title}</h4>
+                <p className="mt-0.5 truncate text-[12.5px] text-muted-foreground">{stage.description}</p>
               </div>
 
               {isDone ? (
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#E3F6EC] px-2.5 py-[5px] text-xs font-semibold text-[#155A45]">
+                <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#E3F6EC] px-2.5 py-[5px] text-xs font-semibold text-[#155A45] dark:bg-[#1FB86A]/18 dark:text-[#9BEBC0]">
                   <CheckIcon className="size-[13px]" strokeWidth={2.4} />
                   Done
                 </span>
               ) : isActive ? (
-                <span className="inline-flex shrink-0 items-center gap-[5px] rounded-full border border-[#BFEBD2] bg-white px-2.5 py-[5px] text-xs font-semibold text-[#1FB86A]">
+                <span className="inline-flex shrink-0 items-center gap-[5px] rounded-full border border-[#BFEBD2] bg-card px-2.5 py-[5px] text-xs font-semibold text-[#1FB86A] dark:border-[#1FB86A]/40">
                   <motion.i
                     animate={reduceMotion ? {} : { opacity: [1, 0.35, 1] }}
                     transition={reduceMotion ? {} : { duration: 1.5, repeat: Infinity }}
@@ -191,7 +191,7 @@ function ClaimReadinessCard({ reduceMotion }: { reduceMotion: boolean }) {
                   In progress
                 </span>
               ) : (
-                <span className="shrink-0 rounded-full bg-[#F4F7F5] px-2.5 py-[5px] text-xs font-semibold text-[#6B7A73]">
+                <span className="shrink-0 rounded-full bg-muted px-2.5 py-[5px] text-xs font-semibold text-muted-foreground">
                   Pending
                 </span>
               )}
@@ -204,35 +204,29 @@ function ClaimReadinessCard({ reduceMotion }: { reduceMotion: boolean }) {
       <div
         className={cn(
           "mt-2.5 flex items-center gap-3 rounded-[14px] border px-3.5 py-[13px] transition-colors duration-300",
-          ready ? "border-[#C6EBD2] bg-[#EAF8EF]" : "border-[#E4EBE7]",
-        )}
-        style={
           ready
-            ? undefined
-            : {
-                background:
-                  "repeating-linear-gradient(-45deg, #F6F8F7, #F6F8F7 8px, #F1F4F2 8px, #F1F4F2 16px)",
-              }
-        }
+            ? "border-[#C6EBD2] bg-[#EAF8EF] dark:border-[#1FB86A]/35 dark:bg-[#1FB86A]/12"
+            : "border-border bg-[repeating-linear-gradient(-45deg,var(--background),var(--background)_8px,var(--muted)_8px,var(--muted)_16px)]",
+        )}
       >
         <span
           className={cn(
-            "grid size-[34px] shrink-0 place-items-center rounded-[11px] border bg-white",
-            ready ? "border-[#BFEBD2] text-[#1FB86A]" : "border-[#E4EBE7] text-[#6B7A73]",
+            "grid size-[34px] shrink-0 place-items-center rounded-[11px] border bg-card",
+            ready ? "border-[#BFEBD2] text-[#1FB86A] dark:border-[#1FB86A]/40" : "border-border text-muted-foreground",
           )}
         >
           {ready ? <CheckIcon className="size-[18px]" strokeWidth={2.2} /> : <Clock3Icon className="size-[18px]" />}
         </span>
         <div className="min-w-0 flex-1">
-          <h4 className="text-[13.5px] font-semibold text-[#0E1B16]">
+          <h4 className="text-[13.5px] font-semibold text-foreground">
             {ready ? "Claim-ready report" : "Report awaiting evidence"}
           </h4>
-          <p className="mt-0.5 text-[12.5px] text-[#6B7A73]">
+          <p className="mt-0.5 text-[12.5px] text-muted-foreground">
             {ready ? "All four evidence checks are complete." : "Complete all four checks to prepare the report."}
           </p>
         </div>
         {ready && (
-          <span className="shrink-0 rounded-full border border-[#BFEBD2] bg-white px-2.5 py-1 text-xs font-semibold text-[#155A45]">
+          <span className="shrink-0 rounded-full border border-[#BFEBD2] bg-card px-2.5 py-1 text-xs font-semibold text-[#155A45] dark:border-[#1FB86A]/40 dark:text-[#9BEBC0]">
             Ready
           </span>
         )}

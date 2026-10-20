@@ -19,7 +19,7 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "page-header-card rounded-[20px] border border-[#E6E9E7] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.04)]",
+        "page-header-card rounded-[20px] border border-border bg-card shadow-[0_1px_2px_rgba(16,24,40,0.04)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.35)]",
         className,
       )}
     >
@@ -30,11 +30,11 @@ export function PageHeader({
               {eyebrow}
             </span>
           ) : null}
-          <h1 className="text-2xl font-bold tracking-tight text-balance text-[#101828] sm:text-3xl">
+          <h1 className="text-2xl font-bold tracking-tight text-balance text-foreground sm:text-3xl">
             {title}
           </h1>
           {description ? (
-            <p className="max-w-2xl text-sm leading-relaxed text-[#667085] text-pretty">
+            <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground text-pretty">
               {description}
             </p>
           ) : null}

@@ -80,10 +80,10 @@ function dueInfo(row: JobRow): { label: string; title?: string; tone: DueTone } 
 }
 
 const dueClasses: Record<DueTone, string> = {
-  none: "text-[#8A9892]",
-  muted: "text-[#6B7A73]",
-  soon: "rounded-lg border border-[#F5D9A8] bg-[#FFF4E2] px-2.5 py-1 text-[#C2700A]",
-  overdue: "rounded-lg border border-[#F6C9C9] bg-[#FDECEC] px-2.5 py-1 font-semibold text-[#DC2626]",
+  none: "text-muted-foreground",
+  muted: "text-muted-foreground",
+  soon: "rounded-lg border border-[#F5D9A8] bg-[#FFF4E2] px-2.5 py-1 text-[#C2700A] dark:border-[#D9820F]/40 dark:bg-[#D9820F]/18 dark:text-[#FBBF24]",
+  overdue: "rounded-lg border border-[#F6C9C9] bg-[#FDECEC] px-2.5 py-1 font-semibold text-[#DC2626] dark:border-[#DC2626]/40 dark:bg-[#DC2626]/20 dark:text-[#FCA5A5]",
 }
 
 function PriorityFlag({ priority }: { priority: string }) {
@@ -97,7 +97,7 @@ function PriorityFlag({ priority }: { priority: string }) {
   }
   if (priority === "high") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-[#FFF4E2] px-2.5 py-[3px] text-xs font-semibold text-[#C2700A]">
+      <span className="inline-flex items-center gap-1 rounded-full bg-[#FFF4E2] px-2.5 py-[3px] text-xs font-semibold text-[#C2700A] dark:bg-[#D9820F]/18 dark:text-[#FBBF24]">
         <ArrowUpIcon className="size-3" aria-hidden />
         High
       </span>
@@ -113,7 +113,7 @@ function JobTitle({ title }: { title: string }) {
   return (
     <>
       {lead}
-      <span className="mx-1 font-normal text-[#8A9892]">-</span>
+      <span className="mx-1 font-normal text-muted-foreground">-</span>
       {rest.join(" - ")}
     </>
   )
@@ -150,14 +150,14 @@ export function JobCard({
           <PriorityFlag priority={priority} />
           <span className="ml-1 inline-flex items-center gap-1" role="img" aria-label={`Progress ${tone.steps} of 4`}>
             {Array.from({ length: 4 }, (_, i) => (
-              <i key={i} className={cn("h-[3px] w-4 rounded-full", i < tone.steps ? tone.bar : "bg-[#E4EBE7]")} />
+              <i key={i} className={cn("h-[3px] w-4 rounded-full", i < tone.steps ? tone.bar : "bg-border")} />
             ))}
           </span>
         </div>
         <GridCardActions className="mt-0 -mr-1.5">
           <label
             className={cn(
-              "flex size-7 cursor-pointer items-center justify-center rounded-md transition-opacity hover:bg-[#F1FBF5]",
+              "flex size-7 cursor-pointer items-center justify-center rounded-md transition-opacity hover:bg-primary/10",
               selected
                 ? "opacity-100"
                 : "opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100",
@@ -175,11 +175,11 @@ export function JobCard({
         </GridCardActions>
       </header>
 
-      <h3 className="mt-3 line-clamp-1 text-base font-bold tracking-[-0.02em] text-[#0E1B16]" title={title}>
+      <h3 className="mt-3 line-clamp-1 text-base font-bold tracking-[-0.02em] text-foreground" title={title}>
         <JobTitle title={title} />
       </h3>
-      <p className="mt-1 flex min-h-[2.5rem] items-start gap-1.5 text-[13px] leading-[1.5] text-[#5B6B64]">
-        <MapPinIcon className="mt-[3px] size-3.5 shrink-0 text-[#8A9892]" aria-hidden />
+      <p className="mt-1 flex min-h-[2.5rem] items-start gap-1.5 text-[13px] leading-[1.5] text-muted-foreground">
+        <MapPinIcon className="mt-[3px] size-3.5 shrink-0 text-muted-foreground" aria-hidden />
         <span className="line-clamp-2 min-w-0 break-words" title={address}>
           {address || "No address"}
         </span>
@@ -200,19 +200,19 @@ export function JobCard({
           <div className="flex min-w-0 items-center gap-3">
             <SquareAvatar initials={initialsOf(row.inspector)} />
             <div className="flex min-w-0 flex-col leading-tight">
-              <span className="truncate text-sm font-semibold text-[#0E1B16] capitalize">{row.inspector}</span>
-              <span className="text-xs text-[#6B7A73]">Inspector</span>
+              <span className="truncate text-sm font-semibold text-foreground capitalize">{row.inspector}</span>
+              <span className="text-xs text-muted-foreground">Inspector</span>
             </div>
           </div>
         ) : (
           <div className="flex min-w-0 items-center gap-3">
             <SquareAvatar
               initials="?"
-              className="border border-dashed border-[#E9B866] bg-[#FFF8EC] text-xs text-[#D9820F]"
+              className="border border-dashed border-[#E9B866] bg-[#FFF8EC] text-xs text-[#D9820F] dark:border-[#D9820F]/45 dark:bg-[#D9820F]/18 dark:text-[#FBBF24]"
             />
             <div className="flex min-w-0 flex-col leading-tight">
-              <span className="text-sm font-semibold text-[#D9820F]">Unassigned</span>
-              <span className="text-xs text-[#6B7A73]">Needs inspector</span>
+              <span className="text-sm font-semibold text-[#D9820F] dark:text-[#FBBF24]">Unassigned</span>
+              <span className="text-xs text-muted-foreground">Needs inspector</span>
             </div>
           </div>
         )}
@@ -220,7 +220,7 @@ export function JobCard({
         <div className="flex shrink-0 items-center gap-2.5">
           {attachmentCount ? (
             <span
-              className="inline-flex items-center gap-0.5 text-[13px] text-[#6B7A73]"
+              className="inline-flex items-center gap-0.5 text-[13px] text-muted-foreground"
               title={`${attachmentCount} attachment${attachmentCount === 1 ? "" : "s"}`}
             >
               <PaperclipIcon className="size-3.5" aria-hidden />

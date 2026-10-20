@@ -5,6 +5,7 @@ import { BackToTop } from "@/components/marketing/back-to-top"
 import { SiteFooter, SiteHeader } from "@/components/marketing/site-chrome"
 import { Button } from "@/components/ui/button"
 import { ROUTES } from "@/lib/constants/routes"
+import { cn } from "@/lib/utils"
 
 /**
  * Shell for standalone marketing pages (/features, /pricing, ...): header,
@@ -15,18 +16,20 @@ export function MarketingPage({
   title,
   description,
   children,
+  className,
 }: {
   eyebrow: string
   title: string
   description: string
   children: React.ReactNode
+  className?: string
 }) {
   return (
-    <div className="flex min-h-screen flex-col overflow-x-clip bg-background">
+    <div className={cn("flex min-h-screen flex-col overflow-x-clip bg-background text-foreground", className)}>
       <SiteHeader />
 
       <main className="flex-1">
-        <section className="bg-[radial-gradient(ellipse_at_70%_45%,#f4faf7_0%,#e8f3ed_48%,#dceee6_100%)] dark:bg-none">
+        <section className="bg-[radial-gradient(ellipse_at_70%_45%,#f4faf7_0%,#e8f3ed_48%,#dceee6_100%)] dark:bg-[radial-gradient(ellipse_at_70%_45%,#143028_0%,#0c1f18_48%,#071410_100%)]">
           <div className="mx-auto max-w-3xl px-4 pt-16 pb-14 text-center sm:px-6 md:pt-20 md:pb-16">
             <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">{eyebrow}</p>
             <h1 className="mt-4 text-4xl font-bold tracking-tight text-balance text-primary-dark sm:text-5xl dark:text-foreground">

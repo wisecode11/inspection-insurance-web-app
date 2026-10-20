@@ -24,6 +24,10 @@ export type CompanyReport = {
   reviewedAt?: string | null
   submittedAt?: string | null
   pdfUrl?: string
+  /** "inspector_mobile" (evidence package) or "server_summary". */
+  pdfSource?: string
+  /** Earlier PDFs kept for this report; see the PDF history page. */
+  pdfHistoryCount?: number
   generatedAt?: string | null
   jobNumber?: string
   jobTitle?: string
@@ -70,4 +74,16 @@ export function reportStatusVariant(status: string): StatusVariant {
   if (status === "approved") return "approved"
   if (status === "rejected") return "cancelled"
   return "pending"
+}
+
+/** One stored PDF of a report. Versions are 1-based and never overwritten. */
+export type ReportPdfVersion = {
+  version: number
+  isCurrent: boolean
+  source: "inspector_mobile" | "server_summary" | string
+  fileName: string
+  sizeBytes: number
+  checksum: string
+  storedAt?: string | null
+  replacedAt?: string | null
 }

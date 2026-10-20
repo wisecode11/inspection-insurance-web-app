@@ -64,7 +64,7 @@ export function StatCard({
           className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary via-primary/70 to-transparent"
         />
         <div className="mb-4 flex items-center justify-between gap-3">
-          <span className="text-xs font-medium text-primary-dark/70 sm:text-sm">{label}</span>
+          <span className="text-xs font-medium text-muted-foreground sm:text-sm">{label}</span>
           {icon3d ? (
             <span className="flex size-10 shrink-0 items-center justify-center">
               <Icon3D name={icon3d} size={36} className="drop-shadow-[0_6px_12px_rgba(16,24,40,0.14)]" />

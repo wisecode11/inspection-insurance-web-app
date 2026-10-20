@@ -54,19 +54,19 @@ const rise = (seconds: number) => ({ "--rise-delay": `${seconds}s` }) as CSSProp
  */
 export function HomeHero() {
   return (
-    <section className="relative isolate overflow-hidden bg-[#f3f9f6]">
+    <section className="relative isolate overflow-hidden bg-[#f3f9f6] dark:bg-[#071410]">
       {/* Backdrop: soft glows + a faded blueprint grid */}
       <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute -top-40 -left-40 size-[36rem] rounded-full bg-[radial-gradient(circle,rgba(106,232,176,0.35),transparent_65%)]" />
         <div className="absolute top-1/4 -right-32 size-[44rem] rounded-full bg-[radial-gradient(circle,rgba(18,183,106,0.18),transparent_65%)]" />
-        <div className="absolute inset-0 [background-image:linear-gradient(rgba(10,75,55,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(10,75,55,0.07)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(ellipse_70%_60%_at_60%_40%,black,transparent)]" />
+        <div className="landing-grid absolute inset-0 [background-image:linear-gradient(rgba(10,75,55,0.07)_1px,transparent_1px),linear-gradient(90deg,rgba(10,75,55,0.07)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(ellipse_70%_60%_at_60%_40%,black,transparent)]" />
       </div>
 
       <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-4 px-4 pt-12 pb-6 sm:px-6 sm:pt-16 lg:min-h-[calc(100svh-4.25rem-4.5rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.12fr)] lg:gap-6 lg:pt-8 lg:pb-8">
         <div className="relative z-10 min-w-0 max-w-xl">
           <Link
             href={ROUTES.marketing.features}
-            className="landing-rise group inline-flex items-center gap-2.5 rounded-full border border-primary/15 bg-white/70 py-1 pr-3 pl-1 text-xs font-medium text-primary-dark shadow-[0_6px_20px_-12px_rgba(6,55,40,0.4)] backdrop-blur transition-colors hover:border-primary/30"
+            className="landing-rise group inline-flex items-center gap-2.5 rounded-full border border-primary/15 bg-white/70 py-1 pr-3 pl-1 text-xs font-medium text-primary-dark shadow-[0_6px_20px_-12px_rgba(6,55,40,0.4)] backdrop-blur transition-colors hover:border-primary/30 dark:border-white/10 dark:bg-white/10"
           >
             <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-dark px-2.5 py-1 text-[11px] font-semibold text-white">
               <span className="relative flex size-1.5">
@@ -94,7 +94,7 @@ export function HomeHero() {
 
           <p
             style={rise(0.16)}
-            className="landing-rise mt-6 max-w-md text-base leading-7 text-[#4f625a] sm:text-lg sm:leading-8"
+            className="landing-rise mt-6 max-w-md text-base leading-7 text-[#4f625a] sm:text-lg sm:leading-8 dark:text-[#b7c9bf]"
           >
             Capture the roof, verify the storm, and send a branded report carriers can actually
             use — every photo GPS-stamped and storm-checked.
@@ -112,7 +112,7 @@ export function HomeHero() {
             <Button
               size="lg"
               variant="outline"
-              className="h-12 rounded-full border-primary-dark/20 bg-white/60 px-6 text-primary-dark backdrop-blur hover:bg-white"
+              className="h-12 rounded-full border-primary-dark/20 bg-white/60 px-6 text-primary-dark backdrop-blur hover:bg-white dark:border-white/15 dark:bg-white/5 dark:hover:bg-white/10"
               render={<Link href={ROUTES.marketing.howItWorks} />}
             >
               <span className="flex size-6 items-center justify-center rounded-full bg-primary/10">
@@ -131,10 +131,10 @@ export function HomeHero() {
                   alt=""
                   width={40}
                   height={40}
-                  className="size-10 rounded-full border-2 border-white object-cover shadow-sm"
+                  className="size-10 rounded-full border-2 border-white object-cover shadow-sm dark:border-[#102019]"
                 />
               ))}
-              <span className="flex size-10 items-center justify-center rounded-full border-2 border-white bg-primary-dark text-[11px] font-semibold text-white shadow-sm">
+              <span className="flex size-10 items-center justify-center rounded-full border-2 border-white bg-primary-dark text-[11px] font-semibold text-white shadow-sm dark:border-[#102019]">
                 +40
               </span>
             </div>
@@ -144,12 +144,12 @@ export function HomeHero() {
                   <StarIcon key={i} className="size-3.5 fill-current" />
                 ))}
               </div>
-              <p className="mt-1 text-sm text-[#4f625a]">
+              <p className="mt-1 text-sm text-[#4f625a] dark:text-[#b7c9bf]">
                 Trusted by <span className="font-semibold text-primary-dark">40+ roofing companies</span>
               </p>
             </div>
             <span className="hidden h-8 w-px bg-primary-dark/10 sm:block" aria-hidden />
-            <p className="flex items-center gap-1.5 text-sm text-[#4f625a]">
+            <p className="flex items-center gap-1.5 text-sm text-[#4f625a] dark:text-[#b7c9bf]">
               <BadgeCheckIcon className="size-4 text-primary" />
               No card required
             </p>
@@ -162,12 +162,12 @@ export function HomeHero() {
       </div>
 
       {/* Capability strip */}
-      <div className="marquee relative border-y border-primary/10 bg-white/60 backdrop-blur [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
+      <div className="marquee relative border-y border-primary/10 bg-white/60 backdrop-blur [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)] dark:border-white/10 dark:bg-white/[0.04]">
         <div className="marquee-track flex w-max items-center gap-10 py-3.5">
           {[0, 1].map((copy) => (
             <div key={copy} className="flex items-center gap-10" aria-hidden={copy === 1}>
               {capabilities.map(({ icon: Icon, model, label }) => (
-                <span key={label} className="flex items-center gap-2.5 text-sm font-medium whitespace-nowrap text-primary-dark/80">
+                <span key={label} className="flex items-center gap-2.5 text-sm font-medium whitespace-nowrap text-primary-dark/80 dark:text-[#d7ebe1]">
                   <Icon3DCanvas
                     name={model}
                     size={44}

@@ -2,10 +2,23 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { CheckIcon } from "lucide-react"
+import {
+  BoldIcon,
+  CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ItalicIcon,
+  ListIcon,
+  PlusIcon,
+  RotateCcwIcon,
+} from "lucide-react"
 import { toast } from "@/lib/toast"
 
-import { ListPageHero, heroPrimaryButtonClass } from "@/components/shared/list-page-hero"
+import {
+  HeroBand,
+  heroGhostButtonClass,
+  heroPrimaryButtonClass,
+} from "@/components/shared/list-page-hero"
 import { ErrorState, LoadingSkeleton } from "@/components/shared/resource-state"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ROUTES } from "@/lib/constants/routes"
@@ -20,10 +33,21 @@ import {
   type ReportTemplate,
 } from "@/modules/templates/types/template.types"
 
+type SectionId = NarrativeSlotKey | "disclaimer" | "codes"
+
+type SectionMeta = {
+  id: SectionId
+  title: string
+  kind: "narrative" | "disclaimer" | "codes"
+  hint?: string
+}
+
+const PLACEHOLDER_RE = /\[[A-Z0-9 _]+\]/g
+
 function findSection(
   sections: ReportSection[],
   key: NarrativeSlotKey,
-  title: string
+  title: string,
 ): ReportSection | undefined {
   return (
     sections.find((row) => row.key === key) ||
@@ -44,7 +68,7 @@ function readNarrativeBodies(template: ReportTemplate): Record<NarrativeSlotKey,
 
 function mergeNarrativeIntoSections(
   sections: ReportSection[],
-  bodies: Record<NarrativeSlotKey, string>
+  bodies: Record<NarrativeSlotKey, string>,
 ): ReportSection[] {
   const next = sections.map((section) => ({ ...section }))
 
@@ -52,7 +76,7 @@ function mergeNarrativeIntoSections(
     const body = bodies[slot.key]
     const existingIndex = next.findIndex(
       (row) =>
-        row.key === slot.key || row.title.toLowerCase() === slot.title.toLowerCase()
+        row.key === slot.key || row.title.toLowerCase() === slot.title.toLowerCase(),
     )
 
     if (existingIndex >= 0) {
@@ -79,6 +103,44 @@ function mergeNarrativeIntoSections(
   return next.map((section, index) => ({ ...section, sortOrder: index }))
 }
 
+function wrapSelection(
+  value: string,
+  start: number,
+  end: number,
+  before: string,
+  after: string,
+) {
+  const selected = value.slice(start, end) || "text"
+  const next = `${value.slice(0, start)}${before}${selected}${after}${value.slice(end)}`
+  const cursor = start + before.length + selected.length + after.length
+  return { next, cursor }
+}
+
+function collectPlaceholders(sections: SectionMeta[]) {
+  const found = new Set<string>(["[ROOF AGE]"])
+  for (const section of sections) {
+    const matches = section.hint?.match(PLACEHOLDER_RE) ?? []
+    for (const match of matches) found.add(match)
+  }
+  return [...found]
+}
+
+function previewBody(text: string, max = 220) {
+  const clean = text.replace(/\s+/g, " ").trim()
+  if (!clean) return "No wording yet for this section."
+  if (clean.length <= max) return clean
+  return `${clean.slice(0, max).trim()}…`
+}
+
+const PANEL_CLASS =
+  "rounded-2xl border border-border bg-card shadow-[0_1px_2px_rgba(14,27,22,0.04),0_16px_36px_-22px_rgba(6,36,27,0.35)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.35),0_16px_36px_-22px_rgba(0,0,0,0.55)]"
+
+const ACTIVE_NAV_CLASS =
+  "border-primary/25 bg-primary/10 text-foreground dark:border-[#1FB86A]/40 dark:bg-[#1FB86A]/15 dark:text-[#f3faf6]"
+
+const PREVIEW_ACTIVE_CLASS =
+  "border-[#E9A23B]/45 bg-[#FFF4E2]/80 dark:border-[#D9820F]/45 dark:bg-[#D9820F]/15"
+
 export default function TemplatesPage() {
   const { data, isLoading, error, reload } = useTemplates()
   const [template, setTemplate] = React.useState<ReportTemplate | null>(null)
@@ -91,36 +153,89 @@ export default function TemplatesPage() {
   const [legalFooter, setLegalFooter] = React.useState("")
   const [citationIds, setCitationIds] = React.useState<string[]>([])
   const [saving, setSaving] = React.useState(false)
+  const [activeId, setActiveId] = React.useState<SectionId>("summary_of_findings")
+  const baselineRef = React.useRef<{
+    bodies: Record<NarrativeSlotKey, string>
+    legalFooter: string
+    citationIds: string[]
+  } | null>(null)
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null)
 
   React.useEffect(() => {
     if (!data) return
     const preferred =
       data.templates.find((row) => row.isDefault) || data.templates[0] || null
     if (!preferred) return
+    const nextBodies = readNarrativeBodies(preferred)
+    const nextFooter = preferred.legalFooter || ""
+    const nextCitations = preferred.codeCitationIds || []
     setTemplate(preferred)
-    setBodies(readNarrativeBodies(preferred))
-    setLegalFooter(preferred.legalFooter || "")
-    setCitationIds(preferred.codeCitationIds || [])
+    setBodies(nextBodies)
+    setLegalFooter(nextFooter)
+    setCitationIds(nextCitations)
+    baselineRef.current = {
+      bodies: nextBodies,
+      legalFooter: nextFooter,
+      citationIds: nextCitations,
+    }
   }, [data])
 
   const citations = data?.citations ?? []
+
+  const sections: SectionMeta[] = React.useMemo(
+    () => [
+      ...NARRATIVE_SLOTS.map((slot) => ({
+        id: slot.key as SectionId,
+        title: slot.title,
+        kind: "narrative" as const,
+        hint: slot.hint,
+      })),
+      { id: "disclaimer", title: "Disclaimer", kind: "disclaimer" },
+      { id: "codes", title: "Codes & standards", kind: "codes" },
+    ],
+    [],
+  )
+
+  const activeIndex = Math.max(
+    0,
+    sections.findIndex((section) => section.id === activeId),
+  )
+  const active = sections[activeIndex] ?? sections[0]
+  const prev = sections[activeIndex - 1]
+  const next = sections[activeIndex + 1]
+  const placeholders = collectPlaceholders(sections)
+
+  const activeBody =
+    active.kind === "narrative"
+      ? bodies[active.id as NarrativeSlotKey]
+      : active.kind === "disclaimer"
+        ? legalFooter
+        : ""
 
   async function saveTemplate() {
     if (!template) return
     setSaving(true)
     try {
-      const sections = mergeNarrativeIntoSections(template.sections, bodies)
+      const nextSections = mergeNarrativeIntoSections(template.sections, bodies)
       const updated = await templateService.update(template.id, {
-        sections,
+        sections: nextSections,
         legalFooter: legalFooter.trim(),
         definitions: bodies.damage_definitions_assessment_criteria,
         codeCitationIds: citationIds,
         isDefault: true,
       })
       setTemplate(updated)
-      setBodies(readNarrativeBodies(updated))
-      setLegalFooter(updated.legalFooter || "")
-      setCitationIds(updated.codeCitationIds || [])
+      const nextBodies = readNarrativeBodies(updated)
+      const nextFooter = updated.legalFooter || ""
+      const nextCitations = updated.codeCitationIds || []
+      setBodies(nextBodies)
+      setLegalFooter(nextFooter)
+      setCitationIds(nextCitations)
+      baselineRef.current = {
+        bodies: nextBodies,
+        legalFooter: nextFooter,
+        citationIds: nextCitations,
+      }
       toast.success("Saved")
       await reload?.()
     } catch (err) {
@@ -130,102 +245,240 @@ export default function TemplatesPage() {
     }
   }
 
+  function resetActiveSection() {
+    const baseline = baselineRef.current
+    if (!baseline || !active) return
+    if (active.kind === "narrative") {
+      const key = active.id as NarrativeSlotKey
+      setBodies((current) => ({ ...current, [key]: baseline.bodies[key] }))
+    } else if (active.kind === "disclaimer") {
+      setLegalFooter(baseline.legalFooter)
+    } else {
+      setCitationIds(baseline.citationIds)
+    }
+    toast.info("Section reset")
+  }
+
+  function applyWrap(before: string, after: string) {
+    if (active.kind !== "narrative") return
+    const el = textareaRef.current
+    if (!el) return
+    const start = el.selectionStart
+    const end = el.selectionEnd
+    const key = active.id as NarrativeSlotKey
+    const { next: nextValue, cursor } = wrapSelection(bodies[key], start, end, before, after)
+    setBodies((current) => ({ ...current, [key]: nextValue }))
+    requestAnimationFrame(() => {
+      el.focus()
+      el.setSelectionRange(cursor, cursor)
+    })
+  }
+
+  function insertPlaceholder(token: string) {
+    if (active.kind !== "narrative") {
+      toast.info("Placeholders can be inserted in narrative sections")
+      return
+    }
+    const el = textareaRef.current
+    const key = active.id as NarrativeSlotKey
+    const value = bodies[key]
+    const start = el?.selectionStart ?? value.length
+    const end = el?.selectionEnd ?? value.length
+    const nextValue = `${value.slice(0, start)}${token}${value.slice(end)}`
+    setBodies((current) => ({ ...current, [key]: nextValue }))
+    requestAnimationFrame(() => {
+      const cursor = start + token.length
+      el?.focus()
+      el?.setSelectionRange(cursor, cursor)
+    })
+  }
+
   if (isLoading) return <LoadingSkeleton rows={8} />
   if (error) return <ErrorState message={error} />
-  if (!template) {
+  if (!template || !active) {
     return <ErrorState message="No report language defaults found." />
   }
 
-
-  const sections: SectionMeta[] = [
-    ...NARRATIVE_SLOTS.map((slot) => ({ id: slot.key, title: slot.title, tone: "green" as const })),
-    { id: "disclaimer", title: "Disclaimer", tone: "amber" },
-    { id: "codes", title: "Codes & standards", tone: "green" },
-  ]
-  const numberOf = (id: string) => sections.findIndex((s) => s.id === id) + 1
-  const narrative = (key: NarrativeSlotKey) => NARRATIVE_SLOTS.find((slot) => slot.key === key)!
-
-  const narrativeCard = (key: NarrativeSlotKey, className?: string) => {
-    const slot = narrative(key)
-    return (
-      <SectionCard
-        key={key}
-        id={key}
-        number={numberOf(key)}
-        title={slot.title}
-        hint={slot.hint}
-        htmlFor={`tpl-${key}`}
-        className={className}
-      >
-        <textarea
-          id={`tpl-${key}`}
-          rows={key === "damage_definitions_assessment_criteria" ? 3 : 4}
-          value={bodies[key]}
-          onChange={(e) => setBodies((current) => ({ ...current, [key]: e.target.value }))}
-          className={textareaClass}
-        />
-      </SectionCard>
-    )
-  }
-
   return (
-    <>
-      <ListPageHero
-        eyebrow="Company admin"
-        title="Report language"
-        description="Default wording used in evidence package PDFs."
-        actions={
-          <button
-            type="button"
-            disabled={saving}
-            onClick={() => void saveTemplate()}
-            className={cn(heroPrimaryButtonClass, "disabled:cursor-not-allowed disabled:opacity-70")}
-          >
-            <CheckIcon className="size-4" />
-            {saving ? "Saving…" : "Save"}
-          </button>
-        }
-      />
+    <div className="relative flex flex-col gap-6 pb-4">
+      {/* Full-bleed green band — continues the navbar; content stays in the shell gutters */}
+      <header className="relative">
+        <HeroBand className="-top-6 -bottom-[48px]" />
+        <div className="relative z-10 flex flex-wrap items-end justify-between gap-5 pt-3 pb-1">
+          <div className="min-w-0">
+            <p className="text-xs font-medium tracking-wide text-[#B9D3C7]">
+              Settings <span className="mx-1.5 text-white/35">/</span> Report language
+            </p>
+            <h1 className="mt-2.5 text-[clamp(28px,3.2vw,40px)] leading-none font-bold tracking-[-0.035em] text-white">
+              Report language
+            </h1>
+            <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-[#B9D3C7] sm:text-base">
+              Default wording used in evidence package PDFs. Edit one section at a time and see it
+              on the page.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button type="button" onClick={resetActiveSection} className={heroGhostButtonClass}>
+              <RotateCcwIcon className="size-4" />
+              Reset section
+            </button>
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => void saveTemplate()}
+              className={cn(heroPrimaryButtonClass, "disabled:cursor-not-allowed disabled:opacity-70")}
+            >
+              <CheckIcon className="size-4" />
+              {saving ? "Saving…" : "Save changes"}
+            </button>
+          </div>
+        </div>
+      </header>
 
-      <div className="relative z-10 grid items-start gap-4 lg:grid-cols-[13.5rem_minmax(0,1fr)]">
-        <SectionsNav sections={sections} />
+      {/* Three-column workspace — same max-width/gutter alignment as the hero text */}
+      <div className="relative z-10 grid items-start gap-5 xl:grid-cols-[minmax(15rem,17.5rem)_minmax(0,1fr)_minmax(16rem,20rem)]">
+        {/* Left: sections + placeholders */}
+        <aside className="flex flex-col gap-4 xl:sticky xl:top-4">
+          <nav aria-label="Report sections" className={cn(PANEL_CLASS, "p-3")}>
+            <p className="px-2 pt-1 pb-2.5 text-[11px] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+              Sections
+            </p>
+            <ol className="flex flex-col gap-1">
+              {sections.map((section, index) => {
+                const isActive = section.id === active.id
+                return (
+                  <li key={section.id}>
+                    <button
+                      type="button"
+                      onClick={() => setActiveId(section.id)}
+                      aria-current={isActive ? "true" : undefined}
+                      className={cn(
+                        "flex w-full items-center gap-3 rounded-xl border px-2 py-2 text-left text-[13px] leading-snug font-semibold transition-colors",
+                        isActive ? ACTIVE_NAV_CLASS : "border-transparent text-foreground/80 hover:bg-muted",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "grid size-7 shrink-0 place-items-center rounded-full font-mono text-[11px] font-bold",
+                          isActive
+                            ? "bg-[#0A3326] text-white dark:bg-[#1FB86A] dark:text-[#06241B]"
+                            : "border border-border bg-muted text-muted-foreground",
+                        )}
+                      >
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="min-w-0">{section.title}</span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ol>
+          </nav>
 
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-          {narrativeCard("summary_of_findings")}
-          {narrativeCard("investigation_process")}
-          {narrativeCard("damage_definitions_assessment_criteria", "xl:col-span-2")}
-          {narrativeCard("existing_conditions", "xl:col-span-2")}
+          <div className={cn(PANEL_CLASS, "p-4")}>
+            <p className="text-[11px] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+              Placeholders
+            </p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              Click to insert into the active narrative section.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {placeholders.map((token) => (
+                <button
+                  key={token}
+                  type="button"
+                  onClick={() => insertPlaceholder(token)}
+                  className="rounded-md border border-[#F5D9A8] bg-[#FFF4E2] px-2 py-1 font-mono text-[11px] font-semibold text-[#C2700A] transition-colors hover:border-[#E9A23B] dark:border-[#D9820F]/45 dark:bg-[#D9820F]/18 dark:text-[#FBBF24]"
+                >
+                  {token}
+                </button>
+              ))}
+            </div>
+          </div>
+        </aside>
 
-          <SectionCard id="disclaimer" number={numberOf("disclaimer")} title="Disclaimer" tone="amber" htmlFor="tpl-disclaimer">
+        {/* Center: focused editor */}
+        <section className={cn(PANEL_CLASS, "flex min-h-[32rem] flex-col overflow-hidden")}>
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-5 py-4 sm:px-6">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-full bg-primary/15 font-mono text-[12px] font-bold text-primary dark:bg-[#1FB86A]/20 dark:text-[#9BEBC0]">
+                {String(activeIndex + 1).padStart(2, "0")}
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-base font-bold tracking-[-0.02em] text-foreground sm:text-lg">
+                  {active.title}
+                </h2>
+                <p className="mt-0.5 text-sm text-muted-foreground">
+                  Section {activeIndex + 1} of {sections.length}
+                  {active.kind === "narrative" ? " · Markdown supported" : null}
+                </p>
+              </div>
+            </div>
+            <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-[12px] font-semibold text-primary dark:bg-[#1FB86A]/18 dark:text-[#9BEBC0]">
+              Default wording
+            </span>
+          </div>
+
+          {active.kind === "narrative" ? (
+            <>
+              <div className="flex flex-wrap items-center gap-1 border-b border-border bg-muted/30 px-3 py-2 sm:px-4">
+                <ToolbarButton label="Bold" onClick={() => applyWrap("**", "**")}>
+                  <BoldIcon className="size-4" />
+                </ToolbarButton>
+                <ToolbarButton label="Italic" onClick={() => applyWrap("_", "_")}>
+                  <ItalicIcon className="size-4" />
+                </ToolbarButton>
+                <ToolbarButton label="Bullet list" onClick={() => applyWrap("\n- ", "")}>
+                  <ListIcon className="size-4" />
+                </ToolbarButton>
+                <span className="mx-1 h-5 w-px bg-border" aria-hidden />
+                <button
+                  type="button"
+                  onClick={() => insertPlaceholder(placeholders[0] || "[ROOF AGE]")}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                >
+                  <PlusIcon className="size-3.5" />
+                  Insert placeholder
+                </button>
+              </div>
+              <textarea
+                ref={textareaRef}
+                value={activeBody}
+                onChange={(e) =>
+                  setBodies((current) => ({
+                    ...current,
+                    [active.id as NarrativeSlotKey]: e.target.value,
+                  }))
+                }
+                placeholder="Write the default wording for this section…"
+                className="min-h-[22rem] flex-1 resize-none bg-card px-5 py-4 text-[15px] leading-[1.75] text-foreground outline-none placeholder:text-muted-foreground caret-[#1FB86A] sm:px-6"
+              />
+            </>
+          ) : null}
+
+          {active.kind === "disclaimer" ? (
             <textarea
-              id="tpl-disclaimer"
-              rows={3}
               value={legalFooter}
               onChange={(e) => setLegalFooter(e.target.value)}
-              className={cn(textareaClass, "focus:border-[#E9A23B] focus:ring-[#E9A23B]/15")}
+              placeholder="Legal disclaimer shown at the end of the PDF…"
+              className="min-h-[22rem] flex-1 resize-none bg-card px-5 py-4 text-[15px] leading-[1.75] text-foreground outline-none placeholder:text-muted-foreground caret-[#1FB86A] sm:px-6"
             />
-          </SectionCard>
+          ) : null}
 
-          <SectionCard
-            id="codes"
-            number={numberOf("codes")}
-            title="Codes & standards"
-            hint={
-              <>
-                Manage citations in{" "}
+          {active.kind === "codes" ? (
+            <div className="flex min-h-[22rem] flex-1 flex-col gap-3 overflow-y-auto px-5 py-4 sm:px-6">
+              <p className="text-sm text-muted-foreground">
+                Choose citations included by default. Manage the library in{" "}
                 <Link
                   href={ROUTES.company.codes}
-                  className="font-semibold text-[#14965A] underline underline-offset-2 hover:text-[#0F7A48]"
+                  className="font-semibold text-primary underline underline-offset-2 hover:text-primary/80 dark:text-[#9BEBC0]"
                 >
                   Codes &amp; standards
                 </Link>
                 .
-              </>
-            }
-          >
-            <div className="flex max-h-[28rem] flex-col gap-2 overflow-y-auto">
+              </p>
               {citations.length === 0 ? (
-                <p className="rounded-xl border border-dashed border-[#DCE4DF] bg-[#F7F9F8] px-4 py-3 text-sm text-[#6B7A73]">
+                <p className="rounded-xl border border-dashed border-border bg-muted/50 px-4 py-6 text-sm text-muted-foreground">
                   No citations yet.
                 </p>
               ) : (
@@ -235,237 +488,153 @@ export default function TemplatesPage() {
                     <label
                       key={citation.id}
                       className={cn(
-                        "flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 transition-colors hover:border-[#BFE3CC]",
-                        checked ? "border-[#9FDDB9] bg-[#F1FBF5]" : "border-[#E9EFEB] bg-[#F7F9F8]",
+                        "flex cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-2.5 transition-colors",
+                        checked
+                          ? "border-primary/30 bg-primary/10 dark:border-[#1FB86A]/40 dark:bg-[#1FB86A]/12"
+                          : "border-border bg-muted/50 hover:border-primary/30",
                       )}
                     >
                       <Checkbox
                         checked={checked}
                         onCheckedChange={(value) => {
-                          const next = Boolean(value)
+                          const on = Boolean(value)
                           setCitationIds((current) =>
-                            next
+                            on
                               ? [...current, citation.id]
-                              : current.filter((id) => id !== citation.id)
+                              : current.filter((id) => id !== citation.id),
                           )
                         }}
                       />
                       <span className="min-w-0 flex-1 truncate text-sm">
-                        <b className="font-semibold text-[#0E1B16]">
+                        <b className="font-semibold text-foreground">
                           {citation.state} {citation.code}
                         </b>
-                        <span className="mx-2 text-[#A6B2AC]">—</span>
-                        <span className="text-[#6B7A73]">{citation.title}</span>
+                        <span className="mx-2 text-muted-foreground/50">—</span>
+                        <span className="text-muted-foreground">{citation.title}</span>
                       </span>
                     </label>
                   )
                 })
               )}
             </div>
-          </SectionCard>
-        </div>
-      </div>
-    </>
-  )
-}
-
-type SectionMeta = { id: string; title: string; tone: "green" | "amber" }
-
-const sectionDomId = (id: string) => `tpl-section-${id}`
-
-/** Grey at rest, white with a green ring while editing. */
-const textareaClass =
-  "w-full resize-y rounded-xl border border-[#E9EFEB] bg-[#F7F9F8] px-3.5 py-3 text-sm leading-[1.75] text-[#0E1B16] outline-none transition-[border-color,box-shadow,background-color] duration-150 placeholder:text-[#A6B2AC] focus:border-[#1FB86A] focus:bg-white focus:ring-4 focus:ring-[#1FB86A]/12"
-
-/** Renders "[ROOF AGE]"-style placeholders in hints as amber code chips. */
-function HintText({ text }: { text: string }) {
-  return (
-    <>
-      {text.split(/(\[[A-Z0-9 _]+\])/).map((part, i) =>
-        /^\[[A-Z0-9 _]+\]$/.test(part) ? (
-          <code
-            key={i}
-            className="mx-0.5 rounded-md border border-[#F5D9A8] bg-[#FFF4E2] px-1.5 py-px font-mono text-[11px] font-semibold text-[#C2700A]"
-          >
-            {part}
-          </code>
-        ) : (
-          <React.Fragment key={i}>{part}</React.Fragment>
-        ),
-      )}
-    </>
-  )
-}
-
-function NumberBadge({ number, tone, solid }: { number: number; tone: "green" | "amber"; solid?: boolean }) {
-  return (
-    <span
-      className={cn(
-        "grid size-7 shrink-0 place-items-center rounded-lg font-mono text-[11px] font-bold transition-colors duration-200",
-        solid
-          ? "bg-[#0A3326] text-white"
-          : tone === "amber"
-            ? "border border-[#F6DDB8] bg-[#FFF4E2] text-[#C2700A]"
-            : "border border-[#E4EBE7] bg-white text-[#6B7A73]",
-      )}
-    >
-      {String(number).padStart(2, "0")}
-    </span>
-  )
-}
-
-/** Standalone section card; gets a green edge + ring while one of its fields is focused. */
-function SectionCard({
-  id,
-  number,
-  title,
-  hint,
-  tone = "green",
-  htmlFor,
-  className,
-  children,
-}: {
-  id: string
-  number: number
-  title: string
-  hint?: React.ReactNode
-  tone?: "green" | "amber"
-  htmlFor?: string
-  className?: string
-  children: React.ReactNode
-}) {
-  const amber = tone === "amber"
-  return (
-    <section
-      id={sectionDomId(id)}
-      data-tpl-section={id}
-      className={cn(
-        "relative scroll-mt-6 overflow-hidden rounded-2xl border border-[#E4EBE7] p-4 shadow-[0_1px_2px_rgba(14,27,22,0.04),0_10px_28px_-22px_rgba(14,27,22,0.25)] transition-[border-color,box-shadow] duration-200 sm:p-5",
-        amber
-          ? "bg-linear-to-b from-[#FFF6EA] to-white to-60% focus-within:border-[#F1C989] focus-within:shadow-[0_0_0_3px_rgba(233,162,59,0.12)]"
-          : "bg-white focus-within:border-[#9FDDB9] focus-within:shadow-[0_0_0_3px_rgba(31,184,106,0.12),0_10px_28px_-22px_rgba(14,27,22,0.25)]",
-        className,
-      )}
-    >
-      {/* left accent shown while editing */}
-      <span
-        aria-hidden
-        className={cn(
-          "absolute inset-y-0 left-0 w-[3px] opacity-0 transition-opacity duration-200 [section:focus-within>&]:opacity-100",
-          amber ? "bg-[#E9A23B]" : "bg-[#1FB86A]",
-        )}
-      />
-      <div className="mb-3.5 flex items-center gap-3">
-        <span
-          className={cn(
-            "grid h-7 min-w-8 shrink-0 place-items-center rounded-lg px-1.5 font-mono text-[11px] font-bold",
-            amber ? "bg-[#FDE7C4] text-[#C2700A]" : "bg-[#DDF3E6] text-[#155A45]",
-          )}
-        >
-          {String(number).padStart(2, "0")}
-        </span>
-        <div className="min-w-0">
-          {htmlFor ? (
-            <label htmlFor={htmlFor} className="block text-[15px] leading-5 font-bold text-[#0E1B16]">
-              {title}
-            </label>
-          ) : (
-            <h2 className="text-[15px] leading-5 font-bold text-[#0E1B16]">{title}</h2>
-          )}
-          {hint ? (
-            <p className="mt-0.5 text-xs text-[#6B7A73]">
-              {typeof hint === "string" ? <HintText text={hint} /> : hint}
-            </p>
           ) : null}
-        </div>
-      </div>
-      {children}
-    </section>
-  )
-}
 
-/**
- * Sticky "Sections" index. Highlights the section being edited, or the one in view;
- * clicking jumps to it and focuses its field.
- */
-function SectionsNav({ sections }: { sections: SectionMeta[] }) {
-  const [active, setActive] = React.useState(sections[0]?.id ?? "")
-  const focusedRef = React.useRef<string | null>(null)
-
-  React.useEffect(() => {
-    // Editing wins over scroll position.
-    const onFocusIn = (event: FocusEvent) => {
-      const id = (event.target as HTMLElement | null)
-        ?.closest<HTMLElement>("[data-tpl-section]")
-        ?.dataset.tplSection
-      focusedRef.current = id ?? null
-      if (id) setActive(id)
-    }
-    const onFocusOut = () => {
-      focusedRef.current = null
-    }
-    document.addEventListener("focusin", onFocusIn)
-    document.addEventListener("focusout", onFocusOut)
-
-    // Scroll spy: the section crossing the upper third of the viewport.
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (focusedRef.current) return
-        const hit = entries.find((entry) => entry.isIntersecting)
-        const id = (hit?.target as HTMLElement | undefined)?.dataset.tplSection
-        if (id) setActive(id)
-      },
-      { rootMargin: "-25% 0px -65% 0px" },
-    )
-    document.querySelectorAll("[data-tpl-section]").forEach((el) => observer.observe(el))
-
-    return () => {
-      document.removeEventListener("focusin", onFocusIn)
-      document.removeEventListener("focusout", onFocusOut)
-      observer.disconnect()
-    }
-  }, [])
-
-  function jumpTo(id: string) {
-    setActive(id)
-    const section = document.getElementById(sectionDomId(id))
-    if (!section) return
-    const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    section.scrollIntoView({ behavior: smooth ? "smooth" : "auto", block: "start" })
-    section.querySelector<HTMLElement>("textarea, input")?.focus({ preventScroll: true })
-  }
-
-  return (
-    <nav
-      aria-label="Report sections"
-      className="hidden rounded-2xl border border-[#E4EBE7] bg-white p-3 shadow-[0_1px_2px_rgba(14,27,22,0.04),0_16px_36px_-22px_rgba(6,36,27,0.35)] lg:sticky lg:top-4 lg:block"
-    >
-      <p className="px-2 pt-1 pb-2.5 text-[11px] font-bold tracking-[0.14em] text-[#7B8A83] uppercase">Sections</p>
-      <ol className="relative flex flex-col gap-1">
-        {/* dashed connector behind the number badges */}
-        <span aria-hidden className="absolute top-5 bottom-5 left-[1.4rem] border-l border-dashed border-[#D3DED8]" />
-        {sections.map((section, index) => {
-          const isActive = section.id === active
-          return (
-            <li key={section.id} className="relative">
+          <footer className="mt-auto flex items-center justify-between gap-3 border-t border-border px-4 py-3 sm:px-5">
+            {prev ? (
               <button
                 type="button"
-                onClick={() => jumpTo(section.id)}
-                aria-current={isActive ? "true" : undefined}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-xl border px-2 py-1.5 text-left text-[13px] leading-snug font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#1FB86A]",
-                  isActive
-                    ? "border-[#CDE8D6] bg-[#EEF9F2] text-[#0A3326]"
-                    : "border-transparent text-[#3B4A44] hover:bg-[#F4F7F5]",
-                )}
+                onClick={() => setActiveId(prev.id)}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
               >
-                <NumberBadge number={index + 1} tone={section.tone} solid={isActive} />
-                <span className="min-w-0">{section.title}</span>
+                <ChevronLeftIcon className="size-4" />
+                {prev.title}
               </button>
-            </li>
-          )
-        })}
-      </ol>
-    </nav>
+            ) : (
+              <span />
+            )}
+            {next ? (
+              <button
+                type="button"
+                onClick={() => setActiveId(next.id)}
+                className="inline-flex h-10 items-center gap-1.5 rounded-xl bg-[#0A3326] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#0E4434]"
+              >
+                {next.title}
+                <ChevronRightIcon className="size-4" />
+              </button>
+            ) : (
+              <span className="text-sm text-muted-foreground">Last section</span>
+            )}
+          </footer>
+        </section>
+
+        {/* Right: live PDF preview */}
+        <aside className="xl:sticky xl:top-4">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <p className="text-[11px] font-bold tracking-[0.14em] text-muted-foreground uppercase">
+              PDF preview
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById("tpl-pdf-preview")
+                el?.scrollIntoView({ behavior: "smooth", block: "nearest" })
+              }}
+              className="text-xs font-semibold text-primary hover:underline dark:text-[#9BEBC0]"
+            >
+              Open full preview
+            </button>
+          </div>
+          <div id="tpl-pdf-preview" className={cn(PANEL_CLASS, "overflow-hidden")}>
+            <div className="border-b border-border bg-muted/60 px-4 py-3">
+              <p className="text-[10px] font-bold tracking-[0.16em] text-muted-foreground uppercase">
+                Evidence package
+              </p>
+              <p className="mt-0.5 text-sm font-semibold text-foreground">Report language draft</p>
+            </div>
+            <div className="flex max-h-[34rem] flex-col gap-0 overflow-y-auto bg-card p-3">
+              {sections.map((section) => {
+                const isActive = section.id === active.id
+                const body =
+                  section.kind === "narrative"
+                    ? bodies[section.id as NarrativeSlotKey]
+                    : section.kind === "disclaimer"
+                      ? legalFooter
+                      : citationIds.length
+                        ? `${citationIds.length} citation${citationIds.length === 1 ? "" : "s"} selected`
+                        : "No citations selected"
+                return (
+                  <button
+                    key={section.id}
+                    type="button"
+                    onClick={() => setActiveId(section.id)}
+                    className={cn(
+                      "rounded-xl border px-3.5 py-3 text-left transition-colors",
+                      isActive ? PREVIEW_ACTIVE_CLASS : "border-transparent hover:bg-muted/60",
+                    )}
+                  >
+                    <p className="text-[11px] font-bold tracking-[0.08em] text-muted-foreground uppercase">
+                      {section.title}
+                    </p>
+                    <p
+                      className={cn(
+                        "mt-1 text-[13px] leading-relaxed",
+                        isActive ? "text-foreground" : "text-muted-foreground",
+                      )}
+                    >
+                      {previewBody(body)}
+                    </p>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          <p className="mt-3 text-center text-xs text-muted-foreground">
+            The highlighted block updates as you type.
+          </p>
+        </aside>
+      </div>
+    </div>
+  )
+}
+
+function ToolbarButton({
+  label,
+  onClick,
+  children,
+}: {
+  label: string
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className="grid size-8 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+    >
+      {children}
+    </button>
   )
 }

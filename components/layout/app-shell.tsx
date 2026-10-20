@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils"
 export function AppShell({ role, children }: { role: Role; children: ReactNode }) {
   if (role === "company") {
     return (
-      <div className="app-frame company-shell relative flex h-svh w-full overflow-hidden bg-[#F6F8F7]">
+      <div className="app-frame company-shell relative flex h-svh w-full overflow-hidden bg-background text-foreground">
         <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           <TopBar role={role} />
           <div data-scroll-root className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto pt-6 pb-12">

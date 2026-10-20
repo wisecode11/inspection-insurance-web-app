@@ -66,6 +66,9 @@ const STATUS_PILL: Record<string, string> = {
   suspended: "bg-[#F87171] text-[#450A0A]",
 }
 
+const CARD_SHELL =
+  "rounded-3xl border border-border bg-card p-6 shadow-[0_1px_2px_rgba(14,27,22,0.04),0_16px_36px_-22px_rgba(6,36,27,0.35)] sm:p-8 dark:shadow-[0_1px_2px_rgba(0,0,0,0.35),0_16px_36px_-22px_rgba(0,0,0,0.55)]"
+
 async function loadCompany() {
   const response = await apiClient.get(endpoints.companies.me)
   return unwrap<{ company: CompanyProfile }>(response.data).company
@@ -78,14 +81,14 @@ function initialsOf(name: string) {
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
 }
 
-/** Empty fields sit on a soft grey fill; filled fields turn white; focus gets a green ring. */
+/** Empty fields sit on muted fill; filled fields use card; focus gets a green ring. */
 const fieldClass = (filled: boolean, withIcon: boolean) =>
   cn(
-    "h-12 w-full rounded-xl border text-[15px] text-[#0E1B16] outline-none transition-[border-color,box-shadow,background-color] duration-150",
-    "placeholder:text-[#A6B2AC] focus:border-[#1FB86A] focus:bg-white focus:ring-4 focus:ring-[#1FB86A]/12",
+    "h-12 w-full rounded-xl border text-[15px] text-foreground outline-none transition-[border-color,box-shadow,background-color] duration-150",
+    "placeholder:text-muted-foreground focus:border-[#1FB86A] focus:bg-card focus:ring-4 focus:ring-[#1FB86A]/12",
     "disabled:cursor-not-allowed disabled:opacity-70",
     withIcon ? "pr-4 pl-11" : "px-4",
-    filled ? "border-[#DCE4DF] bg-white" : "border-[#E9EFEB] bg-[#F7F9F8]",
+    filled ? "border-border bg-card" : "border-border bg-muted",
   )
 
 function Field({
@@ -109,13 +112,13 @@ function Field({
 }) {
   return (
     <div className="flex min-w-0 flex-col gap-2">
-      <label htmlFor={id} className="text-sm font-semibold text-[#0E1B16]">
+      <label htmlFor={id} className="text-sm font-semibold text-foreground">
         {label}
       </label>
       <div className="relative">
         {Icon ? (
           <Icon
-            className="pointer-events-none absolute top-1/2 left-4 size-[18px] -translate-y-1/2 text-[#6B7A73]"
+            className="pointer-events-none absolute top-1/2 left-4 size-[18px] -translate-y-1/2 text-muted-foreground"
             aria-hidden
           />
         ) : null}
@@ -215,15 +218,15 @@ export default function OrganizationPage() {
 
       <div className="relative z-10 grid items-start gap-6 lg:grid-cols-[minmax(0,380px)_minmax(0,1fr)]">
         {/* Summary card */}
-        <aside className="flex flex-col rounded-3xl border border-[#E4EBE7] bg-white p-6 shadow-[0_1px_2px_rgba(14,27,22,0.04),0_16px_36px_-22px_rgba(6,36,27,0.35)] sm:p-8 lg:sticky lg:top-0">
-          <span className="inline-flex items-center gap-2 self-start rounded-full border border-[#CDE8D6] bg-[#EDF8F1] px-3 py-1.5 text-[11px] font-bold tracking-[0.14em] text-[#155A45] uppercase">
+        <aside className={cn("flex flex-col lg:sticky lg:top-0", CARD_SHELL)}>
+          <span className="inline-flex items-center gap-2 self-start rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-[11px] font-bold tracking-[0.14em] text-primary uppercase dark:border-[#1FB86A]/35 dark:bg-[#1FB86A]/15 dark:text-[#9BEBC0]">
             <span className="size-1.5 rounded-full bg-[#1FB86A]" />
             Company admin
           </span>
-          <h1 className="mt-4 text-[clamp(32px,3.4vw,44px)] leading-[1.05] font-bold tracking-[-0.035em] text-[#0E1B16]">
+          <h1 className="mt-4 text-[clamp(32px,3.4vw,44px)] leading-[1.05] font-bold tracking-[-0.035em] text-foreground">
             Organization
           </h1>
-          <p className="mt-3 text-[15px] leading-[1.65] text-[#5B6B64]">
+          <p className="mt-3 text-[15px] leading-[1.65] text-muted-foreground">
             View and update your company profile used across jobs, reports, and branding.
           </p>
 
@@ -267,17 +270,14 @@ export default function OrganizationPage() {
               {saving ? "Saving…" : "Save changes"}
             </button>
           ) : (
-            <p className="mt-5 text-center text-[13px] text-[#6B7A73]">
+            <p className="mt-5 text-center text-[13px] text-muted-foreground">
               Only company admins can edit these details.
             </p>
           )}
         </aside>
 
         {/* Form card */}
-        <section
-          aria-label="Company profile"
-          className="rounded-3xl border border-[#E4EBE7] bg-white p-6 shadow-[0_1px_2px_rgba(14,27,22,0.04),0_16px_36px_-22px_rgba(6,36,27,0.35)] sm:p-8 lg:p-10"
-        >
+        <section aria-label="Company profile" className={cn(CARD_SHELL, "lg:p-10")}>
           <form
             className="grid grid-cols-1 gap-x-5 gap-y-7 sm:grid-cols-2 xl:grid-cols-4"
             onSubmit={(e) => {
@@ -307,7 +307,7 @@ export default function OrganizationPage() {
             <Field id="org-state" label="State" value={form.state} onChange={set("state")} disabled={!canEdit} autoComplete="address-level1" />
             <Field id="org-postal" label="Postal code" value={form.postalCode} onChange={set("postalCode")} disabled={!canEdit} autoComplete="postal-code" />
             <div className="flex min-w-0 flex-col gap-2">
-              <label htmlFor="org-country" className="text-sm font-semibold text-[#0E1B16]">
+              <label htmlFor="org-country" className="text-sm font-semibold text-foreground">
                 Country
               </label>
               <div className="relative">
@@ -325,7 +325,7 @@ export default function OrganizationPage() {
                     </option>
                   ))}
                 </select>
-                <ChevronDownIcon className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-[#6B7A73]" />
+                <ChevronDownIcon className="pointer-events-none absolute top-1/2 right-4 size-4 -translate-y-1/2 text-muted-foreground" />
               </div>
             </div>
             {/* lets Enter submit the form */}

@@ -150,13 +150,13 @@ export function TopBar({ role }: { role: Role }) {
                 <DropdownMenuContent
                   align="end"
                   sideOffset={10}
-                  className="w-64 rounded-xl border border-[#E6E9E7] p-0 shadow-md"
+                  className="w-64 rounded-xl border border-border bg-popover p-0 shadow-md"
                 >
                   <DropdownMenuGroup>
                     <DropdownMenuLabel className="flex flex-col gap-1 px-3 py-2.5 font-normal">
-                      <span className="text-sm font-semibold text-[#101828]">{name}</span>
+                      <span className="text-sm font-semibold text-foreground">{name}</span>
                       {email ? (
-                        <span className="text-xs font-normal text-[#667085]">{email}</span>
+                        <span className="text-xs font-normal text-muted-foreground">{email}</span>
                       ) : null}
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator className="my-0" />

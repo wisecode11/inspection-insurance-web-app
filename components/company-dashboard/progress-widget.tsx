@@ -38,7 +38,7 @@ export function ProgressWidget({
               <stop offset="1" stopColor="#8CE0B0" />
             </linearGradient>
           </defs>
-          <circle cx="48" cy="48" r={R} fill="none" strokeWidth="9" stroke="#F1F5F3" />
+          <circle cx="48" cy="48" r={R} fill="none" strokeWidth="9" className="stroke-[#F1F5F3] dark:stroke-border" />
           <motion.circle
             cx="48"
             cy="48"
@@ -54,15 +54,15 @@ export function ProgressWidget({
             transition={{ duration: 1.4, ease: [0.2, 0.8, 0.2, 1] }}
           />
         </svg>
-        <b className="absolute inset-0 grid place-items-center text-[22px] font-extrabold tracking-[-0.02em] text-[#0B1712]">
+        <b className="absolute inset-0 grid place-items-center text-[22px] font-extrabold tracking-[-0.02em] text-foreground">
           <span>
             <CountUp value={clamped} />%
           </span>
         </b>
       </div>
       <div>
-        <h4 className="m-0 text-[15px] font-semibold text-[#0B1712]">{label}</h4>
-        {helper ? <p className="mt-1 text-[13.5px] text-[#667085]">{helper}</p> : null}
+        <h4 className="m-0 text-[15px] font-semibold text-foreground">{label}</h4>
+        {helper ? <p className="mt-1 text-[13.5px] text-muted-foreground">{helper}</p> : null}
       </div>
     </div>
   )

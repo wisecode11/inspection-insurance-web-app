@@ -225,6 +225,110 @@
   --sidebar-ring: rgba(255, 255, 255, 0.35);
 }
 
+/*
+ * Forest dark palette for marketing (.landing) and the company portal shell
+ * (.company-shell). The app-wide .dark palette is a light canvas with teal
+ * accents, which washes these surfaces out. These overrides keep the brand
+ * green and only swap surfaces and text so copy stays readable.
+ *
+ * html.dark:has(...) also sets the tokens on <html> so portaled popovers,
+ * selects, sheets, and menus (rendered under body) inherit forest colors.
+ */
+.dark .landing,
+.dark .company-shell,
+html.dark:has(.landing),
+html.dark:has(.company-shell) {
+  color-scheme: dark;
+  --color-primary: #0a4b37;
+  /* Hover/CTA green — keep mid; readable body text uses overrides below. */
+  --color-primary-dark: #12875a;
+  --color-primary-light: #6ae8b0;
+  --color-primary-tint: #15281f;
+  --color-primary-tint-strong: #1c3a2c;
+  --color-bg-canvas: #071410;
+  --color-bg-outer: #050f0c;
+  --color-surface: #102019;
+  --color-border: #243f33;
+  --color-text-heading: #f3faf6;
+  --color-text-body: #d7ebe1;
+  --color-text-muted: #b9d3c7;
+  --color-accent-cta: #34d399;
+
+  --background: #071410;
+  --foreground: #f3faf6;
+  --card: #102019;
+  --card-foreground: #f3faf6;
+  --popover: #13261e;
+  --popover-foreground: #f3faf6;
+  --primary: #0a4b37;
+  --primary-foreground: #ffffff;
+  --secondary: #15281f;
+  --secondary-foreground: #f3faf6;
+  --muted: #15281f;
+  --muted-foreground: #b9d3c7;
+  --accent: #15281f;
+  --accent-foreground: #f3faf6;
+  --border: #243f33;
+  --input: #243f33;
+  --ring: #34d399;
+  --surface: #102019;
+  --brand: #0a4b37;
+  --brand-foreground: #ffffff;
+  --cta: #12875a;
+  --cta-foreground: #ffffff;
+
+  /* Analytics charts — forest greens instead of the teal app-dark set. */
+  --chart-1: #34d399;
+  --chart-2: #6ae8b0;
+  --chart-3: #12875a;
+  --chart-4: #fbbf24;
+  --chart-5: #b9d3c7;
+}
+
+/*
+ * Brand text on forest surfaces — mint / paper-light.
+ * Include opacity utilities (text-primary/80, text-primary-dark/70): those
+ * color-mix against the dark button greens and become unreadable otherwise.
+ */
+.dark .landing .text-primary,
+.dark .company-shell .text-primary,
+.dark .landing [class*="text-primary\/"],
+.dark .company-shell [class*="text-primary\/"] {
+  color: #9bebc0;
+}
+.dark .landing .text-primary-dark,
+.dark .company-shell .text-primary-dark,
+.dark .landing [class*="text-primary-dark\/"],
+.dark .company-shell [class*="text-primary-dark\/"] {
+  color: #d7ebe1;
+}
+/* White buttons keep dark green label text. */
+.dark .landing .bg-white.text-primary-dark,
+.dark .company-shell .bg-white.text-primary-dark,
+.dark .landing .bg-white[class*="text-primary-dark"],
+.dark .company-shell .bg-white[class*="text-primary-dark"] {
+  color: #063728 !important;
+}
+.dark .landing .text-shimmer {
+  background-image: linear-gradient(
+    100deg,
+    #9ddec0 0%,
+    #12b76a 35%,
+    #e8fff4 50%,
+    #12b76a 65%,
+    #9ddec0 100%
+  );
+}
+.dark .landing .landing-grid {
+  background-image:
+    linear-gradient(rgba(232, 246, 238, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(232, 246, 238, 0.06) 1px, transparent 1px);
+}
+.dark .landing .wf-orbit {
+  stroke: #d7ebe1;
+  stroke-opacity: 0.16;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

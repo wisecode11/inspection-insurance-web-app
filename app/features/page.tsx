@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 export default function FeaturesPage() {
   return (
     <MarketingPage
+      className="landing"
       eyebrow="Product"
       title="Everything a carrier-ready claim file needs"
       description="Photo evidence, storm checks, and branded reports for your office and every inspector in the field."
