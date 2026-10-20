@@ -2,19 +2,12 @@
 
 import Image from "next/image"
 import * as React from "react"
-import {
-  motion,
-  useMotionValue,
-  useMotionValueEvent,
-  useReducedMotion,
-  useScroll,
-  useSpring,
-  useTransform,
-  type MotionValue,
-} from "framer-motion"
+import { ShieldCheckIcon } from "lucide-react"
+import { motion, useReducedMotion } from "framer-motion"
 
 import { Icon3D, type Icon3DKey } from "@/components/marketing/icon-3d"
 import { cn } from "@/lib/utils"
+import styles from "./roof-journey.module.css"
 
 const beats = [
   {
@@ -23,6 +16,19 @@ const beats = [
     icon3d: "camera" as Icon3DKey,
     title: "Capture the roof",
     text: "Photos, GPS, and test squares on site — the same shots your crew already takes.",
+    tag: "Capture",
+    points: [
+      "Guided prompts for every slope and elevation",
+      "10×10 ft hail test squares with hit counts",
+      "GPS and timestamp on every photo",
+    ],
+    big: (
+      <>
+        GPS on <em>every</em> shot.
+      </>
+    ),
+    line: "Guided slope-by-slope capture, stamped with location and time.",
+    chip: "Front slope · GPS + time stamped",
     image: "/marketing/journey-capture.jpg",
     alt: "Inspector photographing a roof with a phone",
   },
@@ -31,7 +37,20 @@ const beats = [
     step: "02",
     icon3d: "weather" as Icon3DKey,
     title: "Verify the storm",
-    text: "Hail and wind hits get matched against NOAA data for the date of loss.",
+    text: "Hail and wind hits get matched against storm data for the date of loss.",
+    tag: "Verify",
+    points: [
+      "Storm date checked for the property address",
+      "Hail and wind hits tied to the date of loss",
+      "Mismatches flagged before the file goes out",
+    ],
+    big: (
+      <>
+        Storm-<em>verified</em>.
+      </>
+    ),
+    line: "Every hit is checked against storm data for the date of loss.",
+    chip: "Storm date verified",
     image: "/marketing/journey-verify.jpg",
     alt: "Inspector on a roof checking verified storm damage on a phone",
   },
@@ -41,27 +60,40 @@ const beats = [
     icon3d: "file" as Icon3DKey,
     title: "Send the file",
     text: "Approve the evidence and export a branded, carrier-ready PDF.",
+    tag: "Send",
+    points: [
+      "Your logo and colours on every report",
+      "Review and approve before it’s sent",
+      "Share by link, email or WhatsApp",
+    ],
+    big: (
+      <>
+        <em>One</em> carrier-ready PDF.
+      </>
+    ),
+    line: "Branded, approved and shared by link, email or WhatsApp.",
+    chip: "Report shared",
     image: "/marketing/journey-send.jpg",
     alt: "Inspector sending the damage report from a phone",
   },
 ] as const
 
-type Beat = (typeof beats)[number]
-
 const EASE = [0.22, 1, 0.36, 1] as const
 
+/** The sticky stack needs room for both columns. */
+const STACK_QUERY = "(min-width: 1120px)"
+
 /**
- * The homepage's one dominant scroll-driven story: one photo per step
- * (capture → verify → send) crossfades while the text beside it advances.
- * Desktop (lg+, motion allowed) pins the photo; everyone else gets the
- * same three beats as plain, lightweight scroll-reveal cards.
+ * The homepage's scroll story. Wide screens (motion allowed) get a sticky stack:
+ * the copy on the left cross-fades while photo cards slide over each other on the
+ * right. Everyone else gets the same three beats as simple scroll-reveal cards.
  */
 export function RoofJourney() {
   const reduceMotion = useReducedMotion()
 
   return (
     // overflow-x-clip (not overflow-hidden): hidden would create a scroll
-    // container and silently break the sticky pin below.
+    // container and silently break the sticky stack below.
     <section className="relative overflow-x-clip">
       <div
         aria-hidden
@@ -69,11 +101,16 @@ export function RoofJourney() {
       />
 
       {!reduceMotion && (
-        <div className="hidden lg:block">
-          <PinnedJourney />
+        <div className="relative hidden py-24 min-[1120px]:block">
+          <div className="mx-auto max-w-2xl px-6">
+            <SectionHeading />
+          </div>
+          <div className="mx-auto mt-20 max-w-7xl px-6">
+            <StackJourney />
+          </div>
         </div>
       )}
-      <div className={cn("relative py-20 md:py-28", !reduceMotion && "lg:hidden")}>
+      <div className={cn("relative py-20 md:py-28", !reduceMotion && "min-[1120px]:hidden")}>
         <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">
           <SectionHeading />
         </div>
@@ -125,175 +162,240 @@ function SectionHeading({ align = "center" }: { align?: "center" | "left" }) {
   )
 }
 
-function PinnedJourney() {
-  const trackRef = React.useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({ target: trackRef, offset: ["start start", "end end"] })
-  const progress = useSpring(scrollYProgress, { stiffness: 300, damping: 46, restDelta: 0.001 })
-  const stage = useTransform(progress, [0, 1], [0, beats.length])
+/* =========================================================
+   Sticky stack (port of the "why-stack" pattern)
+   Each card scales down to SCALES[i] as the next one arrives;
+   the copy cross-fades by how far the stack has advanced.
+   ========================================================= */
 
-  // Which step is in focus — changes only a few times, so state is fine here.
-  const [active, setActive] = React.useState(0)
-  useMotionValueEvent(stage, "change", (v) => {
-    const next = Math.min(beats.length - 1, Math.max(0, Math.floor(v + 0.1)))
-    setActive((prev) => (prev === next ? prev : next))
-  })
+const SCALES = [0.82, 0.91, 1]
+const SMOOTH = 0.12
+const CARD_CLASS = [styles.card1, styles.card2, styles.card3]
 
-  // Gentle tilt of the photo toward the pointer, like the hero phone.
-  const px = useMotionValue(0)
-  const py = useMotionValue(0)
-  const rotateY = useSpring(useTransform(px, [-0.5, 0.5], [-4, 4]), { stiffness: 120, damping: 20 })
-  const rotateX = useSpring(useTransform(py, [-0.5, 0.5], [3, -3]), { stiffness: 120, damping: 20 })
+const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v))
+
+function StackJourney() {
+  const cardRefs = React.useRef<(HTMLDivElement | null)[]>([])
+  const textRefs = React.useRef<(HTMLDivElement | null)[]>([])
+  const segRefs = React.useRef<(HTMLElement | null)[]>([])
+  const sectionRef = React.useRef<HTMLDivElement>(null)
+  const [active, setActive] = React.useState(-1)
+
+  React.useEffect(() => {
+    const desktop = window.matchMedia(STACK_QUERY)
+    const cards = cardRefs.current.filter(Boolean) as HTMLDivElement[]
+    const texts = textRefs.current.filter(Boolean) as HTMLDivElement[]
+    const segs = segRefs.current.filter(Boolean) as HTMLElement[]
+    if (!cards.length) return
+
+    const cur = { scale: cards.map(() => 1), op: texts.map((_, i) => (i === 0 ? 1 : 0)) }
+    let current = -1
+    let raf = 0
+    let inView = false
+
+    const targets = () => {
+      const vh = window.innerHeight
+      // 0 = card still below, 1 = card has arrived on top of the stack
+      const enter = cards.map((c, i) => {
+        if (i === 0) return 1
+        const top = c.getBoundingClientRect().top
+        const start = vh * 0.72
+        const end = parseFloat(getComputedStyle(c).top) + 10
+        return clamp((start - top) / (start - end))
+      })
+      const scale = cards.map((_, i) => {
+        const p = i < cards.length - 1 ? enter[i + 1] : 0
+        return 1 - (1 - SCALES[i]) * p
+      })
+      let f = 0
+      for (let i = 1; i < enter.length; i++) f += clamp((enter[i] - 0.15) / 0.55)
+      const op = texts.map((_, i) => clamp(1 - Math.abs(f - i) * 1.8))
+      // how far the first card has scrolled into view (fills the first segment)
+      const first = clamp((vh - cards[0].getBoundingClientRect().top) / (vh * 0.6))
+      return { scale, op, f, first }
+    }
+
+    const tick = () => {
+      raf = 0
+      if (!desktop.matches) return
+      const t = targets()
+      let moving = false
+
+      cards.forEach((c, i) => {
+        const d = t.scale[i] - cur.scale[i]
+        if (Math.abs(d) > 0.0005) moving = true
+        cur.scale[i] += d * SMOOTH
+        c.style.transform = `translate3d(0,0,0) scale3d(${cur.scale[i].toFixed(4)},${cur.scale[i].toFixed(4)},1)`
+      })
+
+      let best = 0
+      texts.forEach((el, i) => {
+        const d = t.op[i] - cur.op[i]
+        if (Math.abs(d) > 0.001) moving = true
+        cur.op[i] += d * SMOOTH
+        el.style.opacity = cur.op[i] < 0.001 ? "0" : cur.op[i].toFixed(4)
+        if (cur.op[i] > cur.op[best]) best = i
+      })
+      texts.forEach((el, i) => {
+        el.style.pointerEvents = i === best ? "auto" : "none"
+        el.style.zIndex = i === best ? "2" : "1"
+        el.setAttribute("aria-hidden", String(i !== best))
+      })
+
+      // progress: first segment fills as the stack scrolls in, the rest as cards arrive
+      segs.forEach((s, i) =>
+        s.style.setProperty("--p", (i === 0 ? t.first : clamp(t.f - (i - 1))).toFixed(3)),
+      )
+
+      if (t.first > 0.35 && best !== current) {
+        current = best
+        setActive(best)
+      }
+      if (moving || inView) raf = requestAnimationFrame(tick)
+    }
+    const kick = () => {
+      if (!raf) raf = requestAnimationFrame(tick)
+    }
+
+    const io = new IntersectionObserver(([e]) => {
+      inView = e.isIntersecting
+      if (inView) kick()
+    })
+    if (sectionRef.current) io.observe(sectionRef.current)
+    const onChange = () => {
+      if (!desktop.matches) cards.forEach((c) => (c.style.transform = ""))
+      kick()
+    }
+    window.addEventListener("scroll", kick, { passive: true })
+    window.addEventListener("resize", kick)
+    desktop.addEventListener("change", onChange)
+    kick()
+
+    return () => {
+      cancelAnimationFrame(raf)
+      io.disconnect()
+      window.removeEventListener("scroll", kick)
+      window.removeEventListener("resize", kick)
+      desktop.removeEventListener("change", onChange)
+    }
+  }, [])
+
+  /** Subtle 3D tilt of the photo panel under the cursor (fine pointers only). */
+  function onCardMove(event: React.PointerEvent<HTMLDivElement>) {
+    if (event.pointerType !== "mouse") return
+    const card = event.currentTarget
+    const panel = card.querySelector<HTMLElement>(`.${styles.vis}`)
+    if (!panel) return
+    const r = card.getBoundingClientRect()
+    const x = (event.clientX - r.left) / r.width - 0.5
+    const y = (event.clientY - r.top) / r.height - 0.5
+    panel.style.setProperty("--ry", `${(x * 6).toFixed(2)}deg`)
+    panel.style.setProperty("--rx", `${(-y * 6).toFixed(2)}deg`)
+  }
+  function onCardLeave(event: React.PointerEvent<HTMLDivElement>) {
+    const panel = event.currentTarget.querySelector<HTMLElement>(`.${styles.vis}`)
+    panel?.style.setProperty("--ry", "0deg")
+    panel?.style.setProperty("--rx", "0deg")
+  }
+
+  const shown = Math.max(active, 0)
 
   return (
-    <div ref={trackRef} className="relative h-[320vh]">
-      <div className="sticky top-[4.25rem] flex h-[calc(100svh-4.25rem)] items-center overflow-hidden">
-        <div className="mx-auto grid w-full max-w-7xl items-center gap-14 px-6 lg:grid-cols-2 lg:gap-20">
-          <div>
-            <SectionHeading align="left" />
-            <div className="mt-10 flex flex-col gap-7">
-              {beats.map((beat, i) => (
-                <Beat key={beat.id} beat={beat} index={i} stage={stage} isLast={i === beats.length - 1} active={active === i} />
-              ))}
-            </div>
-            <div className="mt-9 flex items-center gap-2" aria-hidden>
-              {beats.map((_, i) => (
-                <RailSegment key={i} index={i} stage={stage} />
-              ))}
-            </div>
-          </div>
-
-          <motion.div
-            className="relative mx-auto aspect-[3/2] w-full max-w-[min(38rem,calc((100svh-9rem)*1.5))]"
-            style={{ rotateX, rotateY, transformPerspective: 1200 }}
-            onPointerMove={(e) => {
-              if (e.pointerType !== "mouse") return
-              const rect = e.currentTarget.getBoundingClientRect()
-              px.set((e.clientX - rect.left) / rect.width - 0.5)
-              py.set((e.clientY - rect.top) / rect.height - 0.5)
+    <div ref={sectionRef} className={styles.wrap}>
+      {/* Left: sticky copy */}
+      <div className={styles.texts}>
+        {beats.map((beat, i) => (
+          <div
+            key={beat.id}
+            ref={(el) => {
+              textRefs.current[i] = el
             }}
-            onPointerLeave={() => {
-              px.set(0)
-              py.set(0)
-            }}
+            className={styles.text}
+            data-current={i === active ? "" : undefined}
+            style={{ opacity: i === 0 ? 1 : 0 }}
+            aria-hidden={i !== 0}
           >
-            <div className="journey-border-beam size-full rounded-[1.65rem]">
-              <div className="relative size-full overflow-hidden rounded-3xl bg-primary-dark shadow-[0_30px_60px_-30px_rgba(6,55,40,0.55)] ring-1 ring-black/5">
-                {beats.map((beat, i) => (
-                  <JourneyPhoto key={beat.id} beat={beat} index={i} stage={stage} />
-                ))}
-                <ScanSweep key={active} />
-              </div>
-            </div>
-          </motion.div>
+            <span className={styles.label}>
+              <b>{beat.step}</b>
+              {beat.tag}
+            </span>
+            <h3 className={styles.h}>{beat.title}</h3>
+            <p className={styles.p}>{beat.text}</p>
+            <ul className={styles.points}>
+              {beat.points.map((point) => (
+                <li key={point}>
+                  <i className={styles.tick} aria-hidden />
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+        <div className={styles.progress} aria-hidden>
+          <span className={styles.count}>
+            <b>{beats[shown].step}</b> / {String(beats.length).padStart(2, "0")}
+          </span>
+          <div className={styles.segs}>
+            {beats.map((beat, i) => (
+              <i key={beat.id}>
+                <b
+                  ref={(el) => {
+                    segRefs.current[i] = el
+                  }}
+                />
+              </i>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* Right: stacking poster cards */}
+      <div className={styles.cards}>
+        {beats.map((beat, i) => (
+          <div
+            key={beat.id}
+            ref={(el) => {
+              cardRefs.current[i] = el
+            }}
+            className={cn(styles.card, CARD_CLASS[i])}
+            data-active={i === active ? "" : undefined}
+            onPointerMove={onCardMove}
+            onPointerLeave={onCardLeave}
+          >
+            <div className={styles.top}>
+              <span className={styles.tag}>
+                {beat.step} · {beat.tag}
+              </span>
+              <span className={styles.logo} aria-hidden>
+                <ShieldCheckIcon className="size-[18px]" strokeWidth={2.2} />
+              </span>
+            </div>
+            <div className={styles.big}>
+              <p className={styles.num}>{beat.big}</p>
+              <p className={styles.line}>{beat.line}</p>
+            </div>
+            <div className={styles.vis}>
+              <div className={styles.photo}>
+                <div className="journey-kenburns absolute inset-0" style={{ animationDelay: `-${i * 6}s` }}>
+                  <Image
+                    src={beat.image}
+                    alt={beat.alt}
+                    fill
+                    sizes="(min-width: 1440px) 600px, 560px"
+                    priority={i === 0}
+                    className="object-cover"
+                  />
+                </div>
+              </div>
+              <span className={styles.chip}>
+                <i className={styles.tick} aria-hidden />
+                {beat.chip}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
-  )
-}
-
-function Beat({
-  beat,
-  index,
-  stage,
-  isLast,
-  active,
-}: {
-  beat: Beat
-  index: number
-  stage: MotionValue<number>
-  isLast: boolean
-  active: boolean
-}) {
-  const opacity = useTransform(
-    stage,
-    isLast
-      ? [index - 0.35, index, beats.length]
-      : [index - 0.35, index, index + 0.65, index + 1],
-    isLast ? [0.35, 1, 1] : [0.35, 1, 1, 0.4],
-  )
-  const y = useTransform(stage, [index - 0.35, index], [10, 0])
-  const iconScale = useTransform(
-    stage,
-    isLast ? [index - 0.35, index] : [index - 0.35, index, index + 0.65, index + 1],
-    isLast ? [0.9, 1.12] : [0.9, 1.12, 1.12, 0.92],
-  )
-
-  return (
-    <motion.div style={{ opacity, y }} className="flex gap-4">
-      <motion.span style={{ scale: iconScale }} className="relative flex size-11 shrink-0 items-center justify-center">
-        <span
-          aria-hidden
-          className={cn(
-            "absolute -inset-2 rounded-full bg-[radial-gradient(circle,rgba(18,183,106,0.28),transparent_70%)] transition-opacity duration-500",
-            active ? "journey-icon-glow opacity-100" : "opacity-0",
-          )}
-        />
-        <span className={cn("relative", active && "journey-icon-bob")}>
-          <Icon3D name={beat.icon3d} size={44} />
-        </span>
-      </motion.span>
-      <div>
-        <p className="text-xs font-bold tracking-wider text-muted-foreground">STEP {beat.step}</p>
-        <h3 className="mt-1 text-xl font-semibold">{beat.title}</h3>
-        <p className="mt-1.5 max-w-sm text-sm leading-relaxed text-muted-foreground">{beat.text}</p>
-      </div>
-    </motion.div>
-  )
-}
-
-/** One step's photo: crossfades in as its beat arrives and settles from a slight zoom. */
-function JourneyPhoto({ beat, index, stage }: { beat: Beat; index: number; stage: MotionValue<number> }) {
-  const first = index === 0
-  const last = index === beats.length - 1
-  // Crossfade window sits at each boundary between beats (0.85–1.05, 1.85–2.05).
-  const opacity = useTransform(
-    stage,
-    [index - 0.15, index + 0.05, index + 0.85, index + 1.05],
-    [first ? 1 : 0, 1, 1, last ? 1 : 0],
-  )
-  const scale = useTransform(stage, [index - 0.15, index + 1.05], [1.08, 1])
-
-  return (
-    <motion.div style={{ opacity, scale }} className="absolute inset-0">
-      <div className="journey-kenburns absolute inset-0" style={{ animationDelay: `-${index * 6}s` }}>
-        <Image
-          src={beat.image}
-          alt={beat.alt}
-          fill
-          sizes="(min-width: 1024px) 38rem, 100vw"
-          priority={first}
-          className="object-cover"
-        />
-      </div>
-    </motion.div>
-  )
-}
-
-function RailSegment({ index, stage }: { index: number; stage: MotionValue<number> }) {
-  const scaleX = useTransform(stage, [index, index + 1], [0, 1])
-  return (
-    <span className="h-1 flex-1 overflow-hidden rounded-full bg-border">
-      <motion.span
-        style={{ scaleX, transformOrigin: "left" }}
-        className="journey-rail-fill block h-full rounded-full bg-primary"
-      />
-    </span>
-  )
-}
-
-/** A mint scan line that sweeps down the photo once whenever the step changes (remounted via key). */
-function ScanSweep() {
-  return (
-    <motion.div
-      aria-hidden
-      className="pointer-events-none absolute inset-x-0 z-10 h-24"
-      initial={{ top: "-25%", opacity: 0 }}
-      animate={{ top: "110%", opacity: [0, 1, 1, 0] }}
-      transition={{ duration: 1.4, ease: EASE, times: [0, 0.15, 0.8, 1] }}
-    >
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#6ae8b0]/25 to-transparent" />
-      <div className="absolute inset-x-0 top-1/2 h-px bg-[#6ae8b0] shadow-[0_0_12px_2px_rgba(106,232,176,0.7)]" />
-    </motion.div>
   )
 }
 

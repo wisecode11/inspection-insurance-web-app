@@ -1,43 +1,59 @@
 "use client"
 
 import * as React from "react"
-import {
-  ArrowUpIcon,
-  CalendarIcon,
-  ChevronRightIcon,
-  FlameIcon,
-  MapPinIcon,
-  PaperclipIcon,
-} from "lucide-react"
+import { ArrowUpIcon, CalendarIcon, FlameIcon, MapPinIcon, PaperclipIcon } from "lucide-react"
 
+import { GridCardActions, initialsOf } from "@/components/shared/grid-card"
 import {
-  AvatarInitials,
-  GridCard,
-  GridCardActions,
-  GridCardFact,
-  GridCardFacts,
-} from "@/components/shared/grid-card"
-import { StatusBadge, type StatusVariant } from "@/components/shared/status-badge"
+  CodeChip,
+  FactBox,
+  LIST_TONES,
+  ListCard,
+  ListCardFooter,
+  SquareAvatar,
+  StatusPill,
+  type ListTone,
+} from "@/components/shared/list-card"
 import { cn } from "@/lib/utils"
-import {
-  jobStatusLabel,
-  jobStatusVariant,
-  type JobRow,
-} from "@/modules/inspections/types/job.types"
+import { jobStatusLabel, type JobRow, type JobStatus } from "@/modules/inspections/types/job.types"
 
-/** Top accent bar colour, matching the status badge tone. */
-const accentClasses: Partial<Record<StatusVariant, string>> = {
-  draft: "bg-muted-foreground/40",
-  scheduled: "bg-warning",
-  pending: "bg-warning",
-  in_progress: "bg-primary",
-  submitted: "bg-primary",
-  completed: "bg-success",
-  cancelled: "bg-muted-foreground/40",
+/* ---------- Status tone: accent bar, pill and progress segments ---------- */
+
+/** Lifecycle: unassigned → assigned → in progress → submitted (4 steps). */
+function toneFor(status: JobStatus): ListTone & { steps: number } {
+  switch (status) {
+    case "draft":
+      return { ...LIST_TONES.gray, steps: 1 }
+    case "assigned":
+    case "scheduled":
+    case "accepted":
+      return { ...LIST_TONES.amber, steps: 2 }
+    case "on_hold":
+      return { ...LIST_TONES.gray, steps: 2 }
+    case "in_progress":
+    case "pending_sync":
+    case "reopened":
+      return { ...LIST_TONES.blue, steps: 3 }
+    case "submitted":
+    case "review_required":
+      return { ...LIST_TONES.green, steps: 4 }
+    case "reviewed":
+      return { ...LIST_TONES.teal, steps: 4 }
+    case "completed":
+    case "report_generated":
+    case "archived":
+      return { ...LIST_TONES.forest, steps: 4 }
+    case "rejected":
+    case "cancelled":
+      return { ...LIST_TONES.red, steps: 1 }
+    default:
+      return { ...LIST_TONES.gray, steps: 1 }
+  }
 }
 
-const TERMINAL_STATUSES = ["completed", "report_generated", "archived", "cancelled", "rejected"]
+/* ---------- Due date ---------- */
 
+const TERMINAL_STATUSES = ["completed", "report_generated", "archived", "cancelled", "rejected"]
 const DAY_MS = 24 * 60 * 60 * 1000
 
 type DueTone = "none" | "muted" | "soon" | "overdue"
@@ -56,9 +72,7 @@ function dueInfo(row: JobRow): { label: string; title?: string; tone: DueTone } 
   due.setHours(0, 0, 0, 0)
   const days = Math.round((due.getTime() - today.getTime()) / DAY_MS)
 
-  if (days < 0) {
-    return { label: `Overdue ${-days}d`, title: `Was due ${full}`, tone: "overdue" }
-  }
+  if (days < 0) return { label: `Overdue ${-days}d`, title: `Was due ${full}`, tone: "overdue" }
   if (days === 0) return { label: "Due today", title: full, tone: "soon" }
   if (days === 1) return { label: "Due tomorrow", title: full, tone: "soon" }
   if (days <= 14) return { label: `Due in ${days} days`, title: full, tone: days <= 3 ? "soon" : "muted" }
@@ -66,16 +80,16 @@ function dueInfo(row: JobRow): { label: string; title?: string; tone: DueTone } 
 }
 
 const dueClasses: Record<DueTone, string> = {
-  none: "bg-transparent text-muted-foreground/70",
-  muted: "bg-primary-tint/70 text-muted-foreground",
-  soon: "bg-warning/14 text-warning",
-  overdue: "bg-danger/12 text-danger",
+  none: "text-muted-foreground",
+  muted: "text-muted-foreground",
+  soon: "rounded-lg border border-[#F5D9A8] bg-[#FFF4E2] px-2.5 py-1 text-[#C2700A] dark:border-[#D9820F]/40 dark:bg-[#D9820F]/18 dark:text-[#FBBF24]",
+  overdue: "rounded-lg border border-[#F6C9C9] bg-[#FDECEC] px-2.5 py-1 font-semibold text-[#DC2626] dark:border-[#DC2626]/40 dark:bg-[#DC2626]/20 dark:text-[#FCA5A5]",
 }
 
 function PriorityFlag({ priority }: { priority: string }) {
   if (priority === "urgent") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-danger/12 px-2 py-0.5 text-xs font-semibold text-danger">
+      <span className="inline-flex items-center gap-1 rounded-full bg-[#DC2626] px-2.5 py-[3px] text-xs font-semibold text-white shadow-[0_4px_10px_-4px_rgba(220,38,38,0.6)]">
         <FlameIcon className="size-3" aria-hidden />
         Urgent
       </span>
@@ -83,13 +97,26 @@ function PriorityFlag({ priority }: { priority: string }) {
   }
   if (priority === "high") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-warning/14 px-2 py-0.5 text-xs font-semibold text-warning">
+      <span className="inline-flex items-center gap-1 rounded-full bg-[#FFF4E2] px-2.5 py-[3px] text-xs font-semibold text-[#C2700A] dark:bg-[#D9820F]/18 dark:text-[#FBBF24]">
         <ArrowUpIcon className="size-3" aria-hidden />
         High
       </span>
     )
   }
   return null
+}
+
+/** "Hail inspection - Harper Scott" → muted separator between the two halves. */
+function JobTitle({ title }: { title: string }) {
+  const [lead, ...rest] = title.split(" - ")
+  if (!rest.length) return <>{title}</>
+  return (
+    <>
+      {lead}
+      <span className="mx-1 font-normal text-muted-foreground">-</span>
+      {rest.join(" - ")}
+    </>
+  )
 }
 
 export function JobCard({
@@ -105,35 +132,32 @@ export function JobCard({
   onOpen: () => void
   actions: React.ReactNode
 }) {
-  const variant = jobStatusVariant(row.status)
-  // Rejected shares the neutral "cancelled" badge variant but gets a red accent.
-  const accent = row.status === "rejected" ? "bg-danger" : accentClasses[variant] ?? "bg-primary"
+  const tone = toneFor(row.status)
   const priority = String(row.priority || "normal")
   const due = dueInfo(row)
   // addressLine already carries city/state; fall back to city only when it is empty.
   const address = row.addressLine || row.city
   const assigned = Boolean(row.assignedTo) && Boolean(row.inspector)
   const attachmentCount = row.attachments?.length ?? 0
+  const title = row.title || "Untitled job"
 
   return (
-    <GridCard
-      accent={accent}
-      onOpen={onOpen}
-      selected={selected}
-      label={`${row.jobNumber} ${row.title || "Untitled"}`}
-    >
-      <header className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-          <span className="rounded-md bg-foreground/[0.05] px-1.5 py-0.5 font-mono text-[0.7rem] font-semibold tracking-wide text-muted-foreground">
-            {row.jobNumber}
-          </span>
-          <StatusBadge status={variant} label={jobStatusLabel(row.status)} className="rounded-full" />
+    <ListCard accent={tone.bar} onOpen={onOpen} selected={selected} label={`${row.jobNumber} ${title}`}>
+      <header className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <CodeChip>{row.jobNumber}</CodeChip>
+          <StatusPill tone={tone}>{jobStatusLabel(row.status)}</StatusPill>
           <PriorityFlag priority={priority} />
+          <span className="ml-1 inline-flex items-center gap-1" role="img" aria-label={`Progress ${tone.steps} of 4`}>
+            {Array.from({ length: 4 }, (_, i) => (
+              <i key={i} className={cn("h-[3px] w-4 rounded-full", i < tone.steps ? tone.bar : "bg-border")} />
+            ))}
+          </span>
         </div>
-        <GridCardActions>
+        <GridCardActions className="mt-0 -mr-1.5">
           <label
             className={cn(
-              "flex size-7 cursor-pointer items-center justify-center rounded-md transition-opacity hover:bg-primary-tint",
+              "flex size-7 cursor-pointer items-center justify-center rounded-md transition-opacity hover:bg-primary/10",
               selected
                 ? "opacity-100"
                 : "opacity-0 group-hover:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100",
@@ -144,59 +168,59 @@ export function JobCard({
               aria-label={`Select job ${row.jobNumber}`}
               checked={selected}
               onChange={onToggleSelect}
-              className="size-4 cursor-pointer accent-[var(--color-primary)]"
+              className="size-4 cursor-pointer accent-[#1FB86A]"
             />
           </label>
           {actions}
         </GridCardActions>
       </header>
 
-      <div className="flex flex-col gap-1.5">
-        <h3 className="line-clamp-1 text-base font-semibold tracking-tight text-foreground" title={row.title}>
-          {row.title || "Untitled job"}
-        </h3>
-        <p className="flex items-start gap-1.5 text-sm text-muted-foreground">
-          <MapPinIcon className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden />
-          <span className="line-clamp-2 min-w-0 break-words" title={address}>
-            {address || "No address"}
-          </span>
-        </p>
-      </div>
+      <h3 className="mt-3 line-clamp-1 text-base font-bold tracking-[-0.02em] text-foreground" title={title}>
+        <JobTitle title={title} />
+      </h3>
+      <p className="mt-1 flex min-h-[2.5rem] items-start gap-1.5 text-[13px] leading-[1.5] text-muted-foreground">
+        <MapPinIcon className="mt-[3px] size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+        <span className="line-clamp-2 min-w-0 break-words" title={address}>
+          {address || "No address"}
+        </span>
+      </p>
 
-      <GridCardFacts>
-        <GridCardFact label="Homeowner" value={row.customerName || "—"} />
-        <GridCardFact
+      <dl className="mt-3 grid grid-cols-2 gap-2">
+        <FactBox label="Homeowner" value={row.customerName || "—"} />
+        <FactBox
           label="Claim"
           value={row.claim?.claimNumber || "—"}
           sub={row.claim?.insuranceCompany || undefined}
+          mono
         />
-      </GridCardFacts>
+      </dl>
 
-      <footer className="mt-auto flex items-center justify-between gap-3">
+      <ListCardFooter>
         {assigned ? (
-          <div className="flex min-w-0 items-center gap-2.5">
-            <AvatarInitials name={row.inspector} />
+          <div className="flex min-w-0 items-center gap-3">
+            <SquareAvatar initials={initialsOf(row.inspector)} />
             <div className="flex min-w-0 flex-col leading-tight">
-              <span className="truncate text-sm font-medium capitalize">{row.inspector}</span>
+              <span className="truncate text-sm font-semibold text-foreground capitalize">{row.inspector}</span>
               <span className="text-xs text-muted-foreground">Inspector</span>
             </div>
           </div>
         ) : (
-          <div className="flex min-w-0 items-center gap-2.5">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-dashed border-warning/60 text-xs font-semibold text-warning">
-              ?
-            </span>
+          <div className="flex min-w-0 items-center gap-3">
+            <SquareAvatar
+              initials="?"
+              className="border border-dashed border-[#E9B866] bg-[#FFF8EC] text-xs text-[#D9820F] dark:border-[#D9820F]/45 dark:bg-[#D9820F]/18 dark:text-[#FBBF24]"
+            />
             <div className="flex min-w-0 flex-col leading-tight">
-              <span className="text-sm font-medium text-warning">Unassigned</span>
+              <span className="text-sm font-semibold text-[#D9820F] dark:text-[#FBBF24]">Unassigned</span>
               <span className="text-xs text-muted-foreground">Needs inspector</span>
             </div>
           </div>
         )}
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2.5">
           {attachmentCount ? (
             <span
-              className="inline-flex items-center gap-0.5 text-xs text-muted-foreground"
+              className="inline-flex items-center gap-0.5 text-[13px] text-muted-foreground"
               title={`${attachmentCount} attachment${attachmentCount === 1 ? "" : "s"}`}
             >
               <PaperclipIcon className="size-3.5" aria-hidden />
@@ -205,20 +229,13 @@ export function JobCard({
           ) : null}
           <span
             title={due.title}
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium tabular-nums",
-              dueClasses[due.tone],
-            )}
+            className={cn("inline-flex items-center gap-1.5 text-[13px] tabular-nums", dueClasses[due.tone])}
           >
             <CalendarIcon className="size-3.5" aria-hidden />
             {due.label}
           </span>
-          <ChevronRightIcon
-            className="size-4 -translate-x-1 text-primary opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100"
-            aria-hidden
-          />
         </div>
-      </footer>
-    </GridCard>
+      </ListCardFooter>
+    </ListCard>
   )
 }

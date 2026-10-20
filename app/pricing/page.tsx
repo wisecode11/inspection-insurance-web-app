@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 export default function PricingPage() {
   return (
     <MarketingPage
+      className="landing"
       eyebrow="Pricing"
       title="Simple, transparent pricing"
       description="Seat-based plans for roofing companies. Start with a free trial and upgrade when your crew grows."

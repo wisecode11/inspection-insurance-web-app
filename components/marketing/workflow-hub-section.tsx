@@ -293,6 +293,7 @@ function HubStage({ focus }: { focus: readonly string[] }) {
             cy={262}
             r={r}
             fill="none"
+            className="wf-orbit"
             stroke="#0a4b37"
             strokeOpacity={0.045 + i * 0.01}
             strokeWidth="1"
@@ -392,10 +393,10 @@ function HubStage({ focus }: { focus: readonly string[] }) {
       {/* Hub: one complete claim file — children placed at the reference proportions */}
       <motion.div
         className={cn(
-          "absolute z-10 rounded-[3.2cqw] border bg-white/60 text-center backdrop-blur-md transition-[box-shadow,border-color] duration-300",
+          "absolute z-10 rounded-[3.2cqw] border bg-white/60 text-center backdrop-blur-md transition-[box-shadow,border-color] duration-300 dark:bg-[#13241c]/85",
           anyActive
-            ? "border-[#6ae8b0] shadow-[0_24px_50px_-26px_rgba(6,55,40,0.45),0_0_60px_rgba(106,232,176,0.7),inset_0_1px_0_rgba(255,255,255,0.95)]"
-            : "border-white/90 shadow-[0_24px_50px_-26px_rgba(6,55,40,0.45),0_0_40px_rgba(106,232,176,0.4),inset_0_1px_0_rgba(255,255,255,0.95)]",
+            ? "border-[#6ae8b0] shadow-[0_24px_50px_-26px_rgba(6,55,40,0.45),0_0_60px_rgba(106,232,176,0.7),inset_0_1px_0_rgba(255,255,255,0.95)] dark:shadow-[0_24px_50px_-26px_rgba(0,0,0,0.55),0_0_60px_rgba(106,232,176,0.35)]"
+            : "border-white/90 shadow-[0_24px_50px_-26px_rgba(6,55,40,0.45),0_0_40px_rgba(106,232,176,0.4),inset_0_1px_0_rgba(255,255,255,0.95)] dark:border-white/15 dark:shadow-[0_24px_50px_-26px_rgba(0,0,0,0.55),0_0_40px_rgba(106,232,176,0.22)]",
         )}
         style={{ left: pctX(HUB.x), top: pctY(HUB.y), width: pctX(HUB.w), height: pctY(HUB.h) }}
         variants={{
@@ -409,13 +410,13 @@ function HubStage({ focus }: { focus: readonly string[] }) {
           className="!absolute top-[17%] left-1/2 !size-[9cqw] -translate-x-1/2 -translate-y-1/2"
           fallback={<HouseIcon className="size-[7cqw] text-primary" />}
         />
-        <p className="absolute inset-x-0 top-[35%] text-[clamp(10px,3cqw,20px)] leading-[1.18] font-bold text-[#14234a]">
+        <p className="absolute inset-x-0 top-[35%] text-[clamp(10px,3cqw,20px)] leading-[1.18] font-bold text-[#14234a] dark:text-[#e8f6ee]">
           One complete
           <br />
           claim file
         </p>
-        <span className="absolute top-[70%] left-1/2 h-[3%] w-[70%] -translate-x-1/2 rounded-full bg-[#dfe7e3]" />
-        <span className="absolute top-[77%] left-1/2 h-[3%] w-[62%] -translate-x-1/2 rounded-full bg-[#e7eeea]" />
+        <span className="absolute top-[70%] left-1/2 h-[3%] w-[70%] -translate-x-1/2 rounded-full bg-[#dfe7e3] dark:bg-white/15" />
+        <span className="absolute top-[77%] left-1/2 h-[3%] w-[62%] -translate-x-1/2 rounded-full bg-[#e7eeea] dark:bg-white/10" />
         <span className="wf-check absolute top-[91%] left-1/2 flex size-[2.4cqw] min-h-3 min-w-3 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#12b76a] text-white">
           <CheckIcon className="size-[66%]" strokeWidth={3.4} />
         </span>
@@ -447,10 +448,10 @@ function HubStage({ focus }: { focus: readonly string[] }) {
         >
           <div
             className={cn(
-              "flex min-h-[11.2cqw] cursor-default items-center gap-[1.5cqw] rounded-[2.2cqw] border bg-white py-[1.2cqw] pr-[1.8cqw] pl-[1.6cqw] transition-[translate,scale,box-shadow,border-color,opacity] duration-300 ease-out",
+              "flex min-h-[11.2cqw] cursor-default items-center gap-[1.5cqw] rounded-[2.2cqw] border bg-white py-[1.2cqw] pr-[1.8cqw] pl-[1.6cqw] transition-[translate,scale,box-shadow,border-color,opacity] duration-300 ease-out dark:bg-[#13241c]",
               isActive(node.label)
                 ? "-translate-y-[0.8cqw] scale-[1.06] border-[#6ae8b0] shadow-[0_22px_40px_-18px_rgba(6,55,40,0.45),0_0_0_0.5cqw_rgba(106,232,176,0.22)]"
-                : "border-black/[0.04] shadow-[0_14px_32px_-18px_rgba(6,55,40,0.35),0_2px_6px_rgba(6,55,40,0.05)]",
+                : "border-black/[0.04] shadow-[0_14px_32px_-18px_rgba(6,55,40,0.35),0_2px_6px_rgba(6,55,40,0.05)] dark:border-white/10 dark:shadow-[0_14px_32px_-18px_rgba(0,0,0,0.55)]",
               anyActive && !isActive(node.label) && "opacity-55",
             )}
             style={{ rotate: `${node.rotate}deg` }}
@@ -463,7 +464,7 @@ function HubStage({ focus }: { focus: readonly string[] }) {
             />
             <span
               className={cn(
-                "text-[clamp(9px,2.05cqw,14px)] leading-tight font-semibold whitespace-nowrap text-[#14234a]",
+                "text-[clamp(9px,2.05cqw,14px)] leading-tight font-semibold whitespace-nowrap text-[#14234a] dark:text-[#e8f6ee]",
               )}
             >
               {node.label.replace(/ PDF$/, "")}

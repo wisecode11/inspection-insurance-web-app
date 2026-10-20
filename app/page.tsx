@@ -20,7 +20,7 @@ const stories = [
 
 export default function HomePage() {
   return (
-    <div className="flex min-h-screen flex-col overflow-x-clip bg-background">
+    <div className="landing flex min-h-screen flex-col overflow-x-clip bg-background text-foreground">
       <SiteHeader />
 
       <main>
@@ -53,7 +53,7 @@ export default function HomePage() {
                     <blockquote className="relative h-full overflow-hidden rounded-2xl border bg-card p-6 shadow-[0_20px_45px_-30px_rgba(6,55,40,0.45)] transition-[border-color,box-shadow] duration-300 hover:border-primary/30 hover:shadow-[0_28px_55px_-28px_rgba(6,55,40,0.55)]">
                       <span
                         aria-hidden
-                        className="pointer-events-none absolute -top-6 -left-1 font-serif text-[7rem] leading-none text-primary/10 select-none"
+                        className="pointer-events-none absolute -top-6 -left-1 font-serif text-[7rem] leading-none text-primary/10 select-none dark:text-[#7ddeb0]/15"
                       >
                         &ldquo;
                       </span>

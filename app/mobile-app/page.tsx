@@ -63,6 +63,7 @@ const captureSteps = [
 export default function MobileAppPage() {
   return (
     <MarketingPage
+      className="landing"
       eyebrow="Mobile app"
       title="The field app your inspectors actually finish"
       description="RoofCheck walks every inspector through the same carrier-ready capture sequence, then sends the evidence straight to your office."

@@ -1,4 +1,5 @@
 import { endpoints } from "@/lib/api/endpoints"
+import { env } from "@/lib/config/env"
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api/request"
 import { listBillingMock } from "@/modules/platform-billing/mocks/billing.mock"
 import type {
@@ -114,7 +115,9 @@ function mapPlan(plan: ApiPlan): PlatformPlan {
 
 export const billingService = {
   list: async () => {
-    const rows = await apiGet<ApiBillingRow[]>(endpoints.billing.list, listBillingMock)
+    // Mock rows are already in display shape; only API rows go through the mapper.
+    if (env.useMocks) return listBillingMock()
+    const rows = await apiGet<ApiBillingRow[]>(endpoints.billing.list, async () => [])
     return mapBillingRows(Array.isArray(rows) ? rows : [])
   },
 

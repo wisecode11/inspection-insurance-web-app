@@ -70,6 +70,7 @@ const groups = [
 export default function FaqPage() {
   return (
     <MarketingPage
+      className="landing"
       eyebrow="FAQ"
       title="Questions, answered"
       description="What roofing companies usually ask before moving their inspections into RoofClaim."

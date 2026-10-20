@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 export default function HowItWorksPage() {
   return (
     <MarketingPage
+      className="landing"
       eyebrow="How it works"
       title="From signup to carrier-ready file"
       description="Set up your company, send inspectors out, verify the storm, and export a branded report."

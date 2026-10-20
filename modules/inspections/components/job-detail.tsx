@@ -127,7 +127,7 @@ export default function JobDetailPage() {
   }
 
   async function confirmDestructive() {
-    if (!confirmKind) return
+    if (!confirmKind || !job) return
     if (confirmKind === "cancel") {
       setConfirmKind(null)
       await run(

@@ -1,47 +1,62 @@
 "use client"
 
+import * as React from "react"
 import Link from "next/link"
 import {
-  BriefcaseIcon,
+  ActivityIcon,
+  ArrowRightIcon,
+  ArrowUpRightIcon,
   CheckCircle2Icon,
-  ClipboardListIcon,
   FileTextIcon,
-  MessageSquareWarningIcon,
-  UsersIcon,
+  HardHatIcon,
+  LayersIcon,
+  TriangleAlertIcon,
 } from "lucide-react"
+import { motion } from "framer-motion"
+import { toast } from "sonner"
 
 import { AnalyticsChart } from "@/components/company-dashboard/analytics-chart"
 import { AtAGlanceCard } from "@/components/company-dashboard/at-a-glance-card"
-import { StatCard } from "@/components/company-dashboard/stat-card"
-import { WelcomeBanner } from "@/components/company-dashboard/welcome-banner"
+import { Pill, StatCard } from "@/components/company-dashboard/stat-card"
+import {
+  DASHBOARD_RANGES,
+  DashboardRangeSelect,
+  WelcomeBanner,
+  type DashboardRange,
+} from "@/components/company-dashboard/welcome-banner"
 import { DashboardPageSkeleton } from "@/components/shared/page-skeleton"
 import { ErrorState } from "@/components/shared/resource-state"
+import { getErrorMessage } from "@/lib/api/errors"
 import { ROUTES } from "@/lib/constants/routes"
 import { useCompanyAnalytics } from "@/modules/analytics/hooks/use-analytics"
 import { useCompanyDashboard } from "@/modules/company-dashboard/hooks/use-company-dashboard"
 
+const AVATAR_TONES = [
+  "bg-[#C7C4F5] text-[#2B2670]",
+  "bg-[#063728] text-white",
+  "bg-[#8CE0B0] text-[#063728]",
+]
+
 function AvatarGroup({
   count,
   labels = ["AL", "SC", "MK"],
+  label,
 }: {
   count: number
   labels?: string[]
+  label: string
 }) {
   const shown = Math.min(Math.max(count, 0), 3)
   if (shown === 0) return null
-  const tones = [
-    "bg-gradient-to-br from-[#A5B4FC] to-[#C4B5FD] text-white",
-    "bg-[#0A4B37] text-white",
-    "bg-[#8CE0B0] text-[#063728]",
-  ]
+  const names = Array.from({ length: shown }, (_, i) => labels[i] ?? String.fromCharCode(65 + i))
   return (
-    <div className="flex -space-x-2">
-      {Array.from({ length: shown }).map((_, i) => (
+    <div className="flex" aria-label={`${label}: ${names.join(", ")}`}>
+      {names.map((name, i) => (
         <span
           key={i}
-          className={`inline-flex size-7 items-center justify-center rounded-full text-[9px] font-bold ring-2 ring-white ${tones[i % tones.length]}`}
+          className={`grid size-8 place-items-center rounded-full text-[11px] font-bold tracking-[0.02em] ring-2 ring-card ${i > 0 ? "-ml-2" : ""} ${AVATAR_TONES[i % AVATAR_TONES.length]}`}
         >
-          {labels[i] ?? String.fromCharCode(65 + i)}
+          {name}
         </span>
       ))}
     </div>
@@ -53,13 +68,15 @@ function formatNumber(n: number) {
 }
 
 export default function CompanyDashboardPage() {
-  const { data, isLoading, error } = useCompanyDashboard()
+  const { data, isLoading, error, reload } = useCompanyDashboard()
   const analytics = useCompanyAnalytics()
+  const [range, setRange] = React.useState<DashboardRange>("7d")
 
   if (isLoading) return <DashboardPageSkeleton />
   if (error || !data) return <ErrorState message={error || "Unable to load dashboard"} />
 
   const { overview, greetingName, companyName } = data
+  const rangeLabel = DASHBOARD_RANGES.find((r) => r.value === range)?.label ?? ""
 
   const passRate =
     overview.totalJobs > 0
@@ -85,6 +102,10 @@ export default function CompanyDashboardPage() {
   const running = Math.max(0, overview.activeJobs - finishingSoon)
   const urgentReviews = Math.min(overview.pendingReviews, Math.max(0, Math.ceil(overview.pendingReviews / 2)))
 
+  const monthly = analytics.data?.jobs.monthly ?? []
+  const jobsSpark = monthly.slice(-7).map((m) => m.total)
+  const completedSpark = monthly.slice(-7).map((m) => m.completed)
+
   const auditors =
     analytics.data?.inspectors.slice(0, 3).map((row) => ({
       id: row.id,
@@ -93,110 +114,153 @@ export default function CompanyDashboardPage() {
       audits: row.completed,
     })) ?? []
 
-  return (
-    <div className="flex flex-col gap-6">
-      <WelcomeBanner greetingName={greetingName} companyName={companyName} />
+  const refresh = async () => {
+    try {
+      await Promise.all([reload(), analytics.reload()])
+      toast.success("Dashboard refreshed")
+    } catch (caught) {
+      toast.error(getErrorMessage(caught))
+    }
+  }
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+  return (
+    <div className="flex flex-col">
+      <WelcomeBanner
+        greetingName={greetingName}
+        companyName={companyName}
+        activeJobs={overview.activeJobs}
+        reportsSubmitted={overview.reportsSubmitted}
+      />
+
+      <motion.div
+        initial={{ opacity: 0, y: 18 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1] }}
+        className="mt-7 mb-3.5 flex flex-wrap items-end justify-between gap-3"
+      >
+        <div>
+          <h2 className="m-0 text-2xl font-bold tracking-[-0.025em] text-foreground">Key metrics</h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">{rangeLabel}</p>
+        </div>
+        <DashboardRangeSelect value={range} onChange={setRange} />
+      </motion.div>
+
+      <section aria-label="Key metrics" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <StatCard
           label="Total Jobs"
-          value={formatNumber(overview.totalJobs)}
-          icon={BriefcaseIcon}
-          icon3d="briefcase"
-          tone="lime"
-          trend={overview.totalJobs > 0 ? "↑ +14.2% vs last week" : undefined}
-          delay={0.05}
+          value={overview.totalJobs}
+          icon={LayersIcon}
+          tone="green"
+          meta={
+            overview.totalJobs > 0 ? (
+              <Pill icon={ArrowUpRightIcon}>+14.2% vs last week</Pill>
+            ) : (
+              <span>No jobs yet</span>
+            )
+          }
+          spark={jobsSpark}
         />
         <StatCard
           label="Active Jobs"
-          value={formatNumber(overview.activeJobs)}
-          icon={ClipboardListIcon}
-          icon3d="clipboard"
+          value={overview.activeJobs}
+          icon={ActivityIcon}
           tone="green"
-          caption={
-            overview.activeJobs > 0
-              ? `${finishingSoon} finishing soon · ${running} running`
-              : "No jobs in progress"
+          featured
+          meta={
+            <span>
+              {overview.activeJobs > 0
+                ? `${finishingSoon} finishing soon · ${running} running`
+                : "No jobs in progress"}
+            </span>
           }
-          footer={<AvatarGroup count={overview.activeInspectors || overview.activeJobs} />}
-          sparkline={false}
-          delay={0.08}
+          aside={
+            <AvatarGroup
+              label="Assigned inspectors"
+              count={overview.activeInspectors || overview.activeJobs}
+            />
+          }
+          delay={0.07}
         />
         <StatCard
           label="Completed Jobs"
-          value={formatNumber(overview.completedJobs)}
+          value={overview.completedJobs}
           icon={CheckCircle2Icon}
-          icon3d="check"
-          tone="emerald"
-          badge={
+          tone="green"
+          meta={
             overview.completedJobs > 0 ? (
-              <span className="inline-flex items-center rounded-full bg-[#D6F3E0] px-2.5 py-0.5 text-xs font-semibold text-[#1E7B45]">
-                {passRate}% Pass Rate
-              </span>
-            ) : undefined
-          }
-          sparkline={false}
-          delay={0.11}
-        />
-        <StatCard
-          label="Pending Reviews"
-          value={formatNumber(overview.pendingReviews)}
-          icon={MessageSquareWarningIcon}
-          icon3d="alert"
-          tone="orange"
-          badge={
-            urgentReviews > 0 ? (
-              <span className="inline-flex items-center rounded-full bg-[#FCD9D6] px-2.5 py-0.5 text-xs font-semibold text-[#B42318]">
-                {urgentReviews} urgent
-              </span>
-            ) : undefined
-          }
-          footer={
-            overview.pendingReviews > 0 ? (
-              <Link
-                href={ROUTES.company.reports}
-                className="text-xs font-semibold text-[#101828] hover:underline"
-              >
-                Review →
-              </Link>
+              <Pill>{passRate}% Pass Rate</Pill>
             ) : (
-              <span className="text-xs text-[#667085]">All caught up</span>
+              <span>None completed yet</span>
             )
           }
-          sparkline={false}
           delay={0.14}
         />
         <StatCard
-          label="Reports Submitted"
-          value={formatNumber(overview.reportsSubmitted)}
-          icon={FileTextIcon}
-          icon3d="file"
-          tone="teal"
-          trendStyle="text"
-          trend={overview.reportsSubmitted > 0 ? "↗ +18% vs monthly target" : undefined}
-          caption={
-            overview.reportsSubmitted > 0 ? "Compliance 100%" : "No reports submitted yet"
+          label="Pending Reviews"
+          value={overview.pendingReviews}
+          icon={TriangleAlertIcon}
+          tone="amber"
+          featured
+          meta={
+            urgentReviews > 0 ? <Pill tone="red">{urgentReviews} urgent</Pill> : <span>All caught up</span>
           }
-          delay={0.17}
+          aside={
+            overview.pendingReviews > 0 ? (
+              <Link
+                href={ROUTES.company.reports}
+                className="group/link inline-flex items-center gap-1 text-[13.5px] font-semibold text-[#D97706] dark:text-[#FBBF24]"
+              >
+                Review
+                <ArrowRightIcon className="size-3.5 transition-transform duration-200 group-hover/link:translate-x-[3px]" />
+              </Link>
+            ) : undefined
+          }
+        />
+        <StatCard
+          label="Reports Submitted"
+          value={overview.reportsSubmitted}
+          icon={FileTextIcon}
+          tone="teal"
+          meta={
+            overview.reportsSubmitted > 0 ? (
+              <>
+                <span className="font-semibold text-[#0F9488] dark:text-[#5EEAD4]">↗ +18% vs monthly target</span>
+                <span>Compliance 100%</span>
+              </>
+            ) : (
+              <span>No reports submitted yet</span>
+            )
+          }
+          spark={completedSpark}
+          delay={0.07}
         />
         <StatCard
           label="Active Inspectors"
-          value={formatNumber(overview.activeInspectors)}
-          icon={UsersIcon}
-          icon3d="users"
+          value={overview.activeInspectors}
+          icon={HardHatIcon}
           tone="slate"
-          caption={
-            overview.totalInspectors > 0
-              ? `${onlinePct}% Online`
-              : "Invite inspectors from Staff"
+          meta={
+            overview.totalInspectors > 0 ? (
+              <span className="inline-flex items-center gap-1.5">
+                <span className="size-2 rounded-full bg-[#2FBF6B]" />
+                {onlinePct}% Online
+              </span>
+            ) : (
+              <span>Invite inspectors from Staff</span>
+            )
           }
-          footer={<AvatarGroup count={overview.activeInspectors || overview.totalInspectors} />}
-          sparkline={false}
-          delay={0.2}
+          aside={
+            <AvatarGroup
+              label="Online inspectors"
+              count={overview.activeInspectors || overview.totalInspectors}
+            />
+          }
+          delay={0.14}
         />
       </section>
 
-      <section className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,30%)] xl:items-stretch">
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)]">
         <AnalyticsChart monthly={analytics.data?.jobs.monthly} />
         <AtAGlanceCard
           percent={targetPct || 84}
@@ -206,8 +270,9 @@ export default function CompanyDashboardPage() {
               : `${formatNumber(overview.completedJobs)} of ${formatNumber(overview.totalJobs)} jobs completed`
           }
           auditors={auditors}
+          onRefresh={refresh}
         />
-      </section>
+      </div>
     </div>
   )
 }

@@ -4,89 +4,52 @@ import type { LucideIcon } from "lucide-react"
 import type { CSSProperties, ReactNode } from "react"
 import { motion } from "framer-motion"
 
-import { Icon3D, type Icon3DKey } from "@/components/shared/icon-3d"
+import { CountUp } from "@/components/company-dashboard/count-up"
+import { useTilt } from "@/components/shared/use-tilt"
 import { cn } from "@/lib/utils"
 
-export type StatCardTone = "lime" | "green" | "emerald" | "orange" | "teal" | "slate"
+export type StatCardTone = "green" | "amber" | "teal" | "slate"
 
-type ToneConfig = {
-  /** Accent bar + glow colour, as "r,g,b". */
-  rgb: string
-  iconBg: string
-  iconFg: string
-  trendBg: string
-  trendFg: string
-  /** Tinted cards get a soft coloured background and border instead of white. */
-  tint?: { background: string; border: string }
+const ACCENTS: Record<StatCardTone, string> = {
+  green: "#16A34A",
+  amber: "#F59E0B",
+  teal: "#14B8A6",
+  slate: "#64748B",
 }
 
-const TONES: Record<StatCardTone, ToneConfig> = {
-  lime: {
-    rgb: "74,222,128",
-    iconBg: "#E4F8EA",
-    iconFg: "#16A34A",
-    trendBg: "#E3F6E8",
-    trendFg: "#166534",
-  },
-  green: {
-    rgb: "52,199,123",
-    iconBg: "#C9EFD7",
-    iconFg: "#15803D",
-    trendBg: "#D6F3E0",
-    trendFg: "#166534",
-    tint: {
-      background: "linear-gradient(180deg, #EEFBF2 0%, #DDF5E6 100%)",
-      border: "#A7E3BE",
-    },
-  },
-  emerald: {
-    rgb: "34,163,90",
-    iconBg: "#DCF3E4",
-    iconFg: "#15803D",
-    trendBg: "#DCF3E4",
-    trendFg: "#1E7B45",
-  },
-  orange: {
-    rgb: "245,158,75",
-    iconBg: "#FBD9B8",
-    iconFg: "#C2410C",
-    trendBg: "#FDE3CC",
-    trendFg: "#9A3412",
-    tint: {
-      background: "linear-gradient(180deg, #FFF6EE 0%, #FDEBDB 100%)",
-      border: "#F6C9A1",
-    },
-  },
-  teal: {
-    rgb: "20,184,166",
-    iconBg: "#D3F2EE",
-    iconFg: "#0F766E",
-    trendBg: "#D3F2EE",
-    trendFg: "#0F8F80",
-  },
-  slate: {
-    rgb: "148,155,168",
-    iconBg: "#E6E8EC",
-    iconFg: "#475467",
-    trendBg: "#EEF0F3",
-    trendFg: "#344054",
-  },
-}
+/** Smooth sparkline (Catmull-Rom → Bézier) drawn from a short series. */
+function Sparkline({ values, color }: { values: number[]; color: string }) {
+  const w = 96
+  const h = 36
+  const p = 3
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const pts = values.map(
+    (v, i) =>
+      [p + (i * (w - 2 * p)) / (values.length - 1), h - p - ((v - min) / (max - min || 1)) * (h - 2 * p)] as const,
+  )
+  let d = `M${pts[0][0]},${pts[0][1]}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] ?? pts[i]
+    const p1 = pts[i]
+    const p2 = pts[i + 1]
+    const p3 = pts[i + 2] ?? p2
+    d += ` C${p1[0] + (p2[0] - p0[0]) / 6},${p1[1] + (p2[1] - p0[1]) / 6} ${p2[0] - (p3[0] - p1[0]) / 6},${p2[1] - (p3[1] - p1[1]) / 6} ${p2[0]},${p2[1]}`
+  }
 
-function Sparkline({ rgb, className }: { rgb: string; className?: string }) {
   return (
-    <svg
-      viewBox="0 0 72 28"
-      fill="none"
-      aria-hidden
-      className={cn("h-7 w-[4.5rem] overflow-visible", className)}
-      style={{ filter: `drop-shadow(0 3px 5px rgba(${rgb},0.55))` }}
-    >
-      <path
-        d="M1 20 C8 18, 12 10, 20 12 S32 22, 40 14 S52 4, 71 8"
-        stroke={`rgb(${rgb})`}
-        strokeWidth="2"
+    <svg viewBox={`0 0 ${w} ${h}`} className="h-9 w-24 shrink-0" aria-hidden>
+      <path d={`${d} L${w - p},${h} L${p},${h}Z`} fill={color} opacity={0.1} />
+      <motion.path
+        d={d}
+        fill="none"
+        stroke={color}
+        strokeWidth={2.2}
         strokeLinecap="round"
+        initial={{ pathLength: 0 }}
+        whileInView={{ pathLength: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 1.4, ease: "easeInOut", delay: 0.2 }}
       />
     </svg>
   )
@@ -96,111 +59,120 @@ export function StatCard({
   label,
   value,
   icon: Icon,
-  icon3d,
-  tone = "lime",
-  trend,
-  trendStyle = "pill",
-  caption,
-  badge,
-  footer,
-  sparkline = true,
+  tone = "green",
+  featured = false,
+  meta,
+  aside,
+  spark,
   className,
   delay = 0,
 }: {
   label: string
-  value: string
-  icon?: LucideIcon
-  icon3d?: Icon3DKey
+  value: number
+  icon: LucideIcon
   tone?: StatCardTone
-  trend?: string
-  /** "pill" puts the trend in a tinted chip; "text" shows it as plain coloured text. */
-  trendStyle?: "pill" | "text"
-  caption?: string
-  badge?: ReactNode
-  footer?: ReactNode
-  sparkline?: boolean
+  /** Featured cards get a soft tint of the accent colour. */
+  featured?: boolean
+  /** Pills / captions under the value. */
+  meta?: ReactNode
+  /** Right-aligned footer content (avatars, link). Takes precedence over `spark`. */
+  aside?: ReactNode
+  /** Series for the footer sparkline; needs at least two points. */
+  spark?: number[]
   className?: string
   delay?: number
 }) {
-  const config = TONES[tone]
-  const cardStyle: CSSProperties = config.tint
-    ? { background: config.tint.background, borderColor: config.tint.border }
-    : {}
+  const accent = ACCENTS[tone]
+  const tilt = useTilt<HTMLElement>()
+
+  const style = {
+    "--accent": accent,
+    transform: tilt.transform,
+    background: featured
+      ? `linear-gradient(160deg, color-mix(in srgb, ${accent} ${tone === "amber" ? 11 : 9}%, var(--card)), var(--card) 70%)`
+      : undefined,
+  } as CSSProperties
+
+  const showSpark = !aside && spark && spark.length > 1 && spark.some((v) => v > 0)
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay, ease: "easeOut" }}
-      whileHover={{ y: -2, boxShadow: "0 12px 28px -16px rgba(16,24,40,0.18)" }}
-      style={cardStyle}
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "0px 0px -10% 0px" }}
+      transition={{ duration: 0.7, delay, ease: [0.2, 0.8, 0.2, 1] }}
+      className={cn("flex", className)}
+    >
+    <article
+      {...tilt.bind}
+      style={style}
       className={cn(
-        "group relative isolate flex flex-col gap-3 overflow-hidden rounded-[20px] border border-[#E6E9E7] bg-white p-5 shadow-[0_1px_2px_rgba(16,24,40,0.04)]",
-        className,
+        "group relative flex min-h-44 w-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-[0_1px_2px_rgba(6,55,40,0.06),0_1px_3px_rgba(6,55,40,0.05)] [transform-style:preserve-3d] transition-[transform,box-shadow,border-color] duration-300 ease-[cubic-bezier(.2,.8,.2,1)] will-change-transform dark:shadow-[0_1px_2px_rgba(0,0,0,0.35)]",
+        "hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--border))] hover:shadow-[0_8px_24px_-8px_rgba(6,55,40,0.18),0_2px_6px_rgba(6,55,40,0.06)] dark:hover:shadow-[0_8px_24px_-8px_rgba(0,0,0,0.55)]",
       )}
     >
-      {/* Top-left accent: a short coloured bar with a soft glow spilling down behind the label. */}
+      {/* accent bar */}
       <span
         aria-hidden
-        className="pointer-events-none absolute left-0 top-0 -z-10 h-20 w-3/5"
-        style={{
-          background: `radial-gradient(ellipse 80% 100% at 20% 0%, rgba(${config.rgb},0.22), transparent 70%)`,
-        }}
+        className="absolute inset-x-0 top-0 h-[3px]"
+        style={{ background: `linear-gradient(90deg, ${accent}, transparent 70%)` }}
       />
+      {/* pointer spotlight */}
       <span
         aria-hidden
-        className="pointer-events-none absolute left-0 top-0 h-[5px] w-[45%] rounded-br-full"
+        className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         style={{
-          background: `linear-gradient(90deg, rgb(${config.rgb}) 0%, rgb(${config.rgb}) 80%, rgba(${config.rgb},0.35) 100%)`,
+          background: `radial-gradient(320px circle at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, ${accent} 14%, transparent), transparent 60%)`,
         }}
       />
 
-      <div className="flex items-start justify-between gap-3">
-        <span className="text-[13px] font-semibold text-[#1D2939]">{label}</span>
-        {icon3d ? (
-          <span
-            className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-(--icon-bg) shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] transition-[background-color,box-shadow] duration-200 group-hover:bg-transparent group-hover:shadow-none"
-            style={{ "--icon-bg": config.iconBg } as CSSProperties}
-          >
-            <Icon3D name={icon3d} size={30} className="drop-shadow-[0_4px_8px_rgba(16,24,40,0.14)]" />
-          </span>
-        ) : Icon ? (
-          <span
-            className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-(--icon-bg) transition-colors duration-200 group-hover:bg-transparent"
-            style={{ "--icon-bg": config.iconBg, color: config.iconFg } as CSSProperties}
-          >
-            <Icon className="size-5" aria-hidden />
-          </span>
-        ) : null}
+      <div className="relative flex items-start justify-between gap-3">
+        <span className="text-[13.5px] font-semibold text-muted-foreground">{label}</span>
+        <span
+          className="grid size-10 place-items-center rounded-xl"
+          style={{
+            color: accent,
+            background: `color-mix(in srgb, ${accent} 12%, transparent)`,
+            boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${accent} 20%, transparent)`,
+          }}
+        >
+          <Icon className="size-[19px]" aria-hidden />
+        </span>
       </div>
 
-      <div className="flex items-end justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[2rem] font-bold tracking-tight tabular-nums text-[#101828] leading-none">
-            {value}
-          </p>
-          {trend ? (
-            trendStyle === "pill" ? (
-              <span
-                className="mt-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                style={{ backgroundColor: config.trendBg, color: config.trendFg }}
-              >
-                {trend}
-              </span>
-            ) : (
-              <p className="mt-2 text-xs font-semibold" style={{ color: config.trendFg }}>
-                {trend}
-              </p>
-            )
-          ) : null}
-          {badge ? <div className="mt-2">{badge}</div> : null}
-          {caption ? (
-            <p className="mt-1.5 text-xs leading-relaxed text-[#344054]">{caption}</p>
-          ) : null}
-          {footer ? <div className="mt-3">{footer}</div> : null}
-        </div>
-        {sparkline && !footer ? <Sparkline rgb={config.rgb} className="mb-0.5 shrink-0" /> : null}
+      <p className="relative mt-3.5 mb-2.5 text-[40px] leading-none font-extrabold tracking-[-0.03em] tabular-nums text-foreground">
+        <CountUp value={value} />
+      </p>
+
+      <div className="relative mt-auto flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1.5 text-[13px] text-muted-foreground">{meta}</div>
+        {aside ?? (showSpark ? <Sparkline values={spark} color={accent} /> : null)}
       </div>
+    </article>
     </motion.div>
+  )
+}
+
+export function Pill({
+  tone = "green",
+  icon: Icon,
+  children,
+}: {
+  tone?: "green" | "red"
+  icon?: LucideIcon
+  children: ReactNode
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 self-start rounded-full px-2.5 py-[3px] text-[12.5px] font-semibold",
+        tone === "green"
+          ? "bg-[#DFF7EA] text-[#0F5D44] dark:bg-[#1FB86A]/18 dark:text-[#9BEBC0]"
+          : "bg-[#FEE2E2] text-[#DC2626] dark:bg-[#DC2626]/20 dark:text-[#FCA5A5]",
+      )}
+    >
+      {Icon ? <Icon className="size-[13px]" aria-hidden /> : null}
+      {children}
+    </span>
   )
 }

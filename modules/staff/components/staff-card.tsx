@@ -3,40 +3,38 @@
 import * as React from "react"
 import { MailIcon, PhoneIcon } from "lucide-react"
 
-import { AvatarInitials, GridCard, GridCardActions } from "@/components/shared/grid-card"
-import { StatusBadge, type StatusVariant } from "@/components/shared/status-badge"
+import { GridCardActions, initialsOf } from "@/components/shared/grid-card"
+import {
+  FactBox,
+  LIST_TONES,
+  ListCard,
+  ListCardFooter,
+  SquareAvatar,
+  StatusPill,
+  TagChip,
+  type ListTone,
+} from "@/components/shared/list-card"
 import { cn } from "@/lib/utils"
 import type { StaffMember } from "@/modules/staff/types/staff.types"
 
-const accentByStatus: Record<string, string> = {
-  active: "bg-success",
-  suspended: "bg-danger",
-  invited: "bg-warning",
-  pending_setup: "bg-warning",
-}
-
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="flex flex-col items-center gap-0.5 rounded-xl bg-primary-tint/45 px-2 py-2.5">
-      <span className="text-lg leading-none font-semibold tabular-nums text-foreground">{value}</span>
-      <span className="text-center text-[0.65rem] font-semibold tracking-wider text-muted-foreground/80 uppercase">
-        {label}
-      </span>
-    </div>
-  )
+const toneByStatus: Record<string, ListTone> = {
+  active: LIST_TONES.green,
+  invited: LIST_TONES.amber,
+  pending_setup: LIST_TONES.amber,
+  suspended: LIST_TONES.red,
+  deactivated: LIST_TONES.gray,
 }
 
 export function StaffCard({
   member,
-  statusVariant,
   onOpen,
   actions,
 }: {
   member: StaffMember
-  statusVariant: StatusVariant
   onOpen?: () => void
   actions?: React.ReactNode
 }) {
+  const tone = toneByStatus[member.status] ?? LIST_TONES.gray
   const assigned = member.jobsAssigned ?? 0
   const completed = member.jobsCompleted ?? 0
   const reports = member.reportsSubmitted ?? 0
@@ -50,69 +48,68 @@ export function StaffCard({
   const inactive = member.status === "deactivated" || member.status === "suspended"
 
   return (
-    <GridCard
-      accent={accentByStatus[member.status] ?? "bg-muted-foreground/40"}
-      onOpen={onOpen}
-      label={member.name}
-    >
-      <header className="flex items-start gap-3">
-        <AvatarInitials
-          name={member.name}
-          className={cn("size-12 text-base", inactive && "from-muted-foreground to-muted-foreground")}
-        />
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <h3 className="truncate text-base font-semibold tracking-tight capitalize" title={member.name}>
-            {member.name}
-          </h3>
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="rounded-md bg-foreground/[0.05] px-1.5 py-0.5 text-[0.7rem] font-semibold text-muted-foreground">
-              Inspector
-            </span>
-            <StatusBadge
-              status={statusVariant}
-              label={member.status.replaceAll("_", " ")}
-              className="rounded-full capitalize"
-            />
+    <ListCard accent={tone.bar} onOpen={onOpen} label={member.name}>
+      <header className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <SquareAvatar
+            initials={initialsOf(member.name)}
+            className={cn("size-10 rounded-xl text-[13px]", inactive && "bg-muted-foreground")}
+          />
+          <div className="min-w-0">
+            <h3
+              className="truncate text-base font-bold tracking-[-0.02em] text-foreground capitalize"
+              title={member.name}
+            >
+              {member.name}
+            </h3>
+            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+              <TagChip>Inspector</TagChip>
+              <StatusPill tone={tone} className="capitalize">
+                {member.status.replaceAll("_", " ")}
+              </StatusPill>
+            </div>
           </div>
         </div>
-        {actions ? <GridCardActions>{actions}</GridCardActions> : null}
+        {actions ? <GridCardActions className="mt-0 -mr-1.5">{actions}</GridCardActions> : null}
       </header>
 
-      <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
+      <div className="mt-3 flex flex-col gap-1 text-[13px] text-muted-foreground">
         <a
           href={`mailto:${member.email}`}
           onClick={(event) => event.stopPropagation()}
-          className="flex min-w-0 items-center gap-2 hover:text-primary"
+          className="flex min-w-0 items-center gap-1.5 hover:text-primary dark:hover:text-[#7ddeb0]"
         >
-          <MailIcon className="size-3.5 shrink-0 text-primary" aria-hidden />
+          <MailIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
           <span className="truncate">{member.email}</span>
         </a>
-        <span className="flex items-center gap-2">
-          <PhoneIcon className="size-3.5 shrink-0 text-primary" aria-hidden />
+        <span className="flex items-center gap-1.5">
+          <PhoneIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
           {member.profile?.phone || "No phone"}
         </span>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
-        <Stat label="Assigned" value={assigned} />
-        <Stat label="Completed" value={completed} />
-        <Stat label="Reports" value={reports} />
-      </div>
+      <dl className="mt-3 mb-3 grid grid-cols-3 gap-2">
+        <FactBox label="Assigned" value={<span className="tabular-nums">{assigned}</span>} />
+        <FactBox label="Completed" value={<span className="tabular-nums">{completed}</span>} />
+        <FactBox label="Reports" value={<span className="tabular-nums">{reports}</span>} />
+      </dl>
 
-      {completion != null ? (
-        <div className="mt-auto flex flex-col gap-1.5">
+      <ListCardFooter className="mt-auto">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Completion rate</span>
-            <span className="font-semibold tabular-nums">{completion}%</span>
+            <span className="font-semibold tabular-nums text-foreground">
+              {completion != null ? `${completion}%` : "—"}
+            </span>
           </div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-primary-tint">
+          <div className="h-1.5 overflow-hidden rounded-full bg-muted">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-primary to-success transition-[width] duration-500"
-              style={{ width: `${Math.min(100, Math.max(0, completion))}%` }}
+              className="h-full rounded-full bg-linear-to-r from-[#1FB86A] to-[#3DD388] transition-[width] duration-500"
+              style={{ width: `${Math.min(100, Math.max(0, completion ?? 0))}%` }}
             />
           </div>
         </div>
-      ) : null}
-    </GridCard>
+      </ListCardFooter>
+    </ListCard>
   )
 }

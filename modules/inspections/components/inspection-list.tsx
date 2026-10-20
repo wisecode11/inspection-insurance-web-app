@@ -2,10 +2,11 @@
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
-import { MoreHorizontalIcon, PlusIcon } from "lucide-react"
+import { FilterIcon, MoreHorizontalIcon, PlusIcon, UserPlusIcon } from "lucide-react"
 import { toast } from "@/lib/toast"
 
-import { PageHeader } from "@/components/shared/page-header"
+import { ListPageHero, heroGhostButtonClass, heroPrimaryButtonClass } from "@/components/shared/list-page-hero"
+import { LIST_CARD_GRID_CLASS, LIST_FILTER_TRIGGER_CLASS } from "@/components/shared/list-card"
 import { DataTable, type Column } from "@/components/shared/data-table"
 import { StatusBadge } from "@/components/shared/status-badge"
 import { ErrorState, LoadingSkeleton } from "@/components/shared/resource-state"
@@ -40,7 +41,7 @@ import {
 } from "@/components/ui/select"
 import { ROUTES } from "@/lib/constants/routes"
 import { getErrorMessage } from "@/lib/api/errors"
-import { CardGrid, ViewToggle, useListView } from "@/components/shared/grid-card"
+import { ViewToggle, useListView } from "@/components/shared/grid-card"
 import { JobCard } from "@/modules/inspections/components/job-card"
 import { useJobs } from "@/modules/inspections/hooks/use-jobs"
 import { jobService } from "@/modules/inspections/services/job.service"
@@ -484,31 +485,34 @@ export default function JobsPage() {
 
   return (
     <>
-      <PageHeader
-        eyebrow="Company workspace"
+      <ListPageHero
         title="Jobs"
         description="Create jobs, assign or reassign inspectors, cancel assignments, and track status."
         actions={
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
+          <>
+            <button
+              type="button"
               disabled={!selectedIds.length}
               onClick={() => {
                 setBulkInspectorId(inspectors[0]?.id || "")
                 setBulkOpen(true)
               }}
+              className={heroGhostButtonClass}
             >
-              Bulk assign ({selectedIds.length})
-            </Button>
-            <Button variant="default" onClick={openCreate}>
-              <PlusIcon data-icon="inline-start" />
+              <UserPlusIcon className="size-4" />
+              Bulk assign
+              <span className="rounded-md bg-white/12 px-1.5 py-px text-xs tabular-nums">{selectedIds.length}</span>
+            </button>
+            <button type="button" onClick={openCreate} className={heroPrimaryButtonClass}>
+              <PlusIcon className="size-4" />
               New job
-            </Button>
-          </div>
+            </button>
+          </>
         }
       />
 
       <DataTable
+        variant="panel"
         data={rows}
         columns={columns}
         rowKey={(row) => row.id}
@@ -522,7 +526,7 @@ export default function JobsPage() {
         renderGrid={
           view === "grid"
             ? (pageRows) => (
-                <CardGrid>
+                <div className={LIST_CARD_GRID_CLASS}>
                   {pageRows.map((row) => (
                     <JobCard
                       key={row.id}
@@ -533,20 +537,23 @@ export default function JobsPage() {
                       actions={renderActions(row)}
                     />
                   ))}
-                </CardGrid>
+                </div>
               )
             : undefined
         }
         toolbar={
           <>
-          <ViewToggle view={view} onChange={changeView} />
+          <ViewToggle view={view} onChange={changeView} variant="soft" />
           <Select
             value={status}
             onValueChange={(value) => setStatus((value as StatusFilter) || "all")}
             items={statusFilterItems}
           >
-            <SelectTrigger>
-              <SelectValue />
+            <SelectTrigger className={LIST_FILTER_TRIGGER_CLASS}>
+              <span className="flex items-center gap-2">
+                <FilterIcon className="size-4 text-muted-foreground" aria-hidden />
+                <SelectValue />
+              </span>
             </SelectTrigger>
             <SelectContent>
               {statusFilterItems.map((option) => (
